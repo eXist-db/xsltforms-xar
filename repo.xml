@@ -7,7 +7,7 @@
     <status>alpha</status>
     <license>GNU-LGPL</license>
     <copyright>true</copyright>
-    <type>/db/library</type>
+    <type>library</type>
     <target>xsltforms</target>
     <finish/>
 </meta>
