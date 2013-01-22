@@ -1,4 +1,4 @@
-/* Rev. 562
+/* Rev. 565
 
 Copyright (C) 2008-2012 agenceXML - Alain COUTHURES
 Contact at : xsltforms@agencexml.com
@@ -41,8 +41,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 /*global XsltForms_typeDefs : true, XsltForms_exprContext : true */
 var XsltForms_globals = {
 
-	fileVersion: "562",
-	fileVersionNumber: 562,
+	fileVersion: "565",
+	fileVersionNumber: 565,
 
 	language: "navigator",
 	debugMode: false,
@@ -580,7 +580,7 @@ var XsltForms_globals = {
 
 	build : function(element, ctx, selected) {
 		if (element.nodeType !== XsltForms_nodeType.ELEMENT || element.id === "xsltforms_console" || element.hasXFElement === false) {
-			return;
+			return {ctx: ctx, hasXFElement: false};
 		}
 		var xf = element.xfElement;
 		var hasXFElement = !!xf;
@@ -600,16 +600,40 @@ var XsltForms_globals = {
 				}
 			}
 		}
-		ctx = element.node || ctx;
+		var newctx = element.node || ctx;
 		var childs = element.children || element.childNodes;
 		var sel = element.selected;
 		if (typeof sel !== "undefined") {
 			selected = sel;
 		}
 		if (!xf || (xf instanceof Array) || !xf.isRepeat || xf.nodes.length > 0) {
+			var nbsiblings = 1, isiblings = 1;
+			var nodes = [], nbnodes = 0;
 			for (var i = 0; i < childs.length && this.building; i++) {
 				if (childs[i].nodeType !== XsltForms_nodeType.TEXT) {
-					hasXFElement = (!childs[i].getAttribute("cloned") ? this.build(childs[i], ctx, selected) : false) || hasXFElement;
+					var curctx;
+					if (isiblings !== 1) {
+						curctx = nodes[inodes];
+						isiblings--;
+					} else if (nbnodes !== 0) {
+						nbnodes--;
+						inodes++;
+						curctx = nodes[inodes];
+						isiblings = nbsiblings;
+					} else {
+						curctx = newctx;
+					}
+					if (!childs[i].getAttribute("cloned")) {
+						var br = this.build(childs[i], curctx, selected);
+						if (childs[i].xfElement && childs[i].xfElement.nbsiblings && childs[i].xfElement.nbsiblings > 1) {
+							nbsiblings = childs[i].xfElement.nbsiblings;
+							nodes = childs[i].xfElement.nodes;
+							nbnodes = nodes.length;
+							inodes = 0;
+							isiblings = nbsiblings;
+						}
+						hasXFElement = br.hasXFElement || hasXFElement;
+					}
 				}
 			}
 		}
@@ -631,7 +655,7 @@ var XsltForms_globals = {
 				element.hasXFElement = hasXFElement;
 			}
 		}
-		return hasXFElement;
+		return {ctx: newctx, hasXFElement: hasXFElement};
 	},
 
 		
@@ -689,6 +713,9 @@ function XsltForms_subform(subform, id, eltid) {
 	this.eltid = eltid;
 	if (eltid) {
 		document.getElementById(eltid).xfSubform = this;
+	} else {
+		var b = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+		b.xfSubform = this;
 	}
 	this.models = [];
 	this.schemas = [];
@@ -3293,49 +3320,51 @@ XsltForms_instance.prototype.setDoc = function(xml, isReset, preserveOld) {
 
 XsltForms_instance.prototype.setDocFromReq = function(req, mediatype, isReset, preserveOld) {
 	var srcXML = req.responseText;
-	this.mediatype = mediatype;
-	switch(this.mediatype) {
-		case "text/json":
-		case "application/json":
-			var json;
-			eval("json = " + srcXML);
-			srcXML = XsltForms_browser.json2xml("", json, true, false);
-			break;
-		case "text/vcard":
-			srcXML = XsltForms_browser.vcard2xcard(srcXML);
-			break;
-		case "application/zip":
-		case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-		case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-			var arch;
-			if (XsltForms_browser.isIE) {
-				var convertResponseBodyToText = function (binary) {
-					if (!XsltForms_browser.byteMapping) {
-						var byteMapping = {};
-						for (var i = 0; i < 256; i++) {
-							for (var j = 0; j < 256; j++) {
-								byteMapping[String.fromCharCode(i + j * 256)] = String.fromCharCode(i) + String.fromCharCode(j);
+	if (mediatype) {
+		this.mediatype = mediatype;
+		switch(this.mediatype) {
+			case "text/json":
+			case "application/json":
+				var json;
+				eval("json = " + srcXML);
+				srcXML = XsltForms_browser.json2xml("", json, true, false);
+				break;
+			case "text/vcard":
+				srcXML = XsltForms_browser.vcard2xcard(srcXML);
+				break;
+			case "application/zip":
+			case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+			case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+				var arch;
+				if (XsltForms_browser.isIE) {
+					var convertResponseBodyToText = function (binary) {
+						if (!XsltForms_browser.byteMapping) {
+							var byteMapping = {};
+							for (var i = 0; i < 256; i++) {
+								for (var j = 0; j < 256; j++) {
+									byteMapping[String.fromCharCode(i + j * 256)] = String.fromCharCode(i) + String.fromCharCode(j);
+								}
 							}
+							XsltForms_browser.byteMapping = byteMapping;
 						}
-						XsltForms_browser.byteMapping = byteMapping;
-					}
-					var rawBytes = XsltForms_browser_BinaryToArray_ByteStr(binary);
-					var lastChr = XsltForms_browser_BinaryToArray_ByteStr_Last(binary);
-					return rawBytes.replace(/[\s\S]/g, function (match) { return XsltForms_browser.byteMapping[match]; }) + lastChr;
-				};
-				arch = XsltForms_browser.zip2xml(convertResponseBodyToText(req.responseBody), this.mediatype, this.element.id, this.model.element.id);
-			} else {
-				arch = XsltForms_browser.zip2xml(srcXML, this.mediatype, this.element.id, this.model.element.id);
-			}
-			srcXML = arch.srcXML;
-			delete arch.srcXML;
-			this.archive = arch;
-			break;
-		case "application/xml":
-			break;
-		default:
-			alert("Unsupported mediatype '" + this.mediatype + "' for instance #" + this.element.id);
-			return;
+						var rawBytes = XsltForms_browser_BinaryToArray_ByteStr(binary);
+						var lastChr = XsltForms_browser_BinaryToArray_ByteStr_Last(binary);
+						return rawBytes.replace(/[\s\S]/g, function (match) { return XsltForms_browser.byteMapping[match]; }) + lastChr;
+					};
+					arch = XsltForms_browser.zip2xml(convertResponseBodyToText(req.responseBody), this.mediatype, this.element.id, this.model.element.id);
+				} else {
+					arch = XsltForms_browser.zip2xml(srcXML, this.mediatype, this.element.id, this.model.element.id);
+				}
+				srcXML = arch.srcXML;
+				delete arch.srcXML;
+				this.archive = arch;
+				break;
+			case "application/xml":
+				break;
+			default:
+				alert("Unsupported mediatype '" + this.mediatype + "' for instance #" + this.element.id);
+				return;
+		}
 	}
 	this.setDoc(srcXML, isReset, preserveOld);
 };
@@ -3778,7 +3807,7 @@ XsltForms_browser.xml2zip = function(arch, mediatype) {
 			f.localHeaderOffset = z.length;
 			if (f.doc) {
 				var ser = XsltForms_browser.utf8encode(XsltForms_browser.saveXML(f.doc));
-				if (mediatype.indexOf("application/vnd.openxmlformats-officedocument.") === 0) {
+				if (mediatype.indexOf("application/vnd.openxmlformats-officedocument.") === 0 && ser.indexOf(' xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"') === -1) {
 					var rattr = f.doc.documentElement.attributes;
 					for (var ri = 0, li = rattr.length; ri < li; ri++) {
 						if (rattr[ri].localName === "Ignorable" && rattr[ri].namespaceURI === "http://schemas.openxmlformats.org/markup-compatibility/2006") {
@@ -4302,9 +4331,14 @@ XsltForms_submission.prototype.submit = function() {
 								piindex = resp.indexOf("<?xml-stylesheet", 0);
 							}
 							if( subm.show === "new" ) {
-								var w = window.open("about:blank","_blank");
-								w.document.write(resp);
-								w.document.close();
+								if (req.getResponseHeader("Content-Type") === "application/octet-stream;base64") {
+									//window.open("data:application/octet-stream;base64," + resp,"_blank");
+									location.href ="data:application/octet-stream;base64," + resp;
+								} else {
+									var w = window.open("about:blank","_blank");
+									w.document.write(resp);
+									w.document.close();
+								}
 							} else {
 								XsltForms_browser.dialog.hide("statusPanel", false);
 								XsltForms_globals.close();
@@ -5075,6 +5109,32 @@ XsltForms_load.prototype.issueLoadException_ = function(evcontext, req, ex) {
 	XsltForms_xmlevents.dispatch(document.getElementById(this.targetid), "xforms-link-exception", null, null, null, null, evcontext);
 };
 
+		
+
+XsltForms_load.subform = function(resource, targetid, ref) {
+	if (ref) {
+		var parent = ref;
+		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+			if (XsltForms_browser.hasClass(parent, "xforms-repeat-item")) {
+				XsltForms_repeat.selectItem(parent);
+			}
+			parent = parent.parentNode;
+		}
+	}
+	var targetelt = XsltForms_idManager.find(targetid);
+	var subform = null;
+	parent = targetelt;
+	while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+		if (parent.xfSubform) {
+			subform = parent.xfSubform;
+			break;
+		}
+		parent = parent.parentNode;
+	}
+	var a = new XsltForms_load(subform, null, resource, "embed", targetid);
+	a.run();
+}
+
 	
 		
 		
@@ -5359,6 +5419,32 @@ XsltForms_unload.prototype.run = function(element, ctx) {
 	targetelt.hasXFElement = null;
 	XsltForms_browser.setClass(targetelt, "xforms-subform-loaded", false);
 };
+
+		
+
+XsltForms_unload.subform = function(targetid, ref) {
+	if (ref) {
+		var parent = ref;
+		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+			if (XsltForms_browser.hasClass(parent, "xforms-repeat-item")) {
+				XsltForms_repeat.selectItem(parent);
+			}
+			parent = parent.parentNode;
+		}
+	}
+	var targetelt = XsltForms_idManager.find(targetid);
+	var subform = null;
+	parent = targetelt;
+	while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+		if (parent.xfSubform) {
+			subform = parent.xfSubform;
+			break;
+		}
+		parent = parent.parentNode;
+	}
+	var a = new XsltForms_unload(subform, targetid);
+	a.run();
+}
 
 	
 	
@@ -6864,9 +6950,10 @@ XsltForms_range.prototype.blur = function(target) {
 		
 		
 		
-function XsltForms_repeat(subform, id, binding, clone) {
+function XsltForms_repeat(subform, id, nbsiblings, binding, clone) {
 	XsltForms_globals.counters.repeat++;
 	this.init(subform, id);
+	this.nbsiblings = nbsiblings;
 	this.binding = binding;
 	this.index = 1;
 	var el = this.element;
@@ -6953,30 +7040,81 @@ XsltForms_repeat.prototype.build_ = function(ctx) {
 			nodes.push(nodes0[n]);
 		}
 	}
-	var r = this.root;
 	this.nodes = nodes;
-	var n = nodes.length;
-	while (r.firstChild.nodeType === XsltForms_nodeType.TEXT) {
-		r.removeChild(r.firstChild);
-	}
-	var r0 = r.children ? r.children[0] : r.childNodes[0];
-	XsltForms_repeat.forceOldId(r0);
-	var l = r.children ? r.children.length : r.childNodes.length;
-	for (var i = l; i < n; i++) {
-		var child = r0.cloneNode(true);
-		r.appendChild(child);
-		XsltForms_repeat.initClone(child);
-	}
-	for (var j = n; j < l && r.childNodes.length > 1; j++) {
-		XsltForms_globals.dispose(r.lastChild);
-		r.removeChild(r.lastChild);
-	}
-	for (var k = 0; k < n; k++) {
-		XsltForms_browser.setMeta(nodes[k], "repeat", this.element.id);
-		if (r.children) {
-			r.children[k].node = nodes[k];
-		} else {
-			r.childNodes[k].node = nodes[k];
+	n = nodes.length;
+	if (this.nbsiblings === 0) {
+		var r = this.root;
+		while (r.firstChild.nodeType === XsltForms_nodeType.TEXT) {
+			r.removeChild(r.firstChild);
+		}
+		var r0 = r.children ? r.children[0] : r.childNodes[0];
+		XsltForms_repeat.forceOldId(r0);
+		var l = r.children ? r.children.length : r.childNodes.length;
+		for (var i = l; i < n; i++) {
+			var child = r0.cloneNode(true);
+			r.appendChild(child);
+			XsltForms_repeat.initClone(child);
+		}
+		for (var j = n; j < l && r.childNodes.length > 1; j++) {
+			XsltForms_globals.dispose(r.lastChild);
+			r.removeChild(r.lastChild);
+		}
+		for (var k = 0; k < n; k++) {
+			XsltForms_browser.setMeta(nodes[k], "repeat", this.element.id);
+			if (r.children) {
+				r.children[k].node = nodes[k];
+			} else {
+				r.childNodes[k].node = nodes[k];
+			}
+		}
+	} else {
+		var r0 = this.root;
+		XsltForms_repeat.forceOldId(r0);
+		var r = r0.parentNode;
+		var cc = r.firstChild;
+		var i0 = 0;
+		while (cc) {
+			if (cc === r0) {
+				break;
+			}
+			i0++;
+			cc = cc.nextSibling;
+		}
+		var l = 1;
+		var rl = r.childNodes[i0 + this.nbsiblings];
+		while (rl && (rl.id === this.element.id || rl.oldid === this.element.id)) {
+			l++;
+			rl = r.childNodes[i0 + l*this.nbsiblings];
+		}
+		for (var i = l; i < n; i++) {
+			var child = r0.cloneNode(true);
+			r.insertBefore(child, rl);
+			XsltForms_repeat.initClone(child);
+			delete child.xfElement;
+			var r0s = r0.nextSibling;
+			for (var isb = 1; isb < this.nbsiblings; isb++, r0s = r0s.nextSibling) {
+				child = r0s.cloneNode(true)
+				r.insertBefore(child, rl);
+				XsltForms_repeat.initClone(child);
+			}
+		}
+		for (var j = n; j < l; j++) {
+			var rj = r.childNodes[i0 + (n+1)*this.nbsiblings];
+			if (!(rj && (rj.id === this.element.id || rj.oldid === this.element.id))) {
+				break;
+			}
+			for (var jsb = 0; jsb < this.nbsiblings; jsb++) {
+				XsltForms_globals.dispose(r.children[i0 + n*this.nbsiblings]);
+				r.removeChild(r.children[i0 + n*this.nbsiblings]);
+			}
+		}
+		for (var k = 0; k < n; k++) {
+			XsltForms_browser.setMeta(nodes[k], "repeat", this.element.id);
+			if (r.children) {
+				r.children[i0 + k*this.nbsiblings].node = nodes[k];
+			} else {
+				r.childNodes[i0 + k*this.nbsiblings].node = nodes[k];
+			}
 		}
 	}
 	if (this.index > n) {
@@ -7005,7 +7143,7 @@ XsltForms_repeat.prototype.refresh = function(selected) {
 		
 
 XsltForms_repeat.prototype.clone = function(id) { 
-	return new XsltForms_repeat(this.subform, id, this.binding, true);
+	return new XsltForms_repeat(this.subform, id, this.nbsiblings, this.binding, true);
 };
 
 
@@ -7154,7 +7292,7 @@ XsltForms_select.prototype.setValue = function(value) {
 			this.select.selectedIndex = 0;
 		}
 	} else {
-		if (!this.full && this.select.firstChild.value === "\xA0") {
+		if (!this.full && this.select.firstChild && this.select.firstChild.value === "\xA0") {
 			//this.select.removeChild(this.select.firstChild);
 			this.select.remove(0);
 		}
@@ -9322,7 +9460,9 @@ var XsltForms_xmlevents = {
 		if (!evcontext) {
 			evcontext = {};
 		}
-		evcontext.type = type;
+		if (!evcontext.type) {
+			evcontext.type = type;
+		}
 		evcontext.targetid = targetid;
 		evcontext.bubbles = bubbles;
 		evcontext.cancelable = cancelable;

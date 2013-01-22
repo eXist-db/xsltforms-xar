@@ -1,4 +1,4 @@
-Included in this package is a checkout of XSLTForms version 562, from 2012-11-28.
+Included in this package is a checkout of XSLTForms version 565, from 2012-12-21.
 
 You can retrieve the same files with
 
@@ -8,4 +8,4 @@ The files build.xml, expath-pkg.xml, and repo.xml are part of the eXist-db packa
 
 For more information on XSLTForms, consult <http://www.agencexml.com/xsltforms>.
 
-An eXist-db app, XLSTForms-Demo, containing examples of XSLTForms running with eXist-db, is available.
+An eXist-db app, XLSTForms-Demo, containing examples of XSLTForms running with eXist-db, is available from the eXist-db Package Manager.
