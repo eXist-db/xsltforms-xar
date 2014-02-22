@@ -1,6 +1,6 @@
-/* Rev. 565
+/* 1.0RC2
 
-Copyright (C) 2008-2012 agenceXML - Alain COUTHURES
+Copyright (C) 2008-2014 agenceXML - Alain COUTHURES
 Contact at : xsltforms@agencexml.com
 
 Copyright (C) 2006 AJAXForms S.L.
@@ -67,7 +67,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 }
 
 .calendar .title input {
-	width				: 4em;
+	width				: 3em;
 	-moz-box-sizing		: border-box;
 	box-sizing			: border-box;
 	background			: #f8f8f8;

@@ -2,7 +2,7 @@
     <property file="local.build.properties"/>
     <property file="build.properties"/>
     <property name="project.app" value="xsltforms"/>
-    <property name="project.version" value="565"/>
+    <property name="project.version" value="588"/>
     <property name="build" value="./build"/>
     <property name="server.url" value="http://demo.exist-db.org/exist/apps/public-repo/public/"/>
 
