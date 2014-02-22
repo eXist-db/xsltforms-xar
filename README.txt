@@ -1,4 +1,4 @@
-Included in this package is a checkout of XSLTForms version 565, from 2012-12-21.
+Included in this package is a checkout of XSLTForms version 588, from 2014-02-22.
 
 You can retrieve the same files with
 

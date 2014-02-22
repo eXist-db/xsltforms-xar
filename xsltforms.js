@@ -1,6 +1,6 @@
-/* Rev. 565
+/* 1.0RC2
 
-Copyright (C) 2008-2012 agenceXML - Alain COUTHURES
+Copyright (C) 2008-2014 agenceXML - Alain COUTHURES
 Contact at : xsltforms@agencexml.com
 
 Copyright (C) 2006 AJAXForms S.L.
@@ -27,773 +27,39 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 		
 		
 		
-/*jshint noarg:false, forin:true, noempty:true, eqeqeq:true, evil:true, bitwise:true, loopfunc:true, scripturl:true, strict:true, undef:true, curly:true, browser:true, devel:true, maxerr:100, newcap:true */
-//"use strict";
-/*members */
-/*global ActiveXObject, alert, Document, XDocument, Element, DOMParser, XMLSerializer, XSLTProcessor */
-/*global tinyMCE */
-/*global XMLDocument : true */
-/*global XsltForms_browser : true, XsltForms_nodeType : true, XsltForms_schema : true */
-/*global XsltForms_calendar : true, XsltForms_numberList : true, XsltForms_xmlevents : true */
-/*global XsltForms_abstractAction : true, XsltForms_repeat : true, XsltForms_element : true */
-/*global XsltForms_control : true, XsltForms_xpathCoreFunctions : true, XsltForms_xpathFunctionExceptions : true */
-/*global XsltForms_idManager : true, XsltForms_xpath : true, XsltForms_listener : true */
-/*global XsltForms_typeDefs : true, XsltForms_exprContext : true */
-var XsltForms_globals = {
-
-	fileVersion: "565",
-	fileVersionNumber: 565,
-
-	language: "navigator",
-	debugMode: false,
-	debugButtons: [
-		{label: "Profiler", name: "profiler"}
-		,{label: "Trace Log", name: "tracelog"}
-		/*
-		,{label: "Validator"},
-		,{label: "XPath Evaluator"}
-		*/
-	],
-	cont : 0,
-	ready : false,
-	body : null,
-	models : [],
-	changes : [],
-	newChanges : [],
-	building : false,
-	posibleBlur : false,
-	bindErrMsgs : [],		// binding-error messages gathered during refreshing
-	transformtime: "unknown",
-	htmltime: 0,
-	creatingtime: 0,
-	inittime: 0,
-	refreshtime: 0,
-	refreshcount: 0,
-	validationError: false,
-	counters: {
-		group: 0,
-		input: 0,
-		item: 0,
-		itemset: 0,
-		label: 0,
-		output: 0,
-		repeat: 0,
-		select: 0,
-		trigger: 0,
-		upload: 0
-	},
-	nbsubforms: 0,
-
-		
-
-	debugging : function() {
-		if (document.documentElement.childNodes[0].nodeType === 8 || (XsltForms_browser.isIE && document.documentElement.childNodes[0].childNodes[1] && document.documentElement.childNodes[0].childNodes[1].nodeType === 8)) {
-			var body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
-			if (this.debugMode) {
-				var dbg = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "div") : document.createElement("div");
-				dbg.setAttribute("style", "border-bottom: thin solid #888888;");
-				dbg.setAttribute("id", "xsltforms_debug");
-				var img = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "img") : document.createElement("img");
-				img.setAttribute("src", XsltForms_browser.ROOT+"magnify.png");
-				img.setAttribute("style", "vertical-align:middle;border:0;");
-				dbg.appendChild(img);
-				var spn = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "span") : document.createElement("span");
-				spn.setAttribute("style", "font-size:16pt");
-				var txt = document.createTextNode(" Debug Mode");
-				spn.appendChild(txt);
-				dbg.appendChild(spn);
-				var spn2 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "span") : document.createElement("span");
-				spn2.setAttribute("style", "font-size:11pt");
-				var txt2 = document.createTextNode(" ("+this.fileVersion+") \xA0\xA0\xA0");
-				spn2.appendChild(txt2);
-				dbg.appendChild(spn2);
-				var a = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "a") : document.createElement("a");
-				a.setAttribute("href", "http://www.w3.org/TR/xforms11/");
-				a.setAttribute("style", "text-decoration:none;");
-				var img2 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "img") : document.createElement("img");
-				img2.setAttribute("src", XsltForms_browser.ROOT+"valid-xforms11.png");
-				img2.setAttribute("style", "vertical-align:middle;border:0;");
-				a.appendChild(img2);
-				dbg.appendChild(a);
-				var a2 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "a") : document.createElement("a");
-				a2.setAttribute("href", "http://www.agencexml.com/xsltforms");
-				a2.setAttribute("style", "text-decoration:none;");
-				var img3 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "img") : document.createElement("img");
-				img3.setAttribute("src", XsltForms_browser.ROOT+"poweredbyXSLTForms.png");
-				img3.setAttribute("style", "vertical-align:middle;border:0;");
-				a2.appendChild(img3);
-				dbg.appendChild(a2);
-				var spn3 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "span") : document.createElement("span");
-				spn3.setAttribute("style", "font-size:11pt");
-				var txt3 = document.createTextNode(" Press ");
-				spn3.appendChild(txt3);
-				dbg.appendChild(spn3);
-				var a3 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "a") : document.createElement("a");
-				a3.setAttribute("onClick", "XsltForms_globals.debugMode=false;XsltForms_globals.debugging();return false;");
-				a3.setAttribute("style", "text-decoration:none;");
-				a3.setAttribute("href", "#");
-				var img4 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "img") : document.createElement("img");
-				img4.setAttribute("src", XsltForms_browser.ROOT+"F1.png");
-				img4.setAttribute("style", "vertical-align:middle;border:0;");
-				a3.appendChild(img4);
-				dbg.appendChild(a3);
-				var spn4 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "span") : document.createElement("span");
-				spn4.setAttribute("style", "font-size:11pt");
-				var txt4 = document.createTextNode(" to toggle mode ");
-				spn4.appendChild(txt4);
-				dbg.appendChild(spn4);
-				var br = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "br") : document.createElement("br");
-				dbg.appendChild(br);
-				var txt5 = document.createTextNode(" \xA0\xA0\xA0\xA0\xA0\xA0");
-				dbg.appendChild(txt5);
-				for (var i = 0, len = XsltForms_globals.debugButtons.length; i < len; i++) {
-					if (XsltForms_globals.debugButtons[i].name) {
-						var btn = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "button") : document.createElement("button");
-						btn.setAttribute("type", "button");
-						btn.setAttribute("onClick", "XsltForms_globals.opentab('" + XsltForms_globals.debugButtons[i].name + "');");
-						var txt6 = document.createTextNode(" "+XsltForms_globals.debugButtons[i].label+" ");
-						btn.appendChild(txt6);
-						dbg.appendChild(btn);
-					} else {
-						var a4 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "a") : document.createElement("a");
-						a4.setAttribute("href", "http://www.agencexml.com/xsltforms");
-						var txt7 = document.createTextNode(" Debugging extensions can be downloaded! ");
-						a4.appendChild(txt7);
-						dbg.appendChild(a4);
-						break;
-					}
-				}
-				var br2 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "br") : document.createElement("br");
-				dbg.appendChild(br2);
-				var ifr = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "iframe") : document.createElement("iframe");
-				ifr.setAttribute("src", "http://www.agencexml.com/direct/banner.htm");
-				ifr.setAttribute("style", "width:100%;height:90px;border:none;margin:0;");
-				ifr.setAttribute("frameborder", "0");
-				var ids_seen = {};
-				var nodes6 = document.getElementsByTagName('*');
-				for (var i6 = 0, l6 = nodes6.length; i6 < l6; i6++) {
-					var node6 = nodes6[i6];
-					if (node6.id) {
-						var id6 = node6.id;
-						ids_seen[id6] = ids_seen[id6] ? ids_seen[id6]+1 : 1;
-					}
-				}
-				var s6 = "";
-				for (var id6b in ids_seen) {
-					if (ids_seen[id6b] > 1) {
-						s6 += id6b + " ";
-					}
-				}
-				if (s6 !== "") {
-					var txt6 = document.createTextNode("WARNING: Duplicate ids: " + s6);
-					var spn6 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "span") : document.createElement("span");
-					spn6.setAttribute("style", "color:red; font-size: 22pt");
-					spn6.appendChild(txt6);
-					dbg.appendChild(spn6);
-				}
-				dbg.appendChild(ifr);
-				body.insertBefore(dbg, body.firstChild);
-				document.getElementById("xsltforms_console").style.display = "block";
-			} else {
-				body.removeChild(document.getElementById("xsltforms_debug"));
-				document.getElementById("xsltforms_console").style.display = "none";
-			}
-		}
-	},
-
-		
-
-	xmlrequest : function(method, resource, ser) {
-		if (typeof method !== "string") {
-			return '<error xmlns="">Invalid method "'+method+'"</error>';
-		}
-		method = method.toLowerCase();
-		switch (method) {
-			case "get":
-				switch (resource) {
-					case "xsltforms-profiler":
-						return XsltForms_globals.profiling_data();
-					case "xsltforms-tracelog":
-						return XsltForms_browser.saveXML(XsltForms_browser.debugConsole.doc_.documentElement, true);
-					default:
-						var slash = resource.indexOf("/");
-						if (slash === -1 ) {
-							var instance = document.getElementById(resource);
-							if (!instance) {
-								return '<error xmlns="">Unknown resource "'+resource+'" for method "'+method+'"</error>';
-							}
-							var ser = XsltForms_browser.saveXML(instance.xfElement.doc.documentElement, true);
-							return ser;
-						} else {
-							var filename = resource.substr(slash+1);
-							var instance = document.getElementById(resource.substr(0, slash));
-							if (!instance) {
-								return '<error xmlns="">Unknown resource "'+resource+'" for method "'+method+'"</error>';
-							}
-							var f = instance.xfElement.archive[filename];
-							if (!f) {
-								return '<error xmlns="">Unknown resource "'+resource+'" for method "'+method+'"</error>';
-							}
-							if (!f.doc) {
-								f.doc = XsltForms_browser.createXMLDocument("<dummy/>");
-								var modid = XsltForms_browser.getMeta(instance.xfElement.doc.documentElement, "model");
-								XsltForms_browser.loadXML(f.doc.documentElement, XsltForms_browser.utf8decode(zip_inflate(f.compressedFileData)));
-								XsltForms_browser.setMeta(f.doc.documentElement, "instance", idRef);
-								XsltForms_browser.setMeta(f.doc.documentElement, "model", modid);
-							}
-							var ser = XsltForms_browser.saveXML(f.doc.documentElement, true);
-							return ser;
-						}
-				}
-				break;
-			case "put":
-				var instance = document.getElementById(resource);
-				if (!instance) {
-					return '<error xmlns="">Unknown resource "'+resource+'" for method "'+method+'"</error>';
-				}
-				instance.xfElement.setDoc(ser, false, true);
-				var modid = XsltForms_browser.getMeta(instance.xfElement.doc.documentElement, "model");
-				XsltForms_globals.addChange(modid);
-				XsltForms_globals.closeChanges();
-				return '<ok xmlns=""/>';
-			default:
-				return '<error xmlns="">Unknown method "'+method+'"</error>';
-		}
-	},
-
-		
-
-	profiling_data : function() {
-		var s = '<xsltforms:dump xmlns:xsltforms="http://www.agencexml.com/xsltforms">';
-		s += '<xsltforms:date>' + XsltForms_browser.i18n.format(new Date(), "yyyy-MM-ddThh:mm:ssz", true) + '</xsltforms:date>';
-		s += '<xsltforms:location>' + XsltForms_browser.escape(window.location.href) + '</xsltforms:location>';
-		s += '<xsltforms:appcodename>' + navigator.appCodeName + '</xsltforms:appcodename>';
-		s += '<xsltforms:appname>' + navigator.appName + '</xsltforms:appname>';
-		s += '<xsltforms:appversion>' + navigator.appVersion + '</xsltforms:appversion>';
-		s += '<xsltforms:platform>' + navigator.platform + '</xsltforms:platform>';
-		s += '<xsltforms:useragent>' + navigator.userAgent + '</xsltforms:useragent>';
-		s += '<xsltforms:xsltengine>' + this.xsltEngine + '</xsltforms:xsltengine>';
-		var xsltsrc = '<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:msxsl="urn:schemas-microsoft-com:xslt">';
-		xsltsrc += '	<xsl:output method="xml"/>';
-		xsltsrc += '	<xsl:template match="/">';
-		xsltsrc += '		<xsl:variable name="version">';
-		xsltsrc += '			<xsl:if test="system-property(\'xsl:vendor\')=\'Microsoft\'">';
-		xsltsrc += '				<xsl:value-of select="system-property(\'msxsl:version\')"/>';
-		xsltsrc += '			</xsl:if>';
-		xsltsrc += '		</xsl:variable>';
-		xsltsrc += '		<properties><xsl:value-of select="concat(\'|\',system-property(\'xsl:vendor\'),\' \',system-property(\'xsl:vendor-url\'),\' \',$version,\'|\')"/></properties>';
-		xsltsrc += '	</xsl:template>';
-		xsltsrc += '</xsl:stylesheet>';
-		var res = XsltForms_browser.transformText("<dummy/>", xsltsrc, true);
-		var spres = res.split("|");
-		s += '<xsltforms:xsltengine2>' + spres[1] + '</xsltforms:xsltengine2>';
-		s += '<xsltforms:version>' + this.fileVersion + '</xsltforms:version>';
-		s += '<xsltforms:instances>';
-		var pos = 0;
-		for (var m = 0, mlen = XsltForms_globals.models.length; m < mlen; m++) {
-			if (XsltForms_globals.models[m].element.id !== XsltForms_browser.idPf + "model-config") {
-				for (var id in XsltForms_globals.models[m].instances) {
-					if (XsltForms_globals.models[m].instances.hasOwnProperty(id)) {
-						var count = XsltForms_browser.selectNodesLength("descendant::node() | descendant::*/@*[not(starts-with(local-name(),'xsltforms_'))]", XsltForms_globals.models[m].instances[id].doc);
-						s += '<xsltforms:instance id="' + id + '">' + count + '</xsltforms:instance>';
-						if (XsltForms_globals.models[m].instances[id].archive) {
-							for (var fn in XsltForms_globals.models[m].instances[id].archive) {
-								if (XsltForms_globals.models[m].instances[id].archive.hasOwnProperty(fn)) {
-									if (!XsltForms_globals.models[m].instances[id].archive[fn].doc) {
-										XsltForms_globals.models[m].instances[id].archive[fn].doc = XsltForms_browser.createXMLDocument("<dummy/>");
-										XsltForms_browser.loadXML(XsltForms_globals.models[m].instances[id].archive[fn].doc.documentElement, XsltForms_browser.utf8decode(zip_inflate(XsltForms_globals.models[m].instances[id].archive[fn].compressedFileData)));
-										XsltForms_browser.setMeta(XsltForms_globals.models[m].instances[id].archive[fn].doc.documentElement, "instance", id);
-										XsltForms_browser.setMeta(XsltForms_globals.models[m].instances[id].archive[fn].doc.documentElement, "model", m);
-									}
-									count = XsltForms_browser.selectNodesLength("descendant::node() | descendant::*/@*[not(starts-with(local-name(),'xsltforms_'))]", XsltForms_globals.models[m].instances[id].archive[fn].doc);
-									s += '<xsltforms:instance id="' + id + '/' + fn + '">' + count + '</xsltforms:instance>';
-								}
-							}
-						}
-						pos++;
-					}
-				}
-			}
-		}
-		s += '</xsltforms:instances>';
-		s += '<xsltforms:controls>';
-		s += '<xsltforms:control type="group">' + XsltForms_globals.counters.group + '</xsltforms:control>';
-		s += '<xsltforms:control type="input">' + XsltForms_globals.counters.input + '</xsltforms:control>';
-		s += '<xsltforms:control type="item">' + XsltForms_globals.counters.item + '</xsltforms:control>';
-		s += '<xsltforms:control type="itemset">' + XsltForms_globals.counters.itemset + '</xsltforms:control>';
-		s += '<xsltforms:control type="output">' + XsltForms_globals.counters.output + '</xsltforms:control>';
-		s += '<xsltforms:control type="repeat">' + XsltForms_globals.counters.repeat + '</xsltforms:control>';
-		s += '<xsltforms:control type="select">' + XsltForms_globals.counters.select + '</xsltforms:control>';
-		s += '<xsltforms:control type="trigger">' + XsltForms_globals.counters.trigger + '</xsltforms:control>';
-		s += '</xsltforms:controls>';
-		var re = /<\w/g;
-		var hc = 0;
-		var bhtml = document.documentElement.innerHTML;
-		while (re.exec(bhtml)) {
-			hc++;
-		}
-		s += '<xsltforms:htmlelements>' + hc + '</xsltforms:htmlelements>';
-		s += '<xsltforms:transformtime>' + this.transformtime + '</xsltforms:transformtime>';
-		s += '<xsltforms:htmltime>' + this.htmltime + '</xsltforms:htmltime>';
-		s += '<xsltforms:creatingtime>' + this.creatingtime + '</xsltforms:creatingtime>';
-		s += '<xsltforms:inittime>' + this.inittime + '</xsltforms:inittime>';
-		s += '<xsltforms:refreshcount>' + this.refreshcount + '</xsltforms:refreshcount>';
-		s += '<xsltforms:refreshtime>' + this.refreshtime + '</xsltforms:refreshtime>';
-		var exprtab = [];
-		for (var expr in XsltForms_xpath.expressions) {
-			if (XsltForms_xpath.expressions.hasOwnProperty(expr) && XsltForms_xpath.expressions[expr]) {
-				exprtab[exprtab.length] = {expr: expr, evaltime: XsltForms_xpath.expressions[expr].evaltime};
-			}
-		}
-		exprtab.sort(function(a,b) { return b.evaltime - a.evaltime; });
-		var top = 0;
-		s += '<xsltforms:xpaths>';
-		if (exprtab.length > 0) {
-			for (var i = 0; i < exprtab.length && i < 20; i++) {
-				s += '<xsltforms:xpath expr="' + XsltForms_browser.escape(exprtab[i].expr) + '">' + exprtab[i].evaltime + '</xsltforms:xpath>';
-				top += exprtab[i].evaltime;
-			}
-			if (exprtab.length > 20) {
-				var others = 0;
-				for (var j = 20; j < exprtab.length; j++) {
-					others += exprtab[j].evaltime;
-				}
-				s += '<xsltforms:others count="' + (exprtab.length - 20) + '">' + others + '</xsltforms:others>';
-				top += others;
-			}
-			s += '<xsltforms:total>' + top + '</xsltforms:total>';
-		}
-		s += '</xsltforms:xpaths>';
-		s += '</xsltforms:dump>';
-		return s;
-	},
-
-		
-
-	opentab : function(name) {
-		var req = XsltForms_browser.openRequest("GET", XsltForms_browser.ROOT + "xsltforms_" + name + ".xhtml", false);
-		if (req.overrideMimeType) {
-			req.overrideMimeType("application/xml");
-		}
-		try {        
-			req.send(null);
-		} catch(e) {
-			alert("File not found: " + XsltForms_browser.ROOT + "xsltforms_" + name + ".xhtml");
-		}
-		if (req.status === 200 || req.status === 0) {
-			var s = XsltForms_browser.transformText(req.responseText, XsltForms_browser.ROOT + "xsltforms.xsl", false, "xsltforms_debug", "false", "baseuri", XsltForms_browser.ROOT);
-			if (s.substring(0, 21) === '<?xml version="1.0"?>') {
-				s = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + s.substring(21);
-			}
-			var prow = window.open("about:blank","_blank");
-			prow.document.write(s);
-			prow.document.close();
-		} else {
-			alert("File not found (" + req.status + "): " + XsltForms_browser.ROOT + "xsltforms_" + name + ".xhtml");
-		}
-	},
-
-		
-
-	init : function() {
-		XsltForms_browser.setValue(document.getElementById("statusPanel"), XsltForms_browser.i18n.get("status"));
-		var b = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
-		this.body = b;
-		document.onhelp = function(){return false;};
-		window.onhelp = function(){return false;};
-		XsltForms_browser.events.attach(document, "keydown", function(evt) {
-			if (evt.keyCode === 112) {
-				XsltForms_globals.debugMode = !XsltForms_globals.debugMode;
-				XsltForms_globals.debugging();
-				if (evt.stopPropagation) {
-					evt.stopPropagation();
-					evt.preventDefault();
-				} else {
-					evt.cancelBubble = true;
-				}
-				return false;
-			}
-		});
-		XsltForms_browser.events.attach(b, "click", function(evt) {
-			var target = XsltForms_browser.events.getTarget(evt);
-			var parent = target;
-			while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
-				if (XsltForms_browser.hasClass(parent, "xforms-repeat-item")) {
-					XsltForms_repeat.selectItem(parent);
-				}
-				parent = parent.parentNode;
-			}
-			parent = target;
-			while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
-				var xf = parent.xfElement;
-				if (xf) {
-					if(typeof parent.node !== "undefined" && parent.node && xf.focus && !XsltForms_browser.getBoolMeta(parent.node, "readonly")) {
-						var name = target.nodeName.toLowerCase();
-						xf.focus(name === "input" || name === "textarea", evt);
-					}
-					if(xf.click && xf.input && !xf.input.disabled) {
-						xf.click(target, evt);
-						break;
-					}
-				}
-				parent = parent.parentNode;
-			}
-		} );
-		XsltForms_browser.events.onunload = function() {
-			XsltForms_globals.close();
-		};
-		this.openAction();
-		XsltForms_xmlevents.dispatchList(this.models, "xforms-model-construct");
-		this.refresh();
-		this.closeAction();
-		this.ready = true;
-		XsltForms_browser.dialog.hide("statusPanel", false);
-	},
-
-		
-
-	close : function() {
-		if (XsltForms_globals.body) {
-			this.openAction();
-			//XsltForms_xmlevents.dispatchList(XsltForms_globals.models, "xforms-model-destruct");
-			for (var i = 0, len = XsltForms_listener.destructs.length; i < len; i++) {
-				XsltForms_listener.destructs[i].callback({target: XsltForms_listener.destructs[i].observer});
-			}
-			this.closeAction();
-			XsltForms_idManager.clear();
-			this.defaultModel = null;
-			this.changes = [];
-			this.models = [];
-			this.body = null;
-			this.cont = 0;
-			this.dispose(document.documentElement);
-			//XsltForms_browser.events.flush_();
-			if (XsltForms_browser.events.cache) {
-				for (var j = XsltForms_browser.events.cache.length - 1; j >= 0; j--) {
-					var item = XsltForms_browser.events.cache[j];
-					XsltForms_browser.events.detach(item[0], item[1], item[2], item[3]);
-				}
-			}
-			XsltForms_listener.destructs = [];
-			XsltForms_schema.all = {};
-			XsltForms_typeDefs.initAll();
-			XsltForms_calendar.INSTANCE = null;
-			this.ready = false;
-			this.building = false;
-			XsltForms_globals.posibleBlur = false;
-		}
-	},
-
-		
-
-	openAction : function() {
-		if (this.cont++ === 0) {
-			XsltForms_browser.debugConsole.clear();
-		}
-	},
-
-		
-
-	closeAction : function() {
-		if (this.cont === 1) {
-			this.closeChanges();
-		}
-		this.cont--;
-	},
-
-		
-
-	closeChanges : function() {
-		var changes = this.changes;
-		for (var i = 0, len = changes.length; i < len; i++) {
-			var change = changes[i];
-			if (change.instances) {//Model
-				if (change.rebuilded) {
-					XsltForms_xmlevents.dispatch(change, "xforms-rebuild");
-				} else {
-					XsltForms_xmlevents.dispatch(change, "xforms-recalculate");
-				}
-			//} else { // Repeat or tree
-			}
-		}
-		if (changes.length > 0) {
-			this.refresh();
-			if (this.changes.length > 0) {
-				this.closeChanges();
-			}
-		}
-	},
-
-		
-
-	error : function(element, event, message, causeMessage) {
-		XsltForms_browser.dialog.hide("statusPanel", false);
-		XsltForms_browser.setValue(document.getElementById("statusPanel"), message);
-		XsltForms_browser.dialog.show("statusPanel", null, false);
-		if (element) {
-			XsltForms_xmlevents.dispatch(element, event);
-		}
-		if (causeMessage) {
-			message += " : " + causeMessage;
-		}
-		XsltForms_browser.debugConsole.write("Error: " + message);
-		throw event;        
-	},
-
-		
-
-	refresh : function() {
-		var d1 = new Date();
-		this.building = true;
-		this.build(this.body, (this.defaultModel.getInstanceDocument() ? this.defaultModel.getInstanceDocument().documentElement : null), true);
-		if (this.newChanges.length > 0) {
-			this.changes = this.newChanges;
-			this.newChanges = [];
-		} else {
-			this.changes.length = 0;
-		}
-		for (var i = 0, len = this.models.length; i < len; i++) {
-			var model = this.models[i];
-			if (model.newNodesChanged.length > 0 || model.newRebuilded) {
-				model.nodesChanged = model.newNodesChanged;
-				model.newNodesChanged = [];
-				model.rebuilded = model.newRebuilded;
-				model.newRebuilded = false;
-			} else {
-				model.nodesChanged.length = 0;
-				model.rebuilded = false;
-			}
-		}
-		this.building = false;
-		// Throw any gathered binding-errors.
-		//
-		if (this.bindErrMsgs.length) {
-			this.error(this.defaultModel, "xforms-binding-exception", "Binding Errors: \n" + this.bindErrMsgs.join("\n  "));
-			this.bindErrMsgs = [];
-		}
-		var d2 = new Date();
-		this.refreshtime += d2 - d1;
-		this.refreshcount++;
-	},
-
-		
-
-	build : function(element, ctx, selected) {
-		if (element.nodeType !== XsltForms_nodeType.ELEMENT || element.id === "xsltforms_console" || element.hasXFElement === false) {
-			return {ctx: ctx, hasXFElement: false};
-		}
-		var xf = element.xfElement;
-		var hasXFElement = !!xf;
-		if (element.getAttribute("mixedrepeat") === "true") {
-			//ctx = element.node || ctx;
-			selected = element.selected;
-		}
-		if (xf) {
-			if (xf instanceof Array) {
-				for (var ixf = 0, lenxf = xf.length; ixf < lenxf; ixf++) {
-					xf[ixf].build(ctx);
-				}
-			} else {
-				xf.build(ctx);
-				if (xf.isRepeat) {
-					xf.refresh(selected);
-				}
-			}
-		}
-		var newctx = element.node || ctx;
-		var childs = element.children || element.childNodes;
-		var sel = element.selected;
-		if (typeof sel !== "undefined") {
-			selected = sel;
-		}
-		if (!xf || (xf instanceof Array) || !xf.isRepeat || xf.nodes.length > 0) {
-			var nbsiblings = 1, isiblings = 1;
-			var nodes = [], nbnodes = 0;
-			for (var i = 0; i < childs.length && this.building; i++) {
-				if (childs[i].nodeType !== XsltForms_nodeType.TEXT) {
-					var curctx;
-					if (isiblings !== 1) {
-						curctx = nodes[inodes];
-						isiblings--;
-					} else if (nbnodes !== 0) {
-						nbnodes--;
-						inodes++;
-						curctx = nodes[inodes];
-						isiblings = nbsiblings;
-					} else {
-						curctx = newctx;
-					}
-					if (!childs[i].getAttribute("cloned")) {
-						var br = this.build(childs[i], curctx, selected);
-						if (childs[i].xfElement && childs[i].xfElement.nbsiblings && childs[i].xfElement.nbsiblings > 1) {
-							nbsiblings = childs[i].xfElement.nbsiblings;
-							nodes = childs[i].xfElement.nodes;
-							nbnodes = nodes.length;
-							inodes = 0;
-							isiblings = nbsiblings;
-						}
-						hasXFElement = br.hasXFElement || hasXFElement;
-					}
-				}
-			}
-		}
-		if(this.building) {
-			if (xf instanceof Array) {
-				for (var ixf2 = 0, lenxf2 = xf.length; ixf2 < lenxf2; ixf2++) {
-					if (xf[ixf2] && xf[ixf2].changed) {
-						xf[ixf2].refresh(selected);
-						xf[ixf2].changed = false;
-					}
-				}
-			} else {
-				if (xf && xf.changed) {
-					xf.refresh(selected);
-					xf.changed = false;
-				}
-			}
-			if (!element.hasXFElement) {
-				element.hasXFElement = hasXFElement;
-			}
-		}
-		return {ctx: newctx, hasXFElement: hasXFElement};
-	},
-
-		
-
-	addChange : function(element) {
-		var list = this.building? this.newChanges : this.changes;
-		if (!XsltForms_browser.inArray(element, list)) {
-			list.push(element);
-		}
-	},
-
-		
-
-	dispose : function(element) {
-		if (element.nodeType !== XsltForms_nodeType.ELEMENT || element.id === "xsltforms_console") {
-			return;
-		}
-		element.listeners = null;
-		element.node = null;
-		element.hasXFElement = null;
-		var xf = element.xfElement;
-		if (xf && xf.dispose !== undefined) {
-			xf.dispose();
-		}
-		var childs = element.childNodes;
-		for (var i = 0; i < childs.length; i++) {
-			this.dispose(childs[i]);
-		}
-	},
-
-		
-
-	blur : function(direct) {
-		if ((direct || this.posibleBlur) && this.focus) {
-			if (this.focus.element) {
-				this.openAction();
-				XsltForms_xmlevents.dispatch(this.focus, "DOMFocusOut");
-				XsltForms_browser.setClass(this.focus.element, "xforms-focus", false);
-				this.focus.blur();
-				this.closeAction();
-			}
-			this.posibleBlur = false;
-			this.focus = null;
-		}
-	}
+var XsltForms_xpathAxis = {
+	ANCESTOR_OR_SELF: 'ancestor-or-self',
+	ANCESTOR: 'ancestor',
+	ATTRIBUTE: 'attribute',
+	CHILD: 'child',
+	DESCENDANT_OR_SELF: 'descendant-or-self',
+	DESCENDANT: 'descendant',
+	FOLLOWING_SIBLING: 'following-sibling',
+	FOLLOWING: 'following',
+	NAMESPACE: 'namespace',
+	PARENT: 'parent',
+	PRECEDING_SIBLING: 'preceding-sibling',
+	PRECEDING: 'preceding',
+	SELF: 'self'
 };
 
-	
-		
-		
-		
-function XsltForms_subform(subform, id, eltid) {
-	this.subform = subform;
-	this.id = id;
-	this.eltid = eltid;
-	if (eltid) {
-		document.getElementById(eltid).xfSubform = this;
-	} else {
-		var b = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
-		b.xfSubform = this;
-	}
-	this.models = [];
-	this.schemas = [];
-	this.instances = [];
-	this.binds = [];
-	this.xpaths = [];
-	this.subforms = [];
-	this.listeners = [];
-	this.ready = false;
-	if (subform) {
-		subform.subforms.push(this);
-	}
-	XsltForms_subform.subforms[id] = this;
-}
-
-XsltForms_subform.subforms = [];
 
 		
 
-XsltForms_subform.prototype.construct = function() {
-	for (var i = 0, len = this.instances.length; i < len; i++) {
-		this.instances[i].construct(this);
-	}
-	XsltForms_browser.forEach(this.binds, "refresh");
-	for (i = 0, len = this.instances.length; i < len; i++) {
-		this.instances[i].revalidate();
-	}
-	XsltForms_xmlevents.dispatchList(this.models, "xforms-subform-ready");
-	this.ready = true;
+var XsltForms_nodeType = {
+	ELEMENT : 1,
+	ATTRIBUTE : 2,
+	TEXT : 3,
+	CDATA_SECTION : 4,
+	ENTITY_REFERENCE : 5,
+	ENTITY : 6,
+	PROCESSING_INSTRUCTION : 7,
+	COMMENT : 8,
+	DOCUMENT : 9,
+	DOCUMENT_TYPE : 10,
+	DOCUMENT_FRAGMENT : 11,
+	NOTATION : 12
 };
-
-		
-
-XsltForms_subform.prototype.dispose = function() {
-	var scriptelt = document.getElementById(this.id + "-script");
-	scriptelt.parentNode.removeChild(scriptelt);
-	for (var h = 0, len0 = this.subforms.length; h < len0; h++) {
-		this.subforms[h].dispose();
-	}
-	this.subforms = null;
-	for (var i = 0, len = this.models.length; i < len; i++) {
-		this.models[i].dispose(this);
-	}
-	this.models = null;
-	for (var i0 = 0, len0 = this.schemas.length; i0 < len0; i0++) {
-		this.schemas[i0].dispose(this);
-	}
-	this.schemas = null;
-	for (var j = 0, len2 = this.instances.length; j < len2; j++) {
-		this.instances[j].dispose(this);
-	}
-	this.instances = null;
-	for (var k = 0, len3 = this.xpaths.length; k < len3; k++) {
-		this.xpaths[k].dispose(this);
-	}
-	this.xpaths = null;
-	this.binds = null;
-	XsltForms_globals.dispose(this.eltid);
-	XsltForms_subform.subforms[this.id] = null;
-	var parentform = this.subform;
-	if (parentform) {
-		var parentsubforms = parentform.subforms;
-		for (var l = 0, len4 = parentsubforms.length; l < len4; l++) {
-			if (parentsubforms[l] === this) {
-				if (l < len4 - 1) {
-					parentsubforms[l] = parentsubforms[len4 - 1];
-				}
-				parentsubforms.pop();
-				break;
-			}
-		}
-	}
-	for (var m = 0, len5 = this.listeners.length; m < len5; m++) {
-		this.listeners[m].detach();
-	}
-	this.listeners = null;
-};
-
 
 	
 		
@@ -808,7 +74,10 @@ var XsltForms_browser = {
 	isIE : navigator.userAgent.match(/\bMSIE\b/) && !navigator.userAgent.match(/\bOpera\b/),
 	isIE9 : navigator.userAgent.match(/\bMSIE\b/) && !navigator.userAgent.match(/\bOpera\b/) && window.addEventListener,
 	isIE6 : navigator.userAgent.match(/\bMSIE 6\.0/),
-    isMozilla : navigator.userAgent.match(/\bGecko\b/),
+	isIE11 : navigator.userAgent.match(/\bTrident\/7\.0/),
+	isMozilla : navigator.userAgent.match(/\bGecko\b/),
+	isSafari : navigator.userAgent.match(/\bAppleWebKit/) && !window.FileReader,
+	isChrome : navigator.userAgent.match(/\bAppleWebKit/),
 	isFF2 : navigator.userAgent.match(/\bFirefox[\/\s]2\.\b/),
 	isXhtml : false, // document.documentElement.namespaceURI === "http://www.w3.org/1999/xhtml",
 	setClass : function(element, className, value) {
@@ -891,10 +160,8 @@ var XsltForms_browser = {
 			alert("File not found: " + uri);
 		}
 		if (req.status === 200 || req.status === 0) {
-			if (req.responseXML.xml === "") {
-				req.responseXML.loadXML(req.responseText);
-			}
-			var n = req.responseXML.documentElement;
+			var ndoc = XsltForms_browser.createXMLDocument(req.responseText);
+			var n = ndoc.documentElement;
 			while (n) {
 				if (n.nodeName === "properties") {
 					break;
@@ -960,16 +227,14 @@ var XsltForms_browser = {
 
 	getWindowSize : function() {
 		var myWidth = 0, myHeight = 0, myOffsetX = 0, myOffsetY = 0, myScrollX = 0, myScrollY = 0;
-		if( typeof( window.innerWidth ) === "number" ) {
-			//Non-IE
+		if (!XsltForms_browser.isIE) {
 			myWidth = document.documentElement.clientWidth;
 			myHeight = document.documentElement.clientHeight;
 			myOffsetX = document.body ? Math.max(document.documentElement.clientWidth, document.body.clientWidth) : document.documentElement.clientWidth; // body margins ?
 			myOffsetY = document.body ? Math.max(document.documentElement.clientHeight, document.body.clientHeight) : document.documentElement.clientHeight; // body margins ?
 			myScrollX = window.scrollX;
 			myScrollY = window.scrollY;
-		} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
-			//IE 6+ in 'standards compliant mode'
+		} else if (document.documentElement && (document.documentElement.clientWidth || document.documentElement.clientHeight)) {
 			myWidth = document.documentElement.clientWidth;
 			myHeight = document.documentElement.clientHeight;
 			myOffsetX = Math.max(document.documentElement.clientWidth, document.body.clientWidth); // body margins ?
@@ -990,7 +255,7 @@ var XsltForms_browser = {
 
 		
 
-if (XsltForms_browser.isIE) {
+if (XsltForms_browser.isIE || XsltForms_browser.isIE11) {
 	try {
 		var xmlDoc = new ActiveXObject("Msxml2.DOMDocument.6.0");
 		xmlDoc = null;
@@ -998,7 +263,7 @@ if (XsltForms_browser.isIE) {
 	} catch(e) {
 		XsltForms_browser.MSXMLver = "3.0";
 	}
-    document.write("<script type='text/vbscript'>\r\nFunction XsltForms_browser_BinaryToArray_ByteStr(Binary)\r\nXsltForms_browser_BinaryToArray_ByteStr = CStr(Binary)\r\nEnd Function\r\nFunction XsltForms_browser_BinaryToArray_ByteStr_Last(Binary)\r\nDim lastIndex\r\nlastIndex = LenB(Binary)\r\nif lastIndex mod 2 Then\r\nXsltForms_browser_BinaryToArray_ByteStr_Last = Chr(AscB(MidB(Binary,lastIndex,1)))\r\nElse\r\nXsltForms_browser_BinaryToArray_ByteStr_Last = "+'""'+"\r\nEnd If\r\nEnd Function\r\n</script>\r\n");
+    document.write("<script type='text/vbscript'>Function XsltForms_browser_BinaryToArray_ByteStr(Binary)\r\nXsltForms_browser_BinaryToArray_ByteStr = CStr(Binary)\r\nEnd Function\r\nFunction XsltForms_browser_BinaryToArray_ByteStr_Last(Binary)\r\nDim lastIndex\r\nlastIndex = LenB(Binary)\r\nif lastIndex mod 2 Then\r\nXsltForms_browser_BinaryToArray_ByteStr_Last = Chr(AscB(MidB(Binary,lastIndex,1)))\r\nElse\r\nXsltForms_browser_BinaryToArray_ByteStr_Last = "+'""'+"\r\nEnd If\r\nEnd Function\r\n</script>\r\n");
 }
 if (!XsltForms_browser.isIE) {
 	XsltForms_browser.openRequest = function(method, uri, async) {
@@ -1018,16 +283,34 @@ if (!XsltForms_browser.isIE) {
 	XsltForms_browser.openRequest = function(method, uri, async) {
 		var req;
 		try {
-			req = new ActiveXObject("Msxml2.XMLHTTP." + XsltForms_browser.MSXMLver); 
+			req = new XMLHttpRequest();
 		} catch (e0) {
 			try {
-				req = new ActiveXObject("Msxml2.XMLHTTP");
-			} catch (e) {
-				throw new Error("This browser does not support XHRs(Ajax)! \n Cause: " + (e.message || e.description || e) + " \n Enable Javascript or ActiveX controls (on IE) or lower security restrictions.");
+				req = new ActiveXObject("Msxml2.XMLHTTP." + XsltForms_browser.MSXMLver); 
+			} catch (e1) {
+				try {
+					req = new ActiveXObject("Msxml2.XMLHTTP");
+				} catch (e) {
+					throw new Error("This browser does not support XHRs(Ajax)! \n Cause: " + (e.message || e.description || e) + " \n Enable Javascript or ActiveX controls (on IE) or lower security restrictions.");
+				}
 			}
 		}
 		req.open(method, XsltForms_browser.constructURI(uri), async);
 		return req;
+	};
+	XsltForms_browser.StringToBinary = function(s) {
+		var b = function(v) {
+			return String.fromCharCode(v > 9 ? v + 55 : v + 48); 
+		};
+		var s2 = "";
+		for (var i = 0, l = s.length; i < l; i++) {
+			s2 += b((s.charCodeAt(i) & 0xF0) >> 4) + b(s.charCodeAt(i) & 0xF);
+		}
+		var doc = new ActiveXObject("Msxml2.DOMDocument." + XsltForms_browser.MSXMLver);
+		var elt = doc.createElement("dummy");
+		elt.dataType = "bin.hex";
+		elt.text = s2;
+		return elt.nodeTypedValue;
 	};
 } else {
 	throw new Error("This browser does not support XHRs(Ajax)! \n Enable Javascript or ActiveX controls (on IE) or lower security restrictions.");
@@ -1035,15 +318,19 @@ if (!XsltForms_browser.isIE) {
 
 		
 
-if (XsltForms_browser.isIE) {
+if (XsltForms_browser.isIE || XsltForms_browser.isIE11) {
 	XsltForms_browser.transformText = function(xml, xslt, inline) {
 		var xmlDoc = new ActiveXObject("MSXML2.DOMDocument." + XsltForms_browser.MSXMLver);
 		xmlDoc.setProperty("AllowDocumentFunction", true);
+		xmlDoc.preserveWhiteSpace = true;
 		xmlDoc.validateOnParse = false;
+		xmlDoc.setProperty("ProhibitDTD", false);
 		xmlDoc.loadXML(xml);
 		var xslDoc = new ActiveXObject("MSXML2.FreeThreadedDOMDocument." + XsltForms_browser.MSXMLver);
 		xslDoc.setProperty("AllowDocumentFunction", true);
+		xslDoc.preserveWhiteSpace = true;
 		xslDoc.validateOnParse = false;
+		xslDoc.setProperty("ProhibitDTD", false);
 		if (inline) {
 			xslDoc.loadXML(xslt);
 		} else {
@@ -1103,8 +390,11 @@ if (XsltForms_browser.isIE) {
 				xsltProcessor.importStylesheet(xsltDoc);
 				var resultDocument = xsltProcessor.transformToDocument(xmlDoc);
 				var s = "";
-				if (XsltForms_browser.isMozilla && resultDocument.documentElement.nodeName === "transformiix:result") {
+				if ((XsltForms_browser.isMozilla && resultDocument.documentElement.nodeName === "transformiix:result") ||
+				     (XsltForms_browser.isOpera && resultDocument.documentElement.nodeName === "result")) {
 					s = resultDocument.documentElement.textContent;
+				} else if (XsltForms_browser.isChrome && resultDocument.documentElement.nodeName === "html" && resultDocument.documentElement.children[1].children[0].nodeName === "pre") {
+					s = resultDocument.documentElement.children[1].children[0].textContent;
 				} else {
 					s = serializer.serializeToString(resultDocument);
 				}
@@ -1231,6 +521,40 @@ XsltForms_browser.xsltsrc += '		</xsl:copy>';
 XsltForms_browser.xsltsrc += '	</xsl:template>';
 XsltForms_browser.xsltsrc += '</xsl:stylesheet>';
 
+XsltForms_browser.xsltsrcanyuri = '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0">';
+XsltForms_browser.xsltsrcanyuri += '	<xsl:output method="xml" omit-xml-declaration="yes"/>';
+XsltForms_browser.xsltsrcanyuri += '	<xsl:template match="*[(substring-after(@xsltforms_type,\':\') = \'anyURI\' or substring-after(@xsi:type,\':\') = \'anyURI\') and . != \'\']" priority="2">';
+XsltForms_browser.xsltsrcanyuri += '		<xsl:copy>';
+XsltForms_browser.xsltsrcanyuri += '			<xsl:apply-templates select="@*"/>';
+XsltForms_browser.xsltsrcanyuri += '			<xsl:text>$!$!$!$!$!</xsl:text>';
+XsltForms_browser.xsltsrcanyuri += '			<xsl:apply-templates select="node()"/>';
+XsltForms_browser.xsltsrcanyuri += '			<xsl:text>%!%!%!%!%!</xsl:text>';
+XsltForms_browser.xsltsrcanyuri += '		</xsl:copy>';
+XsltForms_browser.xsltsrcanyuri += '	</xsl:template>';
+XsltForms_browser.xsltsrcanyuri += '	<xsl:template match="@*[starts-with(translate(name(),\'ABCDEFGHIJKLMNOPQRSTUVWXYZ\',\'abcdefghijklmnopqrstuvwxyz\'),\'xsltforms_\')]" priority="1"/>';
+XsltForms_browser.xsltsrcanyuri += '	<xsl:template match="@*" priority="0">';
+XsltForms_browser.xsltsrcanyuri += '		<xsl:choose>';
+XsltForms_browser.xsltsrcanyuri += '			<xsl:when test="parent::*/attribute::*[local-name() = concat(\'xsltforms_\',local-name(current()),\'_type\') and substring-after(.,\':\') = \'anyURI\'] and . != \'\'">';
+XsltForms_browser.xsltsrcanyuri += '				<xsl:copy>';
+XsltForms_browser.xsltsrcanyuri += '					<xsl:text>$!$!$!$!$!</xsl:text>';
+XsltForms_browser.xsltsrcanyuri += '					<xsl:apply-templates select="node()"/>';
+XsltForms_browser.xsltsrcanyuri += '					<xsl:text>%!%!%!%!%!</xsl:text>';
+XsltForms_browser.xsltsrcanyuri += '				</xsl:copy>';
+XsltForms_browser.xsltsrcanyuri += '			</xsl:when>';
+XsltForms_browser.xsltsrcanyuri += '			<xsl:otherwise>';
+XsltForms_browser.xsltsrcanyuri += '				<xsl:copy>';
+XsltForms_browser.xsltsrcanyuri += '					<xsl:apply-templates select="node()"/>';
+XsltForms_browser.xsltsrcanyuri += '				</xsl:copy>';
+XsltForms_browser.xsltsrcanyuri += '			</xsl:otherwise>';
+XsltForms_browser.xsltsrcanyuri += '		</xsl:choose>';
+XsltForms_browser.xsltsrcanyuri += '	</xsl:template>';
+XsltForms_browser.xsltsrcanyuri += '	<xsl:template match="node()" priority="0">';
+XsltForms_browser.xsltsrcanyuri += '		<xsl:copy>';
+XsltForms_browser.xsltsrcanyuri += '			<xsl:apply-templates select="@*|node()"/>';
+XsltForms_browser.xsltsrcanyuri += '		</xsl:copy>';
+XsltForms_browser.xsltsrcanyuri += '	</xsl:template>';
+XsltForms_browser.xsltsrcanyuri += '</xsl:stylesheet>';
+
 XsltForms_browser.xsltsrcindent = '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">';
 XsltForms_browser.xsltsrcindent += '	<xsl:output method="xml" omit-xml-declaration="yes"/>';
 XsltForms_browser.xsltsrcindent += '	<xsl:template match="@*[starts-with(translate(name(),\'ABCDEFGHIJKLMNOPQRSTUVWXYZ\',\'abcdefghijklmnopqrstuvwxyz\'),\'xsltforms_\')]" priority="1"/>';
@@ -1277,11 +601,48 @@ XsltForms_browser.xsltsrcrelevant += '		</xsl:copy>';
 XsltForms_browser.xsltsrcrelevant += '	</xsl:template>';
 XsltForms_browser.xsltsrcrelevant += '</xsl:stylesheet>';
 
-if (XsltForms_browser.isIE) {
+XsltForms_browser.xsltsrcrelevany = '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.0">';
+XsltForms_browser.xsltsrcrelevany += '	<xsl:output method="xml" omit-xml-declaration="yes"/>';
+XsltForms_browser.xsltsrcrelevany += '	<xsl:template match="*[@xsltforms_notrelevant = \'true\']" priority="2"/>';
+XsltForms_browser.xsltsrcrelevany += '	<xsl:template match="*[(substring-after(@xsltforms_type,\':\') = \'anyURI\' or substring-after(@xsi:type,\':\') = \'anyURI\') and . != \'\']" priority="2">';
+XsltForms_browser.xsltsrcrelevany += '		<xsl:copy>';
+XsltForms_browser.xsltsrcrelevany += '			<xsl:apply-templates select="@*"/>';
+XsltForms_browser.xsltsrcrelevany += '			<xsl:text>$!$!$!$!$!</xsl:text>';
+XsltForms_browser.xsltsrcrelevany += '			<xsl:apply-templates select="node()"/>';
+XsltForms_browser.xsltsrcrelevany += '			<xsl:text>%!%!%!%!%!</xsl:text>';
+XsltForms_browser.xsltsrcrelevany += '		</xsl:copy>';
+XsltForms_browser.xsltsrcrelevany += '	</xsl:template>';
+XsltForms_browser.xsltsrcrelevany += '	<xsl:template match="@*[starts-with(translate(name(),\'ABCDEFGHIJKLMNOPQRSTUVWXYZ\',\'abcdefghijklmnopqrstuvwxyz\'),\'xsltforms_\')]" priority="1"/>';
+XsltForms_browser.xsltsrcrelevany += '	<xsl:template match="@*" priority="0">';
+XsltForms_browser.xsltsrcrelevany += '		<xsl:choose>';
+XsltForms_browser.xsltsrcrelevany += '			<xsl:when test="parent::*/attribute::*[local-name() = concat(\'xsltforms_\',local-name(current()),\'_notrelevant\')] = \'true\'"/>';
+XsltForms_browser.xsltsrcrelevany += '			<xsl:when test="parent::*/attribute::*[local-name() = concat(\'xsltforms_\',local-name(current()),\'_type\') and substring-after(.,\':\') = \'anyURI\'] and . != \'\'">';
+XsltForms_browser.xsltsrcrelevany += '				<xsl:copy>';
+XsltForms_browser.xsltsrcrelevany += '					<xsl:text>$!$!$!$!$!</xsl:text>';
+XsltForms_browser.xsltsrcrelevany += '					<xsl:apply-templates select="node()"/>';
+XsltForms_browser.xsltsrcrelevany += '					<xsl:text>%!%!%!%!%!</xsl:text>';
+XsltForms_browser.xsltsrcrelevany += '				</xsl:copy>';
+XsltForms_browser.xsltsrcrelevany += '			</xsl:when>';
+XsltForms_browser.xsltsrcrelevany += '			<xsl:otherwise>';
+XsltForms_browser.xsltsrcrelevany += '				<xsl:copy>';
+XsltForms_browser.xsltsrcrelevany += '					<xsl:apply-templates select="node()"/>';
+XsltForms_browser.xsltsrcrelevany += '				</xsl:copy>';
+XsltForms_browser.xsltsrcrelevany += '			</xsl:otherwise>';
+XsltForms_browser.xsltsrcrelevany += '		</xsl:choose>';
+XsltForms_browser.xsltsrcrelevany += '	</xsl:template>';
+XsltForms_browser.xsltsrcrelevany += '	<xsl:template match="node()" priority="0">';
+XsltForms_browser.xsltsrcrelevany += '		<xsl:copy>';
+XsltForms_browser.xsltsrcrelevany += '			<xsl:apply-templates select="@*|node()"/>';
+XsltForms_browser.xsltsrcrelevany += '		</xsl:copy>';
+XsltForms_browser.xsltsrcrelevany += '	</xsl:template>';
+XsltForms_browser.xsltsrcrelevany += '</xsl:stylesheet>';
+
+if (XsltForms_browser.isIE || XsltForms_browser.isIE11) {
 	XsltForms_browser.createXMLDocument = function(xml) {
 		var d = new ActiveXObject("MSXML2.DOMDocument." + XsltForms_browser.MSXMLver);
 		d.setProperty("SelectionLanguage", "XPath");
 		d.validateOnParse = false;
+		d.setProperty("ProhibitDTD", false);
 		//d.setProperty("SelectionNamespaces", "xmlns:xml='http://www.w3.org/XML/1998/namespace'");
 		d.loadXML(xml);
 		return d;
@@ -1313,8 +674,12 @@ if (XsltForms_browser.isIE) {
 	};
 	XsltForms_browser.xsltDoc = new ActiveXObject("MSXML2.DOMDocument." + XsltForms_browser.MSXMLver);
 	XsltForms_browser.xsltDoc.loadXML(XsltForms_browser.xsltsrc);
+	XsltForms_browser.xsltDocAnyURI = new ActiveXObject("MSXML2.DOMDocument." + XsltForms_browser.MSXMLver);
+	XsltForms_browser.xsltDocAnyURI.loadXML(XsltForms_browser.xsltsrcanyuri);
 	XsltForms_browser.xsltDocRelevant = new ActiveXObject("MSXML2.DOMDocument." + XsltForms_browser.MSXMLver);
 	XsltForms_browser.xsltDocRelevant.loadXML(XsltForms_browser.xsltsrcrelevant);
+	XsltForms_browser.xsltDocRelevantAnyURI = new ActiveXObject("MSXML2.DOMDocument." + XsltForms_browser.MSXMLver);
+	XsltForms_browser.xsltDocRelevantAnyURI.loadXML(XsltForms_browser.xsltsrcrelevany);
 	XsltForms_browser.xsltDocIndent = new ActiveXObject("MSXML2.DOMDocument." + XsltForms_browser.MSXMLver);
 	XsltForms_browser.xsltDocIndent.loadXML(XsltForms_browser.xsltsrcindent);
 	XsltForms_browser.loadNode = function(dest, src) {
@@ -1334,6 +699,7 @@ if (XsltForms_browser.isIE) {
 	XsltForms_browser.loadXML = function(dest, xml) {
 		var result = new ActiveXObject("MSXML2.DOMDocument." + XsltForms_browser.MSXMLver);
 		result.setProperty("SelectionLanguage", "XPath");
+		result.setProperty("ProhibitDTD", false);
 		result.validateOnParse = false;
 		if (result.loadXML(xml)) {
 			var r = result.documentElement.cloneNode(true);
@@ -1342,7 +708,7 @@ if (XsltForms_browser.isIE) {
 			XsltForms_globals.error(document.getElementById(XsltForms_browser.getMeta(dest.ownerDocument.documentElement, "model")).xfElement, "xforms-link-exception", "Unable to parse XML");
 		}
 	};
-	XsltForms_browser.saveXML = function(node, relevant, indent) {
+	XsltForms_browser.saveXML = function(node, relevant, indent, related) {
 		if (node.nodeType === XsltForms_nodeType.ATTRIBUTE) { 
 			return node.nodeValue;
 		} else {
@@ -1357,7 +723,50 @@ if (XsltForms_browser.isIE) {
 				var xmlDoc = new ActiveXObject("MSXML2.DOMDocument." + XsltForms_browser.MSXMLver);
 				xmlDoc.setProperty("SelectionLanguage", "XPath"); 
 				xmlDoc.appendChild(node.documentElement ? node.documentElement.cloneNode(true) : node.cloneNode(true));
-				return indent ? xmlDoc.transformNode(XsltForms_browser.xsltDocIndent) : relevant ? xmlDoc.transformNode(XsltForms_browser.xsltDocRelevant) : xmlDoc.transformNode(XsltForms_browser.xsltDoc);
+				if (indent) {
+					return xmlDoc.transformNode(XsltForms_browser.xsltDocIndent);
+				}
+				if (related) {
+					var z = relevant ? xmlDoc.transformNode(XsltForms_browser.xsltDocRelevantAnyURI) : xmlDoc.transformNode(XsltForms_browser.xsltDocAnyURI);
+					var cids = [];
+					var m1 = z.indexOf("$!$!$!$!$!");
+					while (m1 !== -1) {
+						var m2 = z.indexOf("%!%!%!%!%!", m1 + 10);
+						var fvalue = z.substring(m1 + 10, m2);
+						if (fvalue !== "") {
+							fvalue = fvalue.substr(fvalue.indexOf("?id=") + 4);
+							cids.push(fvalue);
+							fvalue = "cid:" + fvalue;
+						}
+						z = z.substr(0, m1) + fvalue + z.substr(m2 + 10);
+						m1 = z.indexOf("$!$!$!$!$!");
+					}
+					var boundary = "xsltformsrev" + XsltForms_globals.fileVersionNumber;
+					z = "--" + boundary + "\r\nContent-Type: application/xml; charset=UTF-8\r\nContent-ID: <xsltforms_main>\r\n\r\n" + z + "\r\n--" + boundary + "\r\n";
+					for (var icid = 0, lcid = cids.length; icid < lcid; icid++) {
+						z += "Content-Type: application/octet-stream\r\nContent-Transfer-Encoding: binary\r\nContent-ID: <" + cids[icid] + ">\r\n\r\n";
+						if (XsltForms_upload.contents[cids[icid]] instanceof ArrayBuffer) {
+							var zc0 = new Uint8Array(XsltForms_upload.contents[cids[icid]]);
+							for (var zci = 0, zcl = zc0.length; zci < zcl; zci++) {
+								z += String.fromCharCode(zc0[zci]);
+							}
+						} else {
+							z += XsltForms_upload.contents[cids[icid]];
+						}
+						z += "\r\n--" + boundary + (icid === lcid-1 ? "--\r\n" : "\r\n");
+					}
+					var data = [];
+					for( var di = 0, dl = z.length; di < dl; di++) {
+						data.push(z.charCodeAt(di) & 0xff);
+					}
+					try {
+						var z2 = new Uint8Array(data);
+						return z2.buffer;
+					} catch (e) {
+						return XsltForms_browser.StringToBinary(z);
+					}
+				}
+				return relevant ? xmlDoc.transformNode(XsltForms_browser.xsltDocRelevant) : xmlDoc.transformNode(XsltForms_browser.xsltDoc);
 			}
 		}
 	};
@@ -1464,9 +873,15 @@ if (XsltForms_browser.isIE) {
 		XsltForms_browser.xsltDoc = XsltForms_browser.parser.parseFromString(XsltForms_browser.xsltsrc, "text/xml");
 		XsltForms_browser.xsltProcessor = new XSLTProcessor();
 		XsltForms_browser.xsltProcessor.importStylesheet(XsltForms_browser.xsltDoc);
+		XsltForms_browser.xsltDocAnyURI = XsltForms_browser.parser.parseFromString(XsltForms_browser.xsltsrcanyuri, "text/xml");
+		XsltForms_browser.xsltProcessorAnyURI = new XSLTProcessor();
+		XsltForms_browser.xsltProcessorAnyURI.importStylesheet(XsltForms_browser.xsltDocAnyURI);
 		XsltForms_browser.xsltDocRelevant = XsltForms_browser.parser.parseFromString(XsltForms_browser.xsltsrcrelevant, "text/xml");
 		XsltForms_browser.xsltProcessorRelevant = new XSLTProcessor();
 		XsltForms_browser.xsltProcessorRelevant.importStylesheet(XsltForms_browser.xsltDocRelevant);
+		XsltForms_browser.xsltDocRelevantAnyURI = XsltForms_browser.parser.parseFromString(XsltForms_browser.xsltsrcrelevany, "text/xml");
+		XsltForms_browser.xsltProcessorRelevantAnyURI = new XSLTProcessor();
+		XsltForms_browser.xsltProcessorRelevantAnyURI.importStylesheet(XsltForms_browser.xsltDocRelevantAnyURI);
 		XsltForms_browser.xsltDocIndent = XsltForms_browser.parser.parseFromString(XsltForms_browser.xsltsrcindent, "text/xml");
 		XsltForms_browser.xsltProcessorIndent = new XSLTProcessor();
 		XsltForms_browser.xsltProcessorIndent.importStylesheet(XsltForms_browser.xsltDocIndent);
@@ -1496,7 +911,7 @@ if (XsltForms_browser.isIE) {
 			XsltForms_globals.error(document.getElementById(XsltForms_browser.getMeta(dest.ownerDocument.documentElement, "model")).xfElement, "xforms-link-exception", "Unable to parse XML");
 		}
 	};
-	XsltForms_browser.saveXML = function(node, relevant, indent) {
+	XsltForms_browser.saveXML = function(node, relevant, indent, related) {
 		if (node.nodeType === XsltForms_nodeType.ATTRIBUTE) { 
 			return node.nodeValue;
 		} else {
@@ -1510,7 +925,66 @@ if (XsltForms_browser.isIE) {
 			} else {
 				var resultDocument;
 				if (XsltForms_browser.xsltProcessor) {
-					resultDocument = indent ? XsltForms_browser.xsltProcessorIndent.transformToDocument(node) : relevant ? XsltForms_browser.xsltProcessorRelevant.transformToDocument(node) : XsltForms_browser.xsltProcessor.transformToDocument(node);
+					if (indent) {
+						resultDocument = XsltForms_browser.xsltProcessorIndent.transformToDocument(node);
+						return XsltForms_browser.serializer.serializeToString(resultDocument);
+					}
+					if (related) {
+						resultDocument = relevant ? XsltForms_browser.xsltProcessorRelevantAnyURI.transformToDocument(node) : XsltForms_browser.xsltProcessorAnyURI.transformToDocument(node);
+						var z = XsltForms_browser.serializer.serializeToString(resultDocument);
+						var cids = [];
+						var m1 = z.indexOf("$!$!$!$!$!");
+						while (m1 !== -1) {
+							var m2 = z.indexOf("%!%!%!%!%!", m1 + 10);
+							var fvalue = z.substring(m1 + 10, m2);
+							if (fvalue !== "") {
+								fvalue = fvalue.substr(fvalue.indexOf("?id=") + 4);
+								cids.push(fvalue);
+								fvalue = "cid:" + fvalue;
+							}
+							z = z.substr(0, m1) + fvalue + z.substr(m2 + 10);
+							m1 = z.indexOf("$!$!$!$!$!");
+						}
+						var boundary = "xsltformsrev" + XsltForms_globals.fileVersionNumber;
+						z = "--" + boundary + "\r\nContent-Type: application/xml; charset=UTF-8\r\nContent-ID: <xsltforms_main>\r\n\r\n" + z + "\r\n--" + boundary + "\r\n";
+						for (var icid = 0, lcid = cids.length; icid < lcid; icid++) {
+							var zc = "";
+							if (XsltForms_browser.isSafari) {
+								var zc0 = XsltForms_upload.contents[cids[icid]];
+								for (var zci = 0, zcl = zc0.length; zci < zcl; zci++) {
+									var zcc = zc0.charCodeAt(zci);
+									if (zcc < 128) {
+										zc += String.fromCharCode(zcc);
+									} else {
+										if ((zcc > 191) && (zcc < 224)) {
+											zc += String.fromCharCode(((zcc & 31) << 6) | (zc0.charCodeAt(++zci) & 63));
+										} else {
+											zc += String.fromCharCode(((zcc & 15) << 12) | ((zc0.charCodeAt(++zci) & 63) << 6) | (zc0.charCodeAt(++zci) & 63));
+										}
+									}
+								}
+							} else {
+								var zc0b = new Uint8Array(XsltForms_upload.contents[cids[icid]]);
+								for (var zcib = 0, zclb = zc0b.length; zcib < zclb; zcib++) {
+									zc += String.fromCharCode(zc0b[zcib]);
+								}
+							}
+							z += "Content-Type: application/octet-stream\r\nContent-Transfer-Encoding: binary\r\nContent-ID: <" + cids[icid] + ">\r\n\r\n" + zc + "\r\n--" + boundary +  (icid === lcid-1 ? "--\r\n" : "\r\n");
+						}
+						var data = [];
+						for( var di = 0, dl = z.length; di < dl; di++) {
+							data.push(z.charCodeAt(di) & 0xff);
+						}
+						try {
+							var z2 = new Uint8Array(data);
+							return z2.buffer;
+						} catch (e) {
+							return XsltForms_browser.StringToBinary(z);
+						}
+					} else {
+						resultDocument = relevant ? XsltForms_browser.xsltProcessorRelevant.transformToDocument(node) : XsltForms_browser.xsltProcessor.transformToDocument(node);
+						return XsltForms_browser.serializer.serializeToString(resultDocument);
+					}
 				} else {
 					resultDocument = XsltForms_browser.createXMLDocument(XsltForms_browser.serializer.serializeToString(node));
 					if (relevant) {
@@ -1535,8 +1009,8 @@ if (XsltForms_browser.isIE) {
 							}
 						}
 					}
+					return XsltForms_browser.serializer.serializeToString(resultDocument);
 				}
-				return XsltForms_browser.serializer.serializeToString(resultDocument);
 			}
 		}
 	};
@@ -1606,7 +1080,7 @@ XsltForms_browser.crc32 = function (s) {
 };
 
 XsltForms_browser.getMeta = function(node, meta) {
-	return node.nodeType ? node.nodeType === XsltForms_nodeType.ELEMENT ? node.getAttribute("xsltforms_"+meta) : node.ownerElement ? node.ownerElement.getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta) : node.selectSingleNode("..").getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta) : null;
+	return node.nodeType && (node.nodeType === XsltForms_nodeType.ELEMENT || node.nodeType === XsltForms_nodeType.ATTRIBUTE) ? node.nodeType === XsltForms_nodeType.ELEMENT ? node.getAttribute("xsltforms_"+meta) : node.ownerElement ? node.ownerElement.getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta) : node.oldOwnerElement ? node.oldOwnerElement.getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta) : node.selectSingleNode("..").getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta) : null;
 };
 
 XsltForms_browser.getBoolMeta = function(node, meta) {
@@ -1635,7 +1109,11 @@ XsltForms_browser.getType = function(node) {
 		if (node.ownerElement) {
 			return node.ownerElement.getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_type");
 		} else {
-			return node.selectSingleNode("..").getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_type");
+			try {
+				return node.selectSingleNode("..").getAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_type");
+			} catch (e) {
+				return null;
+			}
 		}
 	}
 };
@@ -1654,16 +1132,54 @@ XsltForms_browser.getNil = function(node) {
 };
 
 XsltForms_browser.setMeta = function(node, meta, value) {
-	if (node && node.nodeType) {
+	if (node && node.nodeType && (node.nodeType === XsltForms_nodeType.ELEMENT || node.nodeType === XsltForms_nodeType.ATTRIBUTE)) {
 		if (node.nodeType === XsltForms_nodeType.ELEMENT) {
 			node.setAttribute("xsltforms_"+meta, value);
 		} else {
 			if (node.ownerElement) {
 				node.ownerElement.setAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta, value);
+			} else if (node.oldOwnerElement) {
+				node.oldOwnerElement.setAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta, value);
 			} else {
 				node.selectSingleNode("..").setAttribute("xsltforms_"+(node.localName ? node.localName : node.baseName)+"_"+meta, value);
 			}
 		}
+	}
+};
+
+XsltForms_browser.clearMeta = function(node) {
+	var i = 0, n;
+	if (node && node.nodeType && node.nodeType === XsltForms_nodeType.ELEMENT) {
+		if (node.attributes) {
+			while (node.attributes[i]) {
+				n = node.attributes[i].localName ? node.attributes[i].localName : node.attributes[i].baseName;
+				if (n.substr(0, 10) === "xsltforms_") {
+					node.removeAttribute(n);
+				} else {
+					i++;
+				}
+			}
+		}
+		if (node.children) {
+			for (var j = 0, l2 = node.children.length; j < l2; j++) {
+				XsltForms_browser.clearMeta(node.children[j]);
+			}
+		}
+	/*
+	} else if (node && node.nodeType && node.nodeType === XsltForms_nodeType.ATTRIBUTE) {
+		var ownerElement = node.ownerElement? node.ownerElement: node.selectSingleNode("..");
+		if (ownerElement) {
+			var metaprefix = "xsltforms_" + (node.localName ? node.localName : node.baseName) + "_";
+			while (ownerElement.attributes[i]) {
+				n = ownerElement.attributes[i].localName ? ownerElement.attributes[i].localName : ownerElement.attributes[i].baseName;
+				if (n.substr(0, metaprefix.length) === metaprefix) {
+					ownerElement.removeAttribute(n);
+				} else {
+					i++;
+				}
+			}
+		}
+	*/
 	}
 };
 
@@ -1772,11 +1288,12 @@ XsltForms_browser.setType = function(node, value) {
 	}
 };
 
-if (!XsltForms_browser.isIE) {
+if (!XsltForms_browser.isIE && !XsltForms_browser.isIE11) {
 	if (typeof XMLDocument === "undefined") {
 		var XMLDocument = Document;
 	}
 	XMLDocument.prototype.selectNodes = function(xpath, single, node) {
+		var n;
 		try {
 			var r = this.evaluate(xpath, (node ? node : this), this.createNSResolver(this.documentElement), (single ? XPathResult.FIRST_ORDERED_NODE_TYPE : XPathResult.ORDERED_NODE_SNAPSHOT_TYPE), null);
 			if (single) {
@@ -1806,7 +1323,7 @@ if (!XsltForms_browser.isIE) {
 					}
 					break;
 				case "descendant::*[@xsltforms_notrelevant = 'true']":
-					var n = node.firstChild;
+					n = node.firstChild;
 					if (n) {
 						while (n !== node) {
 							if (n.nodeType === XsltForms_nodeType.ELEMENT && n.getAttribute("xsltforms_notrelevant") === "true") {
@@ -1827,7 +1344,7 @@ if (!XsltForms_browser.isIE) {
 					break;
 				case "descendant-or-self::*[@*[starts-with(name(),'xsltforms_')]]":
 					node = node.parentNode;
-					var n = node.firstChild;
+					n = node.firstChild;
 					if (n) {
 						while (n !== node) {
 							if (n.nodeType === XsltForms_nodeType.ELEMENT) {
@@ -1856,7 +1373,7 @@ if (!XsltForms_browser.isIE) {
 		}
 	};
 	XMLDocument.prototype.selectSingleNode = function(xpath) {
-		return this.selectNodes(xpath, true);
+		return this.selectNodes(xpath, true)[0];
 	};
 	XMLDocument.prototype.createNode = function(t, name, ns) {
 		switch(t) {
@@ -2543,21 +2060,21 @@ XsltForms_browser.run = function(action, element, evt, synch, propagate) {
 	if (synch) {
 		XsltForms_browser.dialog.show("statusPanel", null, false);
 		setTimeout(function() { 
-			XsltForms_globals.openAction();
+			XsltForms_globals.openAction("XsltForms_browser.run#1");
 			action.execute(XsltForms_idManager.find(element), null, evt);
 			XsltForms_browser.dialog.hide("statusPanel", false);
 			if (!propagate) {
 				evt.stopPropagation();
 			}
-			XsltForms_globals.closeAction();
+			XsltForms_globals.closeAction("XsltForms_browser.run#1");
 		}, 1 );
 	} else {
-		XsltForms_globals.openAction();
+		XsltForms_globals.openAction("XsltForms_browser.run#2");
 		action.execute(XsltForms_idManager.find(element), null, evt);
 		if (!propagate) {
 			evt.stopPropagation();
 		}
-		XsltForms_globals.closeAction();
+		XsltForms_globals.closeAction("XsltForms_browser.run#2");
 	}
 };
 
@@ -2622,6 +2139,793 @@ String.prototype.addslashes = function() {
 		
 		
 		
+/*jshint noarg:false, forin:true, noempty:true, eqeqeq:true, evil:true, bitwise:true, loopfunc:true, scripturl:true, strict:true, undef:true, curly:true, browser:true, devel:true, maxerr:100, newcap:true */
+//"use strict";
+/*members */
+/*global ActiveXObject, alert, Document, XDocument, Element, DOMParser, XMLSerializer, XSLTProcessor */
+/*global tinyMCE */
+/*global XMLDocument : true */
+/*global XsltForms_browser : true, XsltForms_nodeType : true, XsltForms_schema : true */
+/*global XsltForms_calendar : true, XsltForms_numberList : true, XsltForms_xmlevents : true */
+/*global XsltForms_abstractAction : true, XsltForms_repeat : true, XsltForms_element : true */
+/*global XsltForms_control : true, XsltForms_xpathCoreFunctions : true, XsltForms_xpathFunctionExceptions : true */
+/*global XsltForms_idManager : true, XsltForms_xpath : true, XsltForms_listener : true */
+/*global XsltForms_typeDefs : true, XsltForms_exprContext : true */
+var XsltForms_globals = {
+
+	fileVersion: "1.0RC2",
+	fileVersionNumber: 588,
+
+	language: "navigator",
+	debugMode: false,
+	debugButtons: [
+		{label: "Profiler", name: "profiler"}
+		,{label: "Trace Log", name: "tracelog"}
+		/*
+		,{label: "Validator"},
+		,{label: "XPath Evaluator"}
+		*/
+	],
+	cont : 0,
+	ready : false,
+	body : null,
+	models : [],
+	changes : [],
+	newChanges : [],
+	building : false,
+	posibleBlur : false,
+	bindErrMsgs : [],		// binding-error messages gathered during refreshing
+	transformtime: "unknown",
+	htmltime: 0,
+	creatingtime: 0,
+	inittime: 0,
+	refreshtime: 0,
+	refreshcount: 0,
+	validationError: true,
+	counters: {
+		component: 0,
+		group: 0,
+		input: 0,
+		item: 0,
+		itemset: 0,
+		label: 0,
+		output: 0,
+		repeat: 0,
+		select: 0,
+		trigger: 0,
+		upload: 0
+	},
+	nbsubforms: 0,
+	componentLoads: [],
+
+		
+
+	debugging : function() {
+		if (document.documentElement.childNodes[0].nodeType === 8 || (XsltForms_browser.isIE && document.documentElement.childNodes[0].childNodes[1] && document.documentElement.childNodes[0].childNodes[1].nodeType === 8)) {
+			var body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+			if (this.debugMode) {
+				var dbg = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "div") : document.createElement("div");
+				dbg.setAttribute("style", "border-bottom: thin solid #888888;");
+				dbg.setAttribute("id", "xsltforms_debug");
+				var img = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "img") : document.createElement("img");
+				img.setAttribute("src", XsltForms_browser.ROOT+"magnify.png");
+				img.setAttribute("style", "vertical-align:middle;border:0;");
+				dbg.appendChild(img);
+				var spn = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "span") : document.createElement("span");
+				spn.setAttribute("style", "font-size:16pt");
+				var txt = document.createTextNode(" Debug Mode");
+				spn.appendChild(txt);
+				dbg.appendChild(spn);
+				var spn2 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "span") : document.createElement("span");
+				spn2.setAttribute("style", "font-size:11pt");
+				var txt2 = document.createTextNode(" ("+this.fileVersion+") \xA0\xA0\xA0");
+				spn2.appendChild(txt2);
+				dbg.appendChild(spn2);
+				var a = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "a") : document.createElement("a");
+				a.setAttribute("href", "http://www.w3.org/TR/xforms11/");
+				a.setAttribute("style", "text-decoration:none;");
+				var img2 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "img") : document.createElement("img");
+				img2.setAttribute("src", XsltForms_browser.ROOT+"valid-xforms11.png");
+				img2.setAttribute("style", "vertical-align:middle;border:0;");
+				a.appendChild(img2);
+				dbg.appendChild(a);
+				var a2 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "a") : document.createElement("a");
+				a2.setAttribute("href", "http://www.agencexml.com/xsltforms");
+				a2.setAttribute("style", "text-decoration:none;");
+				var img3 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "img") : document.createElement("img");
+				img3.setAttribute("src", XsltForms_browser.ROOT+"poweredbyXSLTForms.png");
+				img3.setAttribute("style", "vertical-align:middle;border:0;");
+				a2.appendChild(img3);
+				dbg.appendChild(a2);
+				var spn3 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "span") : document.createElement("span");
+				spn3.setAttribute("style", "font-size:11pt");
+				var txt3 = document.createTextNode(" Press ");
+				spn3.appendChild(txt3);
+				dbg.appendChild(spn3);
+				var a3 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "a") : document.createElement("a");
+				a3.setAttribute("onClick", "XsltForms_globals.debugMode=false;XsltForms_globals.debugging();return false;");
+				a3.setAttribute("style", "text-decoration:none;");
+				a3.setAttribute("href", "#");
+				var img4 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "img") : document.createElement("img");
+				img4.setAttribute("src", XsltForms_browser.ROOT+"F1.png");
+				img4.setAttribute("style", "vertical-align:middle;border:0;");
+				a3.appendChild(img4);
+				dbg.appendChild(a3);
+				var spn4 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "span") : document.createElement("span");
+				spn4.setAttribute("style", "font-size:11pt");
+				var txt4 = document.createTextNode(" to toggle mode ");
+				spn4.appendChild(txt4);
+				dbg.appendChild(spn4);
+				var br = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "br") : document.createElement("br");
+				dbg.appendChild(br);
+				var txt5 = document.createTextNode(" \xA0\xA0\xA0\xA0\xA0\xA0");
+				dbg.appendChild(txt5);
+				for (var i = 0, len = XsltForms_globals.debugButtons.length; i < len; i++) {
+					if (XsltForms_globals.debugButtons[i].name) {
+						var btn = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "button") : document.createElement("button");
+						btn.setAttribute("type", "button");
+						btn.setAttribute("onClick", "XsltForms_globals.opentab('" + XsltForms_globals.debugButtons[i].name + "');");
+						var txt6 = document.createTextNode(" "+XsltForms_globals.debugButtons[i].label+" ");
+						btn.appendChild(txt6);
+						dbg.appendChild(btn);
+					} else {
+						var a4 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "a") : document.createElement("a");
+						a4.setAttribute("href", "http://www.agencexml.com/xsltforms");
+						var txt7 = document.createTextNode(" Debugging extensions can be downloaded! ");
+						a4.appendChild(txt7);
+						dbg.appendChild(a4);
+						break;
+					}
+				}
+				var br2 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "br") : document.createElement("br");
+				dbg.appendChild(br2);
+				var ifr = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "iframe") : document.createElement("iframe");
+				ifr.setAttribute("src", "http://www.agencexml.com/direct/banner.htm");
+				ifr.setAttribute("style", "width:100%;height:90px;border:none;margin:0;");
+				ifr.setAttribute("frameborder", "0");
+				var ids_seen = {};
+				var nodes6 = document.getElementsByTagName('*');
+				for (var i6 = 0, l6 = nodes6.length; i6 < l6; i6++) {
+					var node6 = nodes6[i6];
+					if (node6.id) {
+						var id6 = node6.id;
+						ids_seen[id6] = ids_seen[id6] ? ids_seen[id6]+1 : 1;
+					}
+				}
+				var s6 = "";
+				for (var id6b in ids_seen) {
+					if (ids_seen[id6b] > 1) {
+						s6 += id6b + " ";
+					}
+				}
+				if (s6 !== "") {
+					var txt6b = document.createTextNode("WARNING: Duplicate ids: " + s6);
+					var spn6 = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "span") : document.createElement("span");
+					spn6.setAttribute("style", "color:red; font-size: 22pt");
+					spn6.appendChild(txt6b);
+					dbg.appendChild(spn6);
+				}
+				dbg.appendChild(ifr);
+				body.insertBefore(dbg, body.firstChild);
+				document.getElementById("xsltforms_console").style.display = "block";
+			} else {
+				body.removeChild(document.getElementById("xsltforms_debug"));
+				document.getElementById("xsltforms_console").style.display = "none";
+			}
+		}
+	},
+
+		
+
+	xmlrequest : function(method, resource, ser) {
+		if (typeof method !== "string") {
+			return '<error xmlns="">Invalid method "'+method+'"</error>';
+		}
+		method = method.toLowerCase();
+		var instance, modid;
+		switch (method) {
+			case "get":
+				switch (resource) {
+					case "xsltforms-profiler":
+						return XsltForms_globals.profiling_data();
+					case "xsltforms-tracelog":
+						return XsltForms_browser.saveXML(XsltForms_browser.debugConsole.doc_.documentElement, true);
+					default:
+						var slash = resource.indexOf("/");
+						if (slash === -1 ) {
+							instance = document.getElementById(resource);
+							if (!instance) {
+								return '<error xmlns="">Unknown resource "'+resource+'" for method "'+method+'"</error>';
+							}
+							return XsltForms_browser.saveXML(instance.xfElement.doc.documentElement, true);
+						} else {
+							var filename = resource.substr(slash+1);
+							instance = document.getElementById(resource.substr(0, slash));
+							if (!instance) {
+								return '<error xmlns="">Unknown resource "'+resource+'" for method "'+method+'"</error>';
+							}
+							var f = instance.xfElement.archive[filename];
+							if (!f) {
+								return '<error xmlns="">Unknown resource "'+resource+'" for method "'+method+'"</error>';
+							}
+							if (!f.doc) {
+								f.doc = XsltForms_browser.createXMLDocument("<dummy/>");
+								modid = XsltForms_browser.getMeta(instance.xfElement.doc.documentElement, "model");
+								XsltForms_browser.loadXML(f.doc.documentElement, XsltForms_browser.utf8decode(zip_inflate(f.compressedFileData)));
+								XsltForms_browser.setMeta(f.doc.documentElement, "instance", idRef);
+								XsltForms_browser.setMeta(f.doc.documentElement, "model", modid);
+							}
+							return XsltForms_browser.saveXML(f.doc.documentElement, true);
+						}
+				}
+				break;
+			case "put":
+				instance = document.getElementById(resource);
+				if (!instance) {
+					return '<error xmlns="">Unknown resource "'+resource+'" for method "'+method+'"</error>';
+				}
+				instance.xfElement.setDoc(ser, false, true);
+				modid = XsltForms_browser.getMeta(instance.xfElement.doc.documentElement, "model");
+				XsltForms_globals.addChange(modid);
+				XsltForms_globals.closeChanges();
+				return '<ok xmlns=""/>';
+			default:
+				return '<error xmlns="">Unknown method "'+method+'"</error>';
+		}
+	},
+
+		
+
+	profiling_data : function() {
+		var s = '<xsltforms:dump xmlns:xsltforms="http://www.agencexml.com/xsltforms">';
+		s += '<xsltforms:date>' + XsltForms_browser.i18n.format(new Date(), "yyyy-MM-ddThh:mm:ssz", true) + '</xsltforms:date>';
+		s += '<xsltforms:location>' + XsltForms_browser.escape(window.location.href) + '</xsltforms:location>';
+		s += '<xsltforms:appcodename>' + navigator.appCodeName + '</xsltforms:appcodename>';
+		s += '<xsltforms:appname>' + navigator.appName + '</xsltforms:appname>';
+		s += '<xsltforms:appversion>' + navigator.appVersion + '</xsltforms:appversion>';
+		s += '<xsltforms:platform>' + navigator.platform + '</xsltforms:platform>';
+		s += '<xsltforms:useragent>' + navigator.userAgent + '</xsltforms:useragent>';
+		s += '<xsltforms:xsltengine>' + this.xsltEngine + '</xsltforms:xsltengine>';
+		var xsltsrc = '<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:msxsl="urn:schemas-microsoft-com:xslt">';
+		xsltsrc += '	<xsl:output method="xml"/>';
+		xsltsrc += '	<xsl:template match="/">';
+		xsltsrc += '		<xsl:variable name="version">';
+		xsltsrc += '			<xsl:if test="system-property(\'xsl:vendor\')=\'Microsoft\'">';
+		xsltsrc += '				<xsl:value-of select="system-property(\'msxsl:version\')"/>';
+		xsltsrc += '			</xsl:if>';
+		xsltsrc += '		</xsl:variable>';
+		xsltsrc += '		<properties><xsl:value-of select="concat(\'|\',system-property(\'xsl:vendor\'),\' \',system-property(\'xsl:vendor-url\'),\' \',$version,\'|\')"/></properties>';
+		xsltsrc += '	</xsl:template>';
+		xsltsrc += '</xsl:stylesheet>';
+		var res = XsltForms_browser.transformText("<dummy/>", xsltsrc, true);
+		var spres = res.split("|");
+		s += '<xsltforms:xsltengine2>' + spres[1] + '</xsltforms:xsltengine2>';
+		s += '<xsltforms:version>' + this.fileVersion + '</xsltforms:version>';
+		s += '<xsltforms:instances>';
+		var pos = 0;
+		for (var m = 0, mlen = XsltForms_globals.models.length; m < mlen; m++) {
+			if (XsltForms_globals.models[m].element.id !== XsltForms_browser.idPf + "model-config") {
+				for (var id in XsltForms_globals.models[m].instances) {
+					if (XsltForms_globals.models[m].instances.hasOwnProperty(id)) {
+						var count = XsltForms_browser.selectNodesLength("descendant::node() | descendant::*/@*[not(starts-with(local-name(),'xsltforms_'))]", XsltForms_globals.models[m].instances[id].doc);
+						s += '<xsltforms:instance id="' + id + '">' + count + '</xsltforms:instance>';
+						if (XsltForms_globals.models[m].instances[id].archive) {
+							for (var fn in XsltForms_globals.models[m].instances[id].archive) {
+								if (XsltForms_globals.models[m].instances[id].archive.hasOwnProperty(fn)) {
+									if (!XsltForms_globals.models[m].instances[id].archive[fn].doc) {
+										XsltForms_globals.models[m].instances[id].archive[fn].doc = XsltForms_browser.createXMLDocument("<dummy/>");
+										XsltForms_browser.loadXML(XsltForms_globals.models[m].instances[id].archive[fn].doc.documentElement, XsltForms_browser.utf8decode(zip_inflate(XsltForms_globals.models[m].instances[id].archive[fn].compressedFileData)));
+										XsltForms_browser.setMeta(XsltForms_globals.models[m].instances[id].archive[fn].doc.documentElement, "instance", id);
+										XsltForms_browser.setMeta(XsltForms_globals.models[m].instances[id].archive[fn].doc.documentElement, "model", m);
+									}
+									count = XsltForms_browser.selectNodesLength("descendant::node() | descendant::*/@*[not(starts-with(local-name(),'xsltforms_'))]", XsltForms_globals.models[m].instances[id].archive[fn].doc);
+									s += '<xsltforms:instance id="' + id + '/' + fn + '">' + count + '</xsltforms:instance>';
+								}
+							}
+						}
+						pos++;
+					}
+				}
+			}
+		}
+		s += '</xsltforms:instances>';
+		s += '<xsltforms:controls>';
+		s += '<xsltforms:control type="group">' + XsltForms_globals.counters.group + '</xsltforms:control>';
+		s += '<xsltforms:control type="input">' + XsltForms_globals.counters.input + '</xsltforms:control>';
+		s += '<xsltforms:control type="item">' + XsltForms_globals.counters.item + '</xsltforms:control>';
+		s += '<xsltforms:control type="itemset">' + XsltForms_globals.counters.itemset + '</xsltforms:control>';
+		s += '<xsltforms:control type="output">' + XsltForms_globals.counters.output + '</xsltforms:control>';
+		s += '<xsltforms:control type="repeat">' + XsltForms_globals.counters.repeat + '</xsltforms:control>';
+		s += '<xsltforms:control type="select">' + XsltForms_globals.counters.select + '</xsltforms:control>';
+		s += '<xsltforms:control type="trigger">' + XsltForms_globals.counters.trigger + '</xsltforms:control>';
+		s += '</xsltforms:controls>';
+		var re = /<\w/g;
+		var hc = 0;
+		var bhtml = document.documentElement.innerHTML;
+		while (re.exec(bhtml)) {
+			hc++;
+		}
+		s += '<xsltforms:htmlelements>' + hc + '</xsltforms:htmlelements>';
+		s += '<xsltforms:transformtime>' + this.transformtime + '</xsltforms:transformtime>';
+		s += '<xsltforms:htmltime>' + this.htmltime + '</xsltforms:htmltime>';
+		s += '<xsltforms:creatingtime>' + this.creatingtime + '</xsltforms:creatingtime>';
+		s += '<xsltforms:inittime>' + this.inittime + '</xsltforms:inittime>';
+		s += '<xsltforms:refreshcount>' + this.refreshcount + '</xsltforms:refreshcount>';
+		s += '<xsltforms:refreshtime>' + this.refreshtime + '</xsltforms:refreshtime>';
+		var exprtab = [];
+		for (var expr in XsltForms_xpath.expressions) {
+			if (XsltForms_xpath.expressions.hasOwnProperty(expr) && XsltForms_xpath.expressions[expr]) {
+				exprtab[exprtab.length] = {expr: expr, evaltime: XsltForms_xpath.expressions[expr].evaltime};
+			}
+		}
+		exprtab.sort(function(a,b) { return b.evaltime - a.evaltime; });
+		var top = 0;
+		s += '<xsltforms:xpaths>';
+		if (exprtab.length > 0) {
+			for (var i = 0; i < exprtab.length && i < 20; i++) {
+				s += '<xsltforms:xpath expr="' + XsltForms_browser.escape(exprtab[i].expr).replace(/\"/g, "&quot;") + '">' + exprtab[i].evaltime + '</xsltforms:xpath>';
+				top += exprtab[i].evaltime;
+			}
+			if (exprtab.length > 20) {
+				var others = 0;
+				for (var j = 20; j < exprtab.length; j++) {
+					others += exprtab[j].evaltime;
+				}
+				s += '<xsltforms:others count="' + (exprtab.length - 20) + '">' + others + '</xsltforms:others>';
+				top += others;
+			}
+			s += '<xsltforms:total>' + top + '</xsltforms:total>';
+		}
+		s += '</xsltforms:xpaths>';
+		s += '</xsltforms:dump>';
+		return s;
+	},
+
+		
+
+	opentab : function(name) {
+		var req = XsltForms_browser.openRequest("GET", XsltForms_browser.ROOT + "xsltforms_" + name + ".xhtml", false);
+		if (req.overrideMimeType) {
+			req.overrideMimeType("application/xml");
+		}
+		try {        
+			req.send(null);
+		} catch(e) {
+			alert("File not found: " + XsltForms_browser.ROOT + "xsltforms_" + name + ".xhtml");
+		}
+		if (req.status === 200 || req.status === 0) {
+			var s = XsltForms_browser.transformText(req.responseText, XsltForms_browser.ROOT + "xsltforms.xsl", false, "xsltforms_debug", "false", "baseuri", XsltForms_browser.ROOT);
+			if (s.substring(0, 21) === '<?xml version="1.0"?>') {
+				s = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + s.substring(21);
+			}
+			var prow = window.open("about:blank","_blank");
+			prow.document.write(s);
+			prow.document.close();
+		} else {
+			alert("File not found (" + req.status + "): " + XsltForms_browser.ROOT + "xsltforms_" + name + ".xhtml");
+		}
+	},
+
+		
+
+	init : function() {
+		XsltForms_browser.setValue(document.getElementById("statusPanel"), XsltForms_browser.i18n.get("status"));
+		var b = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+		this.body = b;
+		document.onhelp = function(){return false;};
+		window.onhelp = function(){return false;};
+		XsltForms_browser.events.attach(document, "keydown", function(evt) {
+			if (evt.keyCode === 112) {
+				XsltForms_globals.debugMode = !XsltForms_globals.debugMode;
+				XsltForms_globals.debugging();
+				if (evt.stopPropagation) {
+					evt.stopPropagation();
+					evt.preventDefault();
+				} else {
+					evt.cancelBubble = true;
+				}
+				return false;
+			}
+		}, false);
+		XsltForms_browser.events.attach(b, "click", function(evt) {
+			var target = XsltForms_browser.events.getTarget(evt);
+			var parent = target;
+			while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+				if (XsltForms_browser.hasClass(parent, "xforms-repeat-item")) {
+					XsltForms_repeat.selectItem(parent);
+				}
+				parent = parent.parentNode;
+			}
+			parent = target;
+			while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+				var xf = parent.xfElement;
+				if (xf) {
+					if(typeof parent.node !== "undefined" && parent.node && xf.focus && !XsltForms_browser.getBoolMeta(parent.node, "readonly")) {
+						var name = target.nodeName.toLowerCase();
+						xf.focus(name === "input" || name === "textarea", evt);
+					}
+					if(xf.click && xf.input && !xf.input.disabled) {
+						xf.click(target, evt);
+						break;
+					}
+				}
+				parent = parent.parentNode;
+			}
+		}, false);
+		XsltForms_browser.events.onunload = function() {
+			XsltForms_globals.close();
+		};
+		this.openAction("XsltForms_globals.init");
+		XsltForms_xmlevents.dispatchList(this.models, "xforms-model-construct");
+		for (var i = 0, l = this.componentLoads.length; i < l; i++) {
+			eval(this.componentLoads[i]);
+		}
+		this.refresh();
+		this.closeAction("XsltForms_globals.init");
+		this.ready = true;
+		XsltForms_browser.dialog.hide("statusPanel", false);
+	},
+
+		
+
+	close : function() {
+		if (XsltForms_globals.body) {
+			this.openAction("XsltForms_globals.close");
+			//XsltForms_xmlevents.dispatchList(XsltForms_globals.models, "xforms-model-destruct");
+			for (var i = 0, len = XsltForms_listener.destructs.length; i < len; i++) {
+				XsltForms_listener.destructs[i].callback({target: XsltForms_listener.destructs[i].observer});
+			}
+			this.closeAction("XsltForms_globals.close");
+			XsltForms_idManager.clear();
+			this.defaultModel = null;
+			this.changes = [];
+			this.models = [];
+			this.body = null;
+			this.cont = 0;
+			this.dispose(document.documentElement);
+			//XsltForms_browser.events.flush_();
+			if (XsltForms_browser.events.cache) {
+				for (var j = XsltForms_browser.events.cache.length - 1; j >= 0; j--) {
+					var item = XsltForms_browser.events.cache[j];
+					XsltForms_browser.events.detach(item[0], item[1], item[2], item[3]);
+				}
+			}
+			XsltForms_listener.destructs = [];
+			XsltForms_schema.all = {};
+			XsltForms_typeDefs.initAll();
+			XsltForms_calendar.INSTANCE = null;
+			this.ready = false;
+			this.building = false;
+			XsltForms_globals.posibleBlur = false;
+		}
+	},
+
+		
+
+	openActions : [],
+	openAction : function(action) {
+		this.openActions.push(action);
+		if (this.cont++ === 0) {
+			XsltForms_browser.debugConsole.clear();
+		}
+	},
+
+		
+
+	closeAction : function(action) {
+		var lastaction = this.openActions.pop();
+		/*
+		if (lastaction !== action) {
+			alert("Action mismatch: '" + lastaction + "' was expected instead of '" + action + "'");
+		}
+		*/
+		if (this.cont === 1) {
+			this.closeChanges();
+		}
+		this.cont--;
+	},
+
+		
+
+	closeChanges : function() {
+		var changes = this.changes;
+		for (var i = 0, len = changes.length; i < len; i++) {
+			var change = changes[i];
+			if (change.instances) {//Model
+				if (change.rebuilded) {
+					XsltForms_xmlevents.dispatch(change, "xforms-rebuild");
+				} else {
+					XsltForms_xmlevents.dispatch(change, "xforms-recalculate");
+				}
+			//} else { // Repeat or tree
+			}
+		}
+		if (changes.length > 0) {
+			this.refresh();
+			if (this.changes.length > 0) {
+				this.closeChanges();
+			}
+		}
+	},
+
+		
+
+	error : function(element, event, message, causeMessage) {
+		XsltForms_browser.dialog.hide("statusPanel", false);
+		XsltForms_browser.setValue(document.getElementById("statusPanel"), message);
+		XsltForms_browser.dialog.show("statusPanel", null, false);
+		if (element) {
+			XsltForms_xmlevents.dispatch(element, event);
+		}
+		if (causeMessage) {
+			message += " : " + causeMessage;
+		}
+		XsltForms_browser.debugConsole.write("Error: " + message);
+		throw event;        
+	},
+
+		
+
+	refresh : function() {
+		var d1 = new Date();
+		this.building = true;
+		this.build(this.body, (this.defaultModel.getInstanceDocument() ? this.defaultModel.getInstanceDocument().documentElement : null), true);
+		if (this.newChanges.length > 0) {
+			this.changes = this.newChanges;
+			this.newChanges = [];
+		} else {
+			this.changes.length = 0;
+		}
+		for (var i = 0, len = this.models.length; i < len; i++) {
+			var model = this.models[i];
+			if (model.newNodesChanged.length > 0 || model.newRebuilded) {
+				model.nodesChanged = model.newNodesChanged;
+				model.newNodesChanged = [];
+				model.rebuilded = model.newRebuilded;
+				model.newRebuilded = false;
+			} else {
+				model.nodesChanged.length = 0;
+				model.rebuilded = false;
+			}
+		}
+		this.building = false;
+		// Throw any gathered binding-errors.
+		//
+		if (this.bindErrMsgs.length) {
+			this.error(this.defaultModel, "xforms-binding-exception", "Binding Errors: \n" + this.bindErrMsgs.join("\n  "));
+			this.bindErrMsgs = [];
+		}
+		var d2 = new Date();
+		this.refreshtime += d2 - d1;
+		this.refreshcount++;
+	},
+
+		
+
+	build : function(element, ctx, selected) {
+		if (element.nodeType !== XsltForms_nodeType.ELEMENT || element.id === "xsltforms_console" || element.hasXFElement === false) {
+			return {ctx: ctx, hasXFElement: false};
+		}
+		var xf = element.xfElement;
+		var hasXFElement = !!xf;
+		if (element.getAttribute("mixedrepeat") === "true") {
+			//ctx = element.node || ctx;
+			selected = element.selected;
+		}
+		if (xf) {
+			if (xf instanceof Array) {
+				for (var ixf = 0, lenxf = xf.length; ixf < lenxf; ixf++) {
+					xf[ixf].build(ctx);
+				}
+			} else {
+				xf.build(ctx);
+				if (xf.isRepeat) {
+					xf.refresh(selected);
+				}
+			}
+		}
+		var newctx = element.node || ctx;
+		var childs = element.children || element.childNodes;
+		var sel = element.selected;
+		if (typeof sel !== "undefined") {
+			selected = sel;
+		}
+		if (!xf || (xf instanceof Array) || !xf.isRepeat || xf.nodes.length > 0) {
+			var nbsiblings = 1, isiblings = 1;
+			var nodes = [], nbnodes = 0, inodes = 0;
+			for (var i = 0; i < childs.length && this.building; i++) {
+				if (childs[i].nodeType !== XsltForms_nodeType.TEXT) {
+					var curctx;
+					if (isiblings !== 1) {
+						curctx = nodes[inodes];
+						isiblings--;
+					} else if (nbnodes !== 0) {
+						nbnodes--;
+						inodes++;
+						curctx = nodes[inodes];
+						isiblings = nbsiblings;
+					} else {
+						curctx = newctx;
+					}
+					if (!childs[i].getAttribute("cloned")) {
+						var br = this.build(childs[i], curctx, selected);
+						if (childs[i].xfElement && childs[i].xfElement.nbsiblings && childs[i].xfElement.nbsiblings > 1) {
+							nbsiblings = childs[i].xfElement.nbsiblings;
+							nodes = childs[i].xfElement.nodes;
+							nbnodes = nodes.length;
+							inodes = 0;
+							isiblings = nbsiblings;
+						}
+						hasXFElement = br.hasXFElement || hasXFElement;
+					}
+				}
+			}
+		}
+		if(this.building) {
+			if (xf instanceof Array) {
+				for (var ixf2 = 0, lenxf2 = xf.length; ixf2 < lenxf2; ixf2++) {
+					if (xf[ixf2] && xf[ixf2].changed) {
+						xf[ixf2].refresh(selected);
+						xf[ixf2].changed = false;
+					}
+				}
+			} else {
+				if (xf && xf.changed) {
+					xf.refresh(selected);
+					xf.changed = false;
+				}
+			}
+			if (!element.hasXFElement) {
+				element.hasXFElement = hasXFElement;
+			}
+		}
+		return {ctx: newctx, hasXFElement: hasXFElement};
+	},
+
+		
+
+	addChange : function(element) {
+		var list = this.building? this.newChanges : this.changes;
+		if (!XsltForms_browser.inArray(element, list)) {
+			list.push(element);
+		}
+	},
+
+		
+
+	dispose : function(element) {
+		if (element.nodeType !== XsltForms_nodeType.ELEMENT || element.id === "xsltforms_console") {
+			return;
+		}
+		var xf = element.xfElement;
+		if (xf && xf.dispose !== undefined) {
+			xf.dispose();
+		}
+		element.listeners = null;
+		element.node = null;
+		element.hasXFElement = null;
+		var childs = element.childNodes;
+		for (var i = 0; i < childs.length; i++) {
+			this.dispose(childs[i]);
+		}
+	},
+
+		
+
+	blur : function(direct) {
+		if ((direct || this.posibleBlur) && this.focus) {
+			if (this.focus.element) {
+				this.openAction("XsltForms_globals.blur");
+				XsltForms_xmlevents.dispatch(this.focus, "DOMFocusOut");
+				XsltForms_browser.setClass(this.focus.element, "xforms-focus", false);
+				try {
+					this.focus.blur();
+				} catch (e){
+					alert("Blur?");
+				}
+				this.closeAction("XsltForms_globals.blur");
+			}
+			this.posibleBlur = false;
+			this.focus = null;
+		}
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_subform(subform, id, eltid) {
+	this.subform = subform;
+	this.id = id;
+	this.eltid = eltid;
+	if (eltid) {
+		document.getElementById(eltid).xfSubform = this;
+	} else {
+		var b = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+		b.xfSubform = this;
+	}
+	this.models = [];
+	this.schemas = [];
+	this.instances = [];
+	this.binds = [];
+	this.xpaths = [];
+	this.subforms = [];
+	this.listeners = [];
+	this.ready = false;
+	if (subform) {
+		subform.subforms.push(this);
+	}
+	XsltForms_subform.subforms[id] = this;
+}
+
+XsltForms_subform.subforms = [];
+
+		
+
+XsltForms_subform.prototype.construct = function() {
+	for (var i = 0, len = this.instances.length; i < len; i++) {
+		this.instances[i].construct(this);
+	}
+	XsltForms_browser.forEach(this.binds, "refresh");
+	for (i = 0, len = this.instances.length; i < len; i++) {
+		this.instances[i].revalidate();
+	}
+	XsltForms_xmlevents.dispatchList(this.models, "xforms-subform-ready");
+	this.ready = true;
+};
+
+		
+
+XsltForms_subform.prototype.dispose = function() {
+	var scriptelt = document.getElementById(this.id + "-script");
+	scriptelt.parentNode.removeChild(scriptelt);
+	for (var h = 0, len0 = this.subforms.length; h < len0; h++) {
+		this.subforms[0].dispose();
+	}
+	this.subforms = null;
+	XsltForms_globals.dispose(document.getElementById(this.eltid));
+	for (var i0 = 0, len00 = this.schemas.length; i0 < len00; i0++) {
+		this.schemas[i0].dispose(this);
+	}
+	this.schemas = null;
+	for (var j = 0, len2 = this.instances.length; j < len2; j++) {
+		this.instances[j].dispose(this);
+	}
+	this.instances = null;
+	for (var i = 0, len = this.models.length; i < len; i++) {
+		this.models[i].dispose(this);
+	}
+	this.models = null;
+	for (var k = 0, len3 = this.xpaths.length; k < len3; k++) {
+		this.xpaths[k].dispose(this);
+	}
+	this.xpaths = null;
+	this.binds = null;
+	XsltForms_subform.subforms[this.id] = null;
+	var parentform = this.subform;
+	if (parentform) {
+		var parentsubforms = parentform.subforms;
+		for (var l = 0, len4 = parentsubforms.length; l < len4; l++) {
+			if (parentsubforms[l] === this) {
+				if (l < len4 - 1) {
+					parentsubforms[l] = parentsubforms[len4 - 1];
+				}
+				parentsubforms.pop();
+				break;
+			}
+		}
+	}
+	for (var m = 0, len5 = this.listeners.length; m < len5; m++) {
+		this.listeners[m].detach();
+	}
+	this.listeners = null;
+};
+
+
+	
+		
+		
 		
 function XsltForms_binding(type, xpath, model, bind) {
 	this.type = type;
@@ -2638,7 +2942,10 @@ function XsltForms_binding(type, xpath, model, bind) {
 
 		
 
-XsltForms_binding.prototype.evaluate = function(ctx, depsNodes, depsId, depsElements) {
+XsltForms_binding.prototype.evaluate = function() {
+	alert("Error");
+};
+XsltForms_binding.prototype.bind_evaluate = function(subform, ctx, depsNodes, depsId, depsElements) {
 	var result = null;
 	if( typeof this.model === "string" ) {
 		this.model = document.getElementById(this.model).xfElement;
@@ -2656,9 +2963,9 @@ XsltForms_binding.prototype.evaluate = function(ctx, depsNodes, depsId, depsElem
 		XsltForms_browser.copyArray(this.bind.depsNodes, depsNodes);
 		XsltForms_browser.copyArray(this.bind.depsElements, depsElements);
 	} else {
-		var exprCtx = new XsltForms_exprContext(!ctx || (this.model && this.model !== document.getElementById(XsltForms_browser.getMeta(ctx.ownerDocument.documentElement, "model")).xfElement) ? this.model ? this.model.getInstanceDocument().documentElement : XsltForms_globals.defaultModel.getInstanceDocument().documentElement : ctx,
+		var exprCtx = new XsltForms_exprContext(subform, !ctx || (this.model && this.model !== document.getElementById(XsltForms_browser.getMeta(ctx.ownerDocument.documentElement, "model")).xfElement) ? this.model ? this.model.getInstanceDocument().documentElement : XsltForms_globals.defaultModel.getInstanceDocument().documentElement : ctx,
 			null, null, null, null, ctx, depsNodes, depsId, depsElements, this.model);
-		result = this.xpath.evaluate(exprCtx);
+		result = this.xpath.xpath_evaluate(exprCtx);
 	}
 	XsltForms_browser.assert(this.type || !result || typeof result === "object", "Binding evaluation didn't returned a nodeset but '"+(typeof result === "object" ? "" : result)+"' for " + (this.bind ? "bind: " + this.bind : "XPath expression: " + this.xpath.expression));
 	switch (this.type) {
@@ -2730,7 +3037,7 @@ XsltForms_mipbinding.prototype.evaluate = function(ctx, node) {
 		// alert("Evaluate \"" + this.binding.xpath.expression + "\"");
 		depsN.length = 0;
 		deps.length = 0;
-		this.nodes[curn].result = this.binding.evaluate(ctx.node, this.nodes[curn].depsN, null, this.nodes[curn].deps);
+		this.nodes[curn].result = this.binding.bind_evaluate(ctx.subform, ctx.node, this.nodes[curn].depsN, null, this.nodes[curn].deps);
 		return this.nodes[curn].result;
 	} else {
 		return this.nodes[curn].result;
@@ -2841,6483 +3148,7 @@ var XsltForms_idManager = {
 		
 		
 		
-function XsltForms_coreElement() {
-}
-
-
-		
-
-XsltForms_coreElement.prototype.init = function(subform, id, parent, className) {
-	this.subforms = [];
-	this.subforms[subform] = true;
-	this.nbsubforms = 1;
-	parent = parent? parent.element : XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "head")[0]: document.getElementsByTagName("head")[0];
-	this.element = XsltForms_browser.createElement("span", parent, null, className);
-	this.element.id = id;
-	this.element.xfElement = this;
-};
-
-
-		
-
-XsltForms_coreElement.prototype.dispose = function() {
-	this.element.xfElement = null;
-	this.element.parentNode.removeChild(this.element);
-	this.element = null;
-	this.model = null;
-};
-
-	
-		
-		
-		
-function XsltForms_model(subform, id, schemas, functions, version) {
-	if (subform.id !== "xsltforms-mainform") {
-		XsltForms_globals.addChange(this);
-	}
-	this.init(subform, id, null, "xforms-model");
-	this.instances = {};
-	this.binds = [];
-	this.nodesChanged = [];
-	this.newNodesChanged = [];
-	this.schemas = [];
-	this.defaultInstance = null;
-	this.defaultSubmission = null;
-	XsltForms_globals.models.push(this);
-	subform.models.push(this);
-	var elt = document.getElementById(id);
-	XsltForms_globals.defaultModel = XsltForms_globals.defaultModel || this;
-	if (elt) {
-		elt.getInstanceDocument = function(modid) {
-			return this.xfElement.getInstanceDocument(modid);
-		};
-		elt.rebuild = function() {
-			return this.xfElement.rebuild();
-		};
-		elt.recalculate = function() {
-			return this.xfElement.recalculate();
-		};
-		elt.revalidate = function() {
-			return this.xfElement.revalidate();
-		};
-		elt.refresh = function() {
-			return this.xfElement.refresh();
-		};
-		elt.reset = function() {
-			return this.xfElement.reset();
-		};
-	}
-	if (schemas) {
-		schemas = schemas.split(" ");
-		for (var i = 0, len = schemas.length; i < len; i++) {
-			var found = false;
-			for (var sid in XsltForms_schema.all) {
-				if (XsltForms_schema.all.hasOwnProperty(sid)) {
-					var schema = XsltForms_schema.all[sid];
-					if (schema.name === schemas[i]) {
-						this.schemas.push(schema);
-						found = true;
-						break;
-					}
-				}
-			}
-			if (!found) {
-				XsltForms_globals.error(this, "xforms-link-exception", "Schema " + schemas[i] + " not found");
-			}
-		}
-	}
-	if (functions) {
-		var fs = functions.split(" ");
-		var found;
-		for (var j = 0, len2 = fs.length; j < len2; j++) {
-			found = false;
-			for (var k = 0, len3 = XsltForms_xpathCoreFunctions.length; k < len3; k++) {
-				if (XsltForms_xpathCoreFunctions[k].split(" ")[1] === fs[j]) {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				try {
-					var func = eval(fs[j]);
-				} catch (e) {
-					XsltForms_globals.error(this, "xforms-compute-exception", "Function " + fs[j] + "() not found");
-				}
-			}
-		}
-	}
-	if (version) {
-		var vs = version.split(" ");
-		for (var l = 0, len4 = vs.length; l < len4; l++) {
-			if (vs[l] !== "1.0" && vs[l] !== "1.1") {
-				XsltForms_globals.error(XsltForms_globals.defaultModel, "xforms-version-exception", "Version " + vs[l] + " not supported");
-				break;
-			}
-		}
-	}
-}
-
-XsltForms_model.prototype = new XsltForms_coreElement();
-
-
-		
-
-XsltForms_model.create = function(subform, id, schemas, functions, version) {
-	var elt = document.getElementById(id);
-	if (elt) {
-		elt.xfElement.subforms[subform] = true;
-		elt.xfElement.nbsubforms++;
-		subform.models.push(elt.xfElement);
-		XsltForms_globals.addChange(elt.xfElement);
-		return elt.xfElement;
-	} else {
-		return new XsltForms_model(subform, id, schemas, functions, version);
-	}
-};
-
-
-		
-
-XsltForms_model.prototype.addInstance = function(instance) {
-	this.instances[instance.element.id] = instance;
-	this.defaultInstance = this.defaultInstance || instance;
-};
-
-		
-
-XsltForms_model.prototype.addBind = function(bind) {
-	this.binds.push(bind);
-};
-
-		
-
-XsltForms_model.prototype.dispose = function(subform) {
-	if (subform && this.nbsubforms !== 1) {
-		this.subforms[subform] = null;
-		this.nbsubforms--;
-		return;
-	}
-	this.instances = null;
-	this.binds = null;
-	this.itext = null;
-	this.defaultInstance = null;
-	XsltForms_coreElement.prototype.dispose.call(this);
-};
-
-		
-
-XsltForms_model.prototype.getInstance = function(id) {
-	return id ? this.instances[id] : this.defaultInstance;
-};
-
-		
-
-XsltForms_model.prototype.getInstanceDocument = function(id) {
-	var instance = this.getInstance(id);
-	return instance? instance.doc : null;
-};
-
-		
-
-XsltForms_model.prototype.findInstance = function(node) {
-	var doc = node.nodeType === XsltForms_nodeType.DOCUMENT ? node : node.ownerDocument;
-	for (var id in this.instances) {
-		if (this.instances.hasOwnProperty(id)) {
-			var inst = this.instances[id];
-			if (doc === inst.doc) {
-				return inst;
-			}
-		}
-	}
-	return null;
-};
-
-
-		
-
-XsltForms_model.prototype.construct = function() {
-	if (!XsltForms_globals.ready) {
-		XsltForms_browser.forEach(this.instances, "construct");
-	}
-	if (XsltForms_globals.ready) {
-		XsltForms_xmlevents.dispatch(this, "xforms-rebuild");
-	} else {
-		this.rebuild();
-	}
-	XsltForms_xmlevents.dispatch(this, "xforms-model-construct-done");
-	if (this === XsltForms_globals.models[XsltForms_globals.models.length - 1]) {
-		window.setTimeout("XsltForms_xmlevents.dispatchList(XsltForms_globals.models, \"xforms-ready\")", 1);
-	}
-};
-
-
-		
-
-XsltForms_model.prototype.reset = function() {
-	XsltForms_browser.forEach(this.instances, "reset");
-	this.setRebuilded(true);
-	XsltForms_globals.addChange(this);
-};
-
-
-		
-
-XsltForms_model.prototype.rebuild = function() {
-	if (XsltForms_globals.ready) {
-		this.setRebuilded(true);
-	}
-	XsltForms_browser.forEach(this.binds, "refresh");
-	if (XsltForms_globals.ready) {
-		XsltForms_xmlevents.dispatch(this, "xforms-recalculate");
-	} else {
-		this.recalculate();
-	}
-};
-
-
-		
-
-XsltForms_model.prototype.recalculate = function() { 
-	XsltForms_browser.forEach(this.binds, "recalculate");
-	if (XsltForms_globals.ready) {
-		XsltForms_xmlevents.dispatch(this, "xforms-revalidate");
-	} else {
-		this.revalidate();
-	}
-};
-
-
-		
-
-XsltForms_model.prototype.revalidate = function() {
-	XsltForms_browser.forEach(this.instances, "revalidate");
-	if (XsltForms_globals.ready) {
-		XsltForms_xmlevents.dispatch(this, "xforms-refresh");
-	}
-};
-
-
-		
-
-XsltForms_model.prototype.refresh = function() {
-	// Nada?
-};
-
-
-		
-
-XsltForms_model.prototype.addChange = function(node) {
-	var list = XsltForms_globals.building? this.newNodesChanged : this.nodesChanged;
-	if (!XsltForms_browser.inArray(node, list)) {
-		XsltForms_globals.addChange(this);
-	}
-	if (node.nodeType === XsltForms_nodeType.ATTRIBUTE && !XsltForms_browser.inArray(node, list)) {
-		list.push(node);
-		node = node.ownerElement ? node.ownerElement : node.selectSingleNode("..");
-	}
-	while (node.nodeType === XsltForms_nodeType.ELEMENT && !XsltForms_browser.inArray(node, list)) {
-		list.push(node);
-		node = node.parentNode;
-	}
-};
-
-
-		
-
-XsltForms_model.prototype.setRebuilded = function(value) {
-	if (XsltForms_globals.building) {
-		this.newRebuilded = value;
-	} else {
-		this.rebuilded = value;
-	}
-};
-
-		
-
-XsltForms_model.prototype.additext = function(itext) {
-	this.itext = itext;
-	return this;
-};
-
-	
-		
-		
-		
-function XsltForms_instance(subform, id, model, readonly, mediatype, src, srcXML) {
-	this.init(subform, id, model, "xforms-instance");
-	this.readonly = readonly;
-	this.mediatype = mediatype;
-	this.src = XsltForms_browser.unescape(src);
-	switch(mediatype) {
-		case "application/xml":
-			this.srcXML = XsltForms_browser.unescape(srcXML);
-			if (this.srcXML.substring(0, 1) === "&") {
-				this.srcXML = XsltForms_browser.unescape(this.srcXML);
-			}
-			break;
-		case "text/json":
-		case "application/json":
-			var json;
-			eval("json = " + XsltForms_browser.unescape(srcXML));
-			this.srcXML = XsltForms_browser.json2xml("", json, true, false);
-			break;
-		case "text/vcard":
-			this.srcXML = XsltForms_browser.vcard2xcard(XsltForms_browser.unescape(srcXML));
-			break;
-		case "application/zip":
-		case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-		case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-			this.srcXML = "<dummy/>";
-			break;
-		default:
-			alert("Unsupported mediatype '" + mediatype + "' for instance #" + id);
-			return;
-	}
-	this.model = model;
-	this.doc = XsltForms_browser.createXMLDocument("<dummy/>");
-	XsltForms_browser.setMeta(this.doc.documentElement, "instance", id);
-	XsltForms_browser.setMeta(this.doc.documentElement, "model", model.element.id);
-	model.addInstance(this);
-	subform.instances.push(this);
-}
-
-XsltForms_instance.prototype = new XsltForms_coreElement();
- 
-
-		
-
-XsltForms_instance.create = function(subform, id, model, readonly, mediatype, src, srcXML) {
-	var instelt = document.getElementById(id);
-	if (instelt && instelt.xfElement) {
-		instelt.xfElement.subforms[subform] = true;
-		instelt.xfElement.nbsubforms++;
-		subform.instances.push(instelt.xfElement);
-		return instelt.xfElement;
-	} else {
-		return new XsltForms_instance(subform, id, model, readonly, mediatype, src, srcXML);
-	}
-};
-
-		
-
-XsltForms_instance.prototype.dispose = function(subform) {
-	if (subform && this.nbsubforms !== 1) {
-		this.subforms[subform] = null;
-		this.nbsubforms--;
-		return;
-	}
-	XsltForms_coreElement.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_instance.prototype.construct = function(subform) {
-	if (!XsltForms_globals.ready || (subform && !subform.ready && this.nbsubforms === 1)) {
-		if (this.src) {
-			if (this.src.substring(0, 8) === "local://") {
-				try {
-					if (typeof(localStorage) === 'undefined') {
-						throw { message: "local:// not supported" };
-					}
-					this.setDoc(window.localStorage.getItem(this.src.substr(8)));
-				} catch(e) {
-					XsltForms_globals.error(this.element, "xforms-link-exception", "Fatal error loading " + this.src, e.toString());
-				}
-			} else if (this.src.substr(0, 9) === "opener://") {
-				try {
-					var ser = window.opener.XsltForms_globals.xmlrequest('get', this.src.substr(9));
-					this.setDoc(ser);
-				} catch (e) {
-					XsltForms_globals.error(this.element, "xforms-link-exception", "Fatal error loading " + this.src, e.toString());
-				} 
-			} else {
-				if (this.src.substr(0, 11) === "javascript:") {
-					try {
-						var ser;
-						eval("ser = (" + this.src.substr(11) + ");");
-						this.setDoc(ser);
-					} catch (e) {
-						XsltForms_globals.error(this.element, "xforms-link-exception", "Error evaluating the following Javascript expression: "+this.src.substr(11));
-					}
-				} else {
-					var cross = false;
-					if (this.src.match(/^[a-zA-Z0-9+\.\-]+:\/\//)) {
-						var domain = /^([a-zA-Z0-9+\.\-]+:\/\/[^\/]*)/;
-						var sdom = domain.exec(this.src);
-						var ldom = domain.exec(document.location.href);
-						cross = sdom[0] !== ldom[0];
-					}
-					if (cross) {
-						this.setDoc('<dummy xmlns=""/>');
-						XsltForms_browser.jsoninstobj = this;
-						var scriptelt = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "script") : document.createElement("script");
-						scriptelt.setAttribute("src", this.src+((this.src.indexOf("?") === -1) ? "?" : "&")+"callback=XsltForms_browser.jsoninst");
-						scriptelt.setAttribute("id", "jsoninst");
-						scriptelt.setAttribute("type", "text/javascript");
-						var body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
-						body.insertBefore(scriptelt, body.firstChild);
-					} else {
-						try {
-							var req = XsltForms_browser.openRequest("GET", this.src, false);
-							XsltForms_browser.debugConsole.write("Loading " + this.src);
-							if ((this.mediatype === "application/zip" || this.mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" )&& req.overrideMimeType) {
-								req.overrideMimeType('text/plain; charset=x-user-defined');
-							}
-							req.send(null);
-							if (req.status !== 0 && (req.status < 200 || req.status >= 300)) {
-								throw { message: "Request error: " + req.status };
-							}
-							this.setDocFromReq(req, this.mediatype);
-						} catch(e) {
-							XsltForms_globals.error(this.element, "xforms-link-exception", "Fatal error loading " + this.src, e.toString());
-						}
-					}
-				}
-			}
-		} else {
-			this.setDoc(this.srcXML);
-		}
-	}
-};
-
-
-		
-
-XsltForms_instance.prototype.reset = function() {
-	this.setDoc(this.oldXML, true);
-};
- 
-
-		
-
-XsltForms_instance.prototype.store = function(isReset) {
-	if (this.oldXML && !isReset) {
-		this.oldXML = null;
-	}
-	this.oldXML = XsltForms_browser.saveXML(this.doc.documentElement);
-};
-
-
-		
-
-XsltForms_instance.prototype.setDoc = function(xml, isReset, preserveOld) {
-	var instid = XsltForms_browser.getMeta(this.doc.documentElement, "instance");
-	var modid = XsltForms_browser.getMeta(this.doc.documentElement, "model");
-	XsltForms_browser.loadXML(this.doc.documentElement, xml);
-	XsltForms_browser.setMeta(this.doc.documentElement, "instance", instid);
-	XsltForms_browser.setMeta(this.doc.documentElement, "model", modid);
-	if (!preserveOld) {
-		this.store(isReset);
-	}
-	if (instid === XsltForms_browser.idPf + "instance-config") {
-		XsltForms_browser.config = this.doc.documentElement;
-	}
-};
-        
-
-		
-
-XsltForms_instance.prototype.setDocFromReq = function(req, mediatype, isReset, preserveOld) {
-	var srcXML = req.responseText;
-	if (mediatype) {
-		this.mediatype = mediatype;
-		switch(this.mediatype) {
-			case "text/json":
-			case "application/json":
-				var json;
-				eval("json = " + srcXML);
-				srcXML = XsltForms_browser.json2xml("", json, true, false);
-				break;
-			case "text/vcard":
-				srcXML = XsltForms_browser.vcard2xcard(srcXML);
-				break;
-			case "application/zip":
-			case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-			case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-				var arch;
-				if (XsltForms_browser.isIE) {
-					var convertResponseBodyToText = function (binary) {
-						if (!XsltForms_browser.byteMapping) {
-							var byteMapping = {};
-							for (var i = 0; i < 256; i++) {
-								for (var j = 0; j < 256; j++) {
-									byteMapping[String.fromCharCode(i + j * 256)] = String.fromCharCode(i) + String.fromCharCode(j);
-								}
-							}
-							XsltForms_browser.byteMapping = byteMapping;
-						}
-						var rawBytes = XsltForms_browser_BinaryToArray_ByteStr(binary);
-						var lastChr = XsltForms_browser_BinaryToArray_ByteStr_Last(binary);
-						return rawBytes.replace(/[\s\S]/g, function (match) { return XsltForms_browser.byteMapping[match]; }) + lastChr;
-					};
-					arch = XsltForms_browser.zip2xml(convertResponseBodyToText(req.responseBody), this.mediatype, this.element.id, this.model.element.id);
-				} else {
-					arch = XsltForms_browser.zip2xml(srcXML, this.mediatype, this.element.id, this.model.element.id);
-				}
-				srcXML = arch.srcXML;
-				delete arch.srcXML;
-				this.archive = arch;
-				break;
-			case "application/xml":
-				break;
-			default:
-				alert("Unsupported mediatype '" + this.mediatype + "' for instance #" + this.element.id);
-				return;
-		}
-	}
-	this.setDoc(srcXML, isReset, preserveOld);
-};
-        
-
-		
-
-XsltForms_instance.prototype.revalidate = function() {
-	if (!this.readonly) {
-		this.validation_(this.doc.documentElement);
-	}
-};
-
-XsltForms_instance.prototype.validation_ = function(node, readonly, notrelevant) {
-	if (!readonly) {
-		readonly = false;
-	}
-	if (!notrelevant) {
-		notrelevant = false;
-	}
-	this.validate_(node, readonly, notrelevant);
-	readonly = XsltForms_browser.getBoolMeta(node, "readonly");
-	notrelevant = XsltForms_browser.getBoolMeta(node, "notrelevant");
-	var atts = node.attributes || [];
-	if (atts) {
-		var atts2 = [];
-		for (var i = 0, len = atts.length; i < len; i++) {
-			if (atts[i].nodeName.substr(0,10) !== "xsltforms_") {
-				atts2[atts2.length] = atts[i];
-			}
-		}
-		for (var i2 = 0, len2 = atts2.length; i2 < len2; i2++) {
-			this.validation_(atts2[i2], readonly, notrelevant);
-		}
-	}
-	for (var j = 0, len1 = node.childNodes.length; j < len1; j++) {
-		var child = node.childNodes[j];
-		if (child.nodeType === XsltForms_nodeType.ELEMENT) {
-			this.validation_(child, readonly, notrelevant);
-		}
-	}
-};
-
-XsltForms_instance.prototype.validate_ = function(node, readonly, notrelevant) {
-	var bindids = XsltForms_browser.getMeta(node, "bind");
-	var value = XsltForms_globals.xmlValue(node);
-	var schtyp = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string");
-	if (bindids) {
-		var binds = bindids.split(" ");
-		var relevantfound = false;
-		var readonlyfound = false;
-		for (var i = 0, len = binds.length; i < len; i++) {
-			var bind = document.getElementById(binds[i]).xfElement;
-			var nodes = bind.nodes;
-			var i2 = 0;
-			for (var len2 = nodes.length; i2 < len2; i2++) {
-				if (nodes[i2] === node) {
-					break;
-				}
-			}
-			for (var j = 0, len3 = bind.depsNodes.length; j < len3; j++) {
-				XsltForms_browser.rmValueMeta(bind.depsNodes[j], "depfor", bind.depsId);
-			}
-			bind.depsNodes.length = 0;
-			var ctx = new XsltForms_exprContext(node, i2, nodes, null, null, null, [], bind.depsId);
-			if (bind.required) {
-				this.setProperty_(node, "required", bind.required.evaluate(ctx, node));
-			}
-			if (notrelevant || !relevantfound || bind.relevant) {
-				this.setProperty_(node, "notrelevant", notrelevant || !(bind.relevant? bind.relevant.evaluate(ctx, node) : true));
-				relevantfound = relevantfound || bind.relevant;
-			}
-			if (readonly || !readonlyfound || bind.readonly) {
-				this.setProperty_(node, "readonly", readonly || (bind.readonly? bind.readonly.evaluate(ctx, node) : bind.calculate ? true : false));
-				readonlyfound = readonlyfound || bind.readonly;
-			}
-			this.setProperty_(node, "notvalid",
-				!XsltForms_browser.getBoolMeta(node, "notrelevant") && !(!(XsltForms_browser.getBoolMeta(node, "required") && (!value || value === "")) &&
-				(XsltForms_browser.getNil(node) ? value === "" : !schtyp || schtyp.validate(value)) &&
-				(!bind.constraint || bind.constraint.evaluate(ctx, node))));
-			XsltForms_browser.copyArray(ctx.depsNodes, bind.depsNodes);
-		}
-	} else {
-		this.setProperty_(node, "notrelevant", notrelevant);
-		this.setProperty_(node, "readonly", readonly);
-		this.setProperty_(node, "notvalid", schtyp && !schtyp.validate(value));
-	}
-};
-
-XsltForms_instance.prototype.setProperty_ = function (node, property, value) {
-	if (XsltForms_browser.getBoolMeta(node, property) !== value) {
-		XsltForms_browser.setBoolMeta(node, property, value);
-		this.model.addChange(node);   
-	}
-};
-
-		
-
-XsltForms_browser.json2xml = function(name, json, root, inarray) {
-	var fullname = "";
-	if (name === "________") {
-		fullname = " exml:fullname=\"" + XsltForms_browser.escape(name) + "\"";
-		name = "________";
-	}
-	var ret = root ? "<exml:anonymous xmlns:exml=\"http://www.agencexml.com/exml\" xmlns:xsi=\"http://www.w3.org/1999/XMLSchema-instance\" xmlns:exsi=\"http://www.agencexml.com/exi\" xmlns=\"\">" : "";
-	if (json instanceof Array) {
-		if (inarray) {
-			ret += "<exml:anonymous exsi:maxOccurs=\"unbounded\">";
-		}
-		if (json.length === 0) {
-			ret += "<" + (name === "" ? "exml:anonymous" : name) + fullname + " exsi:maxOccurs=\"unbounded\" xsi:nil=\"true\"/>";
-		} else {
-			for (var i = 0, len = json.length; i < len; i++) {
-				ret += XsltForms_browser.json2xml(name === "" ? "exml:anonymous" : name, json[i], false, true);
-			}
-		}
-		if (inarray) {
-			ret += "</exml:anonymous>";
-		}
-	} else {
-		var xsdtype = "";
-		switch(typeof(json)) {
-			case "number":
-				xsdtype = " xsi:type=\"xsd:double\"";
-				break;
-			case "boolean":
-				xsdtype = " xsi:type=\"xsd:boolean\"";
-				break;
-			case "object":
-				if (json instanceof Date) {
-					xsdtype = " xsi:type=\"xsd:dateTime\"";
-				}
-				break;
-		}
-		ret += name === "" ? "" : "<"+name+fullname+(inarray?" exsi:maxOccurs=\"unbounded\"":"")+xsdtype+">";
-		if (typeof(json) === "object" && !(json instanceof Date)) {
-			for (var m in json) {
-				if (json.hasOwnProperty(m)) {
-					ret += XsltForms_browser.json2xml(m, json[m], false, false);
-				}
-			}
-		} else {
-			if (json instanceof Date) {
-				ret += json.getFullYear() + "-";
-				ret += (json.getMonth() < 9 ? "0" : "") + (json.getMonth()+1) + "-";
-				ret += (json.getDate() < 10 ? "0" : "") + json.getDate() + "T";
-				ret += (json.getHours() < 10 ? "0" : "") + json.getHours() + ":";
-				ret += (json.getMinutes() < 10 ? "0" : "") + json.getMinutes() + ":";
-				ret += (json.getSeconds() < 10 ? "0" : "") + json.getSeconds() + "Z";
-			} else {
-				ret += XsltForms_browser.escape(json);
-			}
-		}
-		ret += name === "" ? "" : "</"+name+">";
-	}
-	ret += root ? "</exml:anonymous>" : "";
-	return ret;
-};
-
-		
-
-var jsoninst = function(json) {
-	XsltForms_browser.jsoninstobj.setDoc(XsltForms_browser.json2xml("", json, true, false));
-	XsltForms_globals.addChange(XsltForms_browser.jsoninstobj.model);
-	XsltForms_xmlevents.dispatch(XsltForms_browser.jsoninstobj.model, "xforms-rebuild");
-	XsltForms_globals.refresh();
-	document.body.removeChild(document.getElementById("jsoninst"));
-};
-    
-		
-
-XsltForms_browser.vcard2xcard_data = {
-	state: 0,
-	version: "4.0",
-	reg_date: /^(\d{8}|\d{4}-\d\d|--\d\d(\d\d)?|---\d\d)$/,
-	reg_time: /^(\d\d(\d\d(\d\d)?)?|-\d\d(\d\d?)|--\d\d)(Z|[+\-]\d\d(\d\d)?)?$/,
-	reg_date_time: /^(\d{8}|--\d{4}|---\d\d)T\d\d(\d\d(\d\d)?)?(Z|[+\-]\d\d(\d\d)?)?$/,
-	reg_uri: /^(([^:\/?#]+):)?(\/\/([^\/\?#]*))?([^\?#]*)(\?([^#]*))?(#([^\:#\[\]\@\!\$\&\\'\(\)\*\+\,\;\=]*))?$/,
-	reg_utc_offset: /^[+\-]\d\d(\d\d)?$/
-};
-
-XsltForms_browser.vcard2xcard_escape = function(s) {
-	return s.replace(/&/gm,"&amp;").replace(/</gm,"&lt;").replace(/>/gm,"&gt;").replace(/\\;/gm,";");
-};
-
-XsltForms_browser.vcard2xcard_param = {
-	"PREF":        {fparam: function(value) {return "<integer>" + value + "</integer>";}},
-	"TYPE":        {fparam: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}}
-};
-
-XsltForms_browser.vcard2xcard_prop = {
-	"BEGIN":       {state: 0, fvalue: function(value) {XsltForms_browser.vcard2xcard_data.state = 1; return value.toUpperCase() === "VCARD" ? "<vcard>" : "<'Invalid directive: BEGIN:" + value + "'>";}},
-	"END":         {state: 1, fvalue: function(value) {XsltForms_browser.vcard2xcard_data.state = 0; return value.toUpperCase() === "VCARD" ? "</vcard>" : "<'Invalid directive: END:" + value + "'>";}},
-	"SOURCE":      {state: 1, tag: "source", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"KIND":        {state: 1, tag: "kind", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"XML":         {state: 1, fvalue: function(value) {return value;}},
-	"FN":          {state: 1, tag: "fn", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"N":           {state: 1, tag: "n", fvalue: function(value) {var n = value.split(";"); return "<surname>" + XsltForms_browser.vcard2xcard_escape(n[0]) + "</surname><given>" + XsltForms_browser.vcard2xcard_escape(n[1]) + "</given><additional>" + XsltForms_browser.vcard2xcard_escape(n[2]) + "</additional><prefix>" + XsltForms_browser.vcard2xcard_escape(n[3]) + "</prefix><suffix>" + XsltForms_browser.vcard2xcard_escape(n[4]) + "</suffix>";}},
-	"NICKNAME":    {state: 1, tag: "nickname", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"PHOTO":       {state: 1, tag: "photo", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"BDAY":        {state: 1, tag: "bday", fvalue: function(value) {return (XsltForms_browser.vcard2xcard_data.reg_date_time.test(value) ? "<date-time>" + value + "</date-time>" : XsltForms_browser.vcard2xcard_data.reg_date.test(value) ? "<date>" + value + "</date>" : XsltForms_browser.vcard2xcard_data.reg_time.test(value) ? "<time>" + value + "</time>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>");}},
-	"ANNIVERSARY": {state: 1, tag: "anniversary", fvalue: function(value) {return (XsltForms_browser.vcard2xcard_data.reg_date_time.test(value) ? "<date-time>" + value + "</date-time>" : XsltForms_browser.vcard2xcard_data.reg_date.test(value) ? "<date>" + value + "</date>" : XsltForms_browser.vcard2xcard_data.reg_time.test(value) ? "<time>" + value + "</time>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>");}},
-	"GENDER":      {state: 1, tag: "gender", fvalue: function(value) {var gender = value.split(";"); return "<sex>" + gender[0] + "</sex>" + (value.indexOf(";") !== -1 ? "<identity>" + XsltForms_browser.vcard2xcard_escape(gender[1]) + "</identity>": "");}},
-	"ADR":         {state: 1, tag: "adr", fvalue: function(value) {var adr = value.split(";"); return "<pobox>" + XsltForms_browser.vcard2xcard_escape(adr[0]) + "</pobox><ext>" + XsltForms_browser.vcard2xcard_escape(adr[1]) + "</ext><street>" + XsltForms_browser.vcard2xcard_escape(adr[2]) + "</street><locality>" + XsltForms_browser.vcard2xcard_escape(adr[3]) + "</locality><region>" + XsltForms_browser.vcard2xcard_escape(adr[4]) + "</region><code>" + XsltForms_browser.vcard2xcard_escape(adr[5]) + "</code><country>" + XsltForms_browser.vcard2xcard_escape(adr[6]) + "</country>";}},
-	"TEL":         {state: 1, tag: "tel", fvalue: function(value) {return (XsltForms_browser.vcard2xcard_data.reg_uri.test(value) ? "<uri>" + value + "</uri>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>");}},
-	"EMAIL":       {state: 1, tag: "email", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"IMPP":        {state: 1, tag: "impp", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"LANG":        {state: 1, tag: "lang", fvalue: function(value) {return "<language-tag>" + value + "</language-tag>";}},
-	"TZ":          {state: 1, tag: "tz", fvalue: function(value) {return XsltForms_browser.vcard2xcard_data.reg_uri.test(value) ? "<uri>" + value + "</uri>" : XsltForms_browser.vcard2xcard_data.reg_utc_offset.test(value) ? "<utc-offset>" + value + "</utc-offset>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"GEO":         {state: 1, tag: "geo", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"TITLE":       {state: 1, tag: "title", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"ROLE":        {state: 1, tag: "role", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"LOGO":        {state: 1, tag: "logo", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"ORG":         {state: 1, tag: "org", fvalue: function(value) {var orgs = value.split(";"); var s = ""; for (var i = 0, len = orgs.length; i < len; i++) { s += "<text>" + XsltForms_browser.vcard2xcard_escape(orgs[i]) + "</text>";} return s;}},
-	"MEMBER":      {state: 1, tag: "member", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"RELATED":     {state: 1, tag: "related", fvalue: function(value) {return XsltForms_browser.vcard2xcard_data.reg_uri.test(value) ? "<uri>" + value + "</uri>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"CATEGORIES":  {state: 1, tag: "categories", fvalue: function(value) {var cats = value.split(";"); var s = ""; for (var i = 0, len = cats.length; i < len; i++) { s += "<text>" + XsltForms_browser.vcard2xcard_escape(cats[i]) + "</text>";} return s;}},
-	"NOTE":        {state: 1, tag: "note", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"X-LOTUS-BRIEFCASE":        {state: 1, tag: "x-lotus-briefcase", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"PRODID":      {state: 1, tag: "prodid", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"REV":         {state: 1, tag: "rev", fvalue: function(value) {return "<timestamp>" + value + "</timestamp>";}},
-	"SOUND":       {state: 1, tag: "sound", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"UID":         {state: 1, tag: "uid", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"CLIENTPIDMAP":{state: 1, tag: "clientpidmap", fvalue: function(value) {var cmap = value.split(";"); return "<sourceid>" + cmap[0] + "</sourceid><value-uri>" + cmap[1] + "</value-uri>";}},
-	"URL":         {state: 1, tag: "url", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"VERSION":     {state: 1, fvalue: function(value) {XsltForms_browser.vcard2xcard_data.version = value; return "";}},
-	"KEY":         {state: 1, tag: "key", fvalue: function(value) {return XsltForms_browser.vcard2xcard_data.reg_uri.test(value) ? "<uri>" + value + "</uri>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
-	"FBURL":       {state: 1, tag: "fburl", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"CALADRURI":   {state: 1, tag: "caladruri", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
-	"CALURI":      {state: 1, tag: "caluri", fvalue: function(value) {return "<uri>" + value + "</uri>";}}
-};
-
-XsltForms_browser.vcard2xcard = function(v) {
-	var s = '<vcards xmlns="urn:ietf:params:xml:ns:vcard-4.0">';
-	var vcards = v.replace(/(\r\n|\n|\r) /gm,"").replace(/^\s+/,"").replace(/\s+$/,"").split("\n");
-	var state = 0;
-	for (var i = 0, len = vcards.length; i < len; i++) {
-		var sep = vcards[i].indexOf(":");
-		var before = vcards[i].substring(0, sep);
-		var after = vcards[i].substring(sep + 1);
-		var name = before.split(";");
-		var p = XsltForms_browser.vcard2xcard_prop[name[0]];
-		if (p && p.state === XsltForms_browser.vcard2xcard_data.state) {
-			var val = after.replace(/\\n/gm,"\n").replace(/\\,/gm,",");
-			if (p.tag) {
-				s += "<" + p.tag + ">";
-			}
-			if (name.length > 1) {
-				s += "<parameters>";
-				name.shift();
-				for (var j = 0, len2 = name.length; j < len2;) {
-					var par = name[j].split("=");
-					var parname = par[0];
-					var parobj = XsltForms_browser.vcard2xcard_param[parname];
-					if (parobj) {
-						s += "<" + parname.toLowerCase() + ">";
-						while (par[0] === parname) {
-							s += parobj.fparam(par[1]);
-							j++;
-							if (j < len2) {
-								par = name[j].split("=");
-							} else {
-								break;
-							}
-						}
-						s += "</" + parname.toLowerCase() + ">";
-					} else {
-						j++;
-					}
-				}
-				s += "</parameters>";
-			}
-			s += p.fvalue(val);
-			if (p.tag) {
-				s += "</" + p.tag + ">";
-			}
-		}
-	}
-	return s + "</vcards>";
-};
-
-XsltForms_browser.xml2csv = function(s, sep) {
-	var d = XsltForms_browser.createXMLDocument(s);
-	var n0 = d.documentElement.firstChild;
-	while (n0 && n0.nodeType !== XsltForms_nodeType.ELEMENT) {
-		n0 = n0.nextSibling;
-	}
-	var h = n0.cloneNode(true);
-	d.documentElement.insertBefore(h, n0);
-	var n = h;
-	var r = "";
-	sep = sep || ",";
-	while (n) {
-		if (n.nodeType === XsltForms_nodeType.ELEMENT) {
-			var m = n.firstChild;
-			var m0 = m;
-			var l = "";
-			while (m) {
-				if (m.nodeType === XsltForms_nodeType.ELEMENT) {
-					var v = n === h ? m.getAttribute("fullname") || m.localName : m.text !== undefined ? m.text : m.textContent;
-					if (v.indexOf("\n") !== -1 || v.indexOf(sep) !== -1) {
-						v = '"' + v.replace(/"/gm, '""') + '"';
-					}
-					l += sep + v;
-				}
-				m = m.nextSibling;
-			}
-			r += l.substr(1) + "\n";
-		}
-		n = n.nextSibling;
-	}
-	return r;
-};
-
-XsltForms_browser.xsltsharedsrc = '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ss="http://schemas.openxmlformats.org/spreadsheetml/2006/main" version="1.0">';
-XsltForms_browser.xsltsharedsrc += '	<xsl:output method="text"/>';
-XsltForms_browser.xsltsharedsrc += '	<xsl:template match="ss:si">';
-XsltForms_browser.xsltsharedsrc += '		<xsl:value-of select="concat(\'|\',position() - 1,\':\',ss:t)"/>';
-XsltForms_browser.xsltsharedsrc += '	</xsl:template>';
-XsltForms_browser.xsltsharedsrc += '</xsl:stylesheet>';
-
-XsltForms_browser.xsltinlinesrc = '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ss="http://schemas.openxmlformats.org/spreadsheetml/2006/main" version="1.0">';
-XsltForms_browser.xsltinlinesrc += '	<xsl:output method="xml" omit-xml-declaration="yes"/>';
-XsltForms_browser.xsltinlinesrc += '	<xsl:param name="shared"/>';
-XsltForms_browser.xsltinlinesrc += '	<xsl:template match="ss:c[@t=\'s\']" priority="1">';
-XsltForms_browser.xsltinlinesrc += '		<xsl:copy>';
-XsltForms_browser.xsltinlinesrc += '			<xsl:attribute name="t">inlineStr</xsl:attribute>';
-XsltForms_browser.xsltinlinesrc += '			<xsl:apply-templates select="@*|node()"/>';
-XsltForms_browser.xsltinlinesrc += '			<ss:is><ss:t><xsl:value-of select="substring-before(substring-after($shared,concat(\'|\',ss:v,\':\')),\'|\')"/></ss:t></ss:is>';
-XsltForms_browser.xsltinlinesrc += '		</xsl:copy>';
-XsltForms_browser.xsltinlinesrc += '	</xsl:template>';
-XsltForms_browser.xsltinlinesrc += '	<xsl:template match="@t[parent::ss:c and . = \'s\']" priority="1"/>';
-XsltForms_browser.xsltinlinesrc += '	<xsl:template match="ss:v[parent::ss:c/@t = \'s\']" priority="1"/>';
-XsltForms_browser.xsltinlinesrc += '	<xsl:template match="@*|node()" priority="0">';
-XsltForms_browser.xsltinlinesrc += '		<xsl:copy>';
-XsltForms_browser.xsltinlinesrc += '			<xsl:apply-templates select="@*|node()"/>';
-XsltForms_browser.xsltinlinesrc += '		</xsl:copy>';
-XsltForms_browser.xsltinlinesrc += '	</xsl:template>';
-XsltForms_browser.xsltinlinesrc += '</xsl:stylesheet>';
-
-XsltForms_browser.zip2xml = function(z, mediatype, instid, modid) {
-	var arch = {};
-	var f;
-	var r = "<exml:archive xmlns:exml=\"http://www.agencexml.com/exml\">";
-	var offset = z.lastIndexOf("PK\x05\x06")+16;
-	var r2 = function(z, offset) {
-		return ((z.charCodeAt(offset+1) & 0xFF)<< 8) | z.charCodeAt(offset) & 0xFF;
-	}
-	var r4 = function(z, offset) {
-		return ((((((z.charCodeAt(offset+3) & 0xFF)<< 8) | z.charCodeAt(offset+2) & 0xFF)<< 8) | z.charCodeAt(offset+1) & 0xFF)<< 8) | z.charCodeAt(offset) & 0xFF;
-	}
-	offset = r4(z, offset);
-	while (z.charCodeAt(offset) === 80 && z.charCodeAt(offset+1) === 75 && z.charCodeAt(offset+2) === 1 && z.charCodeAt(offset+3) === 2) {
-		f = {};
-		offset += 4;
-		f.versionMadeBy = r2(z, offset);
-		offset += 2;
-		f.versionNeeded = r2(z, offset);
-		offset += 2;
-		f.bitFlag = r2(z, offset);
-		offset += 2;
-		f.compressionMethod = r2(z, offset);
-		offset += 2;
-		f.date = r4(z, offset);
-		offset += 4;
-		f.crc32 = r4(z, offset);
-		offset += 4;
-		f.compressedSize = r4(z, offset);
-		offset += 4;
-		f.uncompressedSize = r4(z, offset);
-		offset += 4;
-		f.fileNameLength = r2(z, offset);
-		offset += 2;
-		f.extraFieldsLength = r2(z, offset);
-		offset += 2;
-		f.fileCommentLength = r2(z, offset);
-		offset += 2;
-		f.diskNumber = r2(z, offset);
-		offset += 2;
-		f.internalFileAttributes = r2(z, offset);
-		offset += 2;
-		f.externalFileAttributes = r4(z, offset);
-		offset += 4;
-		f.localHeaderOffset = r4(z, offset);
-		offset += 4;
-		var fileName = z.substr(offset, f.fileNameLength);
-		offset += f.fileNameLength;
-		f.extraFields = z.substr(offset, f.extraFieldsLength);
-		offset += f.extraFieldsLength;
-		f.fileComment = z.substr(offset, f.fileCommentLength);
-		offset += f.fileCommentLength;
-		//f.dir = f.externalFileAttributes & 0x00000010 ? true : false;
-		var loffset = f.localHeaderOffset + 28;
-		f.lextraFieldsLength = r2(z, loffset);
-		loffset += 2 + f.fileNameLength;
-		f.lextraFields = z.substr(loffset, f.lextraFieldsLength);
-		loffset += f.lextraFieldsLength;
-		f.compressedFileData = z.substr(loffset, f.compressedSize);
-		if (mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
-			f.doc = XsltForms_browser.createXMLDocument("<dummy/>");
-			XsltForms_browser.loadXML(f.doc.documentElement, XsltForms_browser.utf8decode(zip_inflate(f.compressedFileData)));
-			XsltForms_browser.setMeta(f.doc.documentElement, "instance", instid);
-			XsltForms_browser.setMeta(f.doc.documentElement, "model", modid);
-		}
-		r += '<exml:file name="' + fileName + '"/>';
-		arch[fileName] = f;
-	}
-	r += "</exml:archive>";
-	if (mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
-		var shared = XsltForms_browser.transformText(XsltForms_browser.saveXML(arch["xl/sharedStrings.xml"].doc), XsltForms_browser.xsltsharedsrc, true) + "|";
-		for (var fn in arch) {
-			if (arch.hasOwnProperty(fn)) {
-				f = arch[fn];
-				if (f.doc.documentElement.localName === "worksheet") {
-					var inlineStr = XsltForms_browser.transformText(XsltForms_browser.saveXML(f.doc), XsltForms_browser.xsltinlinesrc, true, "shared", shared);
-					XsltForms_browser.loadXML(f.doc.documentElement, inlineStr);
-					XsltForms_browser.setMeta(f.doc.documentElement, "instance", instid);
-					XsltForms_browser.setMeta(f.doc.documentElement, "model", modid);
-				}
-			}
-		}
-	}
-	arch.srcXML = r;
-	return arch;
-}
-
-XsltForms_browser.xml2zip = function(arch, mediatype) {
-	var z = "";
-	var fn, f;
-	var fcount = 0;
-	var w2 = function(v) {
-		return String.fromCharCode(v & 0xFF) + String.fromCharCode((v >>> 8) & 0xFF);
-	}
-	var w4 = function(v) {
-		return String.fromCharCode(v & 0xFF) + String.fromCharCode((v >>> 8) & 0xFF) + String.fromCharCode((v >>> 16) & 0xFF) + String.fromCharCode((v >>> 24) & 0xFF);
-	}
-	for (fn in arch) {
-		if (arch.hasOwnProperty(fn)) {
-			f = arch[fn];
-			f.localHeaderOffset = z.length;
-			if (f.doc) {
-				var ser = XsltForms_browser.utf8encode(XsltForms_browser.saveXML(f.doc));
-				if (mediatype.indexOf("application/vnd.openxmlformats-officedocument.") === 0 && ser.indexOf(' xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"') === -1) {
-					var rattr = f.doc.documentElement.attributes;
-					for (var ri = 0, li = rattr.length; ri < li; ri++) {
-						if (rattr[ri].localName === "Ignorable" && rattr[ri].namespaceURI === "http://schemas.openxmlformats.org/markup-compatibility/2006") {
-							ser = ser.substr(0, ser.indexOf(" ")) + ' xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"' + ser.substr(ser.indexOf(" "));
-							break;
-						}
-					}
-				}
-				ser = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' + ser;
-				f.crc32 = XsltForms_browser.crc32(ser);
-				f.uncompressedSize = ser.length;
-				f.compressedFileData = zip_deflate(ser);
-				f.compressedSize = f.compressedFileData.length;
-			}
-			z += "PK\x03\x04";
-			z += w2(f.versionNeeded);
-			z += w2(f.bitFlag);
-			z += w2(f.compressionMethod);
-			z += w4(f.date);
-			z += w4(f.crc32);
-			z += w4(f.compressedSize);
-			z += w4(f.uncompressedSize);
-			z += w2(f.fileNameLength);
-			z += w2(f.lextraFieldsLength);
-			z += fn;
-			z += f.lextraFields;
-			z += f.compressedFileData;
-			fcount++;
-		}
-	}
-	var diroffset = z.length;
-	for (fn in arch) {
-		if (arch.hasOwnProperty(fn)) {
-			f = arch[fn];
-			z += "PK\x01\x02";
-			z += w2(f.versionMadeBy);
-			z += w2(f.versionNeeded);
-			z += w2(f.bitFlag);
-			z += w2(f.compressionMethod);
-			z += w4(f.date);
-			z += w4(f.crc32);
-			z += w4(f.compressedSize);
-			z += w4(f.uncompressedSize);
-			z += w2(f.fileNameLength);
-			z += w2(f.extraFieldsLength);
-			z += w2(f.fileCommentLength);
-			z += w2(f.diskNumber);
-			z += w2(f.internalFileAttributes);
-			z += w4(f.externalFileAttributes);
-			z += w4(f.localHeaderOffset);
-			z += fn;
-			z += f.extraFields;
-			z += f.fileComment;
-		}
-	}
-	var endoffset = z.length;
-	z += "PK\x05\x06";
-	z += w2(0);
-	z += w2(0);
-	z += w2(fcount);
-	z += w2(fcount);
-	z += w4(endoffset - diroffset);
-	z += w4(diroffset);
-	var comment = "generated by XSLTForms - http://www.agencexml.com";
-	z += w2(comment.length);
-	z += comment;
-	return z;
-}
-
-	
-		
-		
-		
-function XsltForms_bind(subform, id, parent, nodeset, type, readonly, required, relevant, calculate, constraint) {
-	if (document.getElementById(id)) {
-		return;
-	}
-	var model = parent.model || parent;
-	if (type === "xsd:ID") {
-		XsltForms_globals.IDstr = nodeset.split('/').pop();
-		return;
-	}
-	this.init(subform, id, parent, "xforms-bind");
-	this.model = model;
-	this.type = type ? XsltForms_schema.getType(type) : null;
-	this.nodeset = nodeset;
-	this.readonly = readonly;
-	this.required = required;
-	this.relevant = relevant;
-	this.calculate = calculate;
-	this.constraint = constraint;
-	this.depsNodes = [];
-	this.depsElements = [];
-	this.nodes = [];
-	this.binds = [];
-	this.binding = new XsltForms_binding(null, this.nodeset);
-	parent.addBind(this);
-	subform.binds.push(this);
-	this.depsId = XsltForms_element.depsId++;
-}
-
-XsltForms_bind.prototype = new XsltForms_coreElement();
-
-XsltForms_bind.prototype.addBind = function(bind) {
-	this.binds.push(bind);
-};
-
-XsltForms_bind.prototype.clear = function(bind) {
-	this.depsNodes.length = 0;
-	this.depsElements.length = 0;
-	this.nodes.length = 0;
-	XsltForms_browser.forEach(this.binds, "clear");
-};
-
-		
-
-XsltForms_bind.prototype.refresh = function(ctx, index) {
-	if (!index) {
-		for (var i = 0, len = this.depsNodes.length; i < len; i++) {
-			XsltForms_browser.rmValueMeta(this.depsNodes[i], "depfor", this.depsId);
-		}
-		this.clear();
-	}
-	ctx = ctx || (this.model ? this.model.getInstanceDocument() ? this.model.getInstanceDocument().documentElement : null : null);
-	XsltForms_browser.copyArray(this.binding.evaluate(ctx, this.depsNodes, this.depsId, this.depsElements), this.nodes);
-	var el = this.element;
-	for (var i2 = 0, len2 = this.nodes.length; i2 < len2; i2++) {
-		var node = this.nodes[i2];
-		var bindids = XsltForms_browser.getMeta(node, "bind");
-		if (!bindids) {
-			XsltForms_browser.setMeta(node, "bind", this.element.id);
-		} else {
-			var bindids2 = " "+bindids+" ";
-			if (bindids.indexOf(" "+this.element.id+" ") === -1) {
-				XsltForms_browser.setMeta(node, "bind", bindids+" "+this.element.id);
-			}
-		}
-		if (this.type) {
-			if (XsltForms_browser.getMeta(node, "schemaType")) {
-				XsltForms_globals.error(el, "xforms-binding-exception", "Type especified in xsi:type attribute");
-			} else {
-				var name = this.type.name;
-				var ns = this.type.nsuri;
-				for (var key in XsltForms_schema.prefixes) {
-					if (XsltForms_schema.prefixes.hasOwnProperty(key)) {
-						if (XsltForms_schema.prefixes[key] === ns) {
-							name = key + ":" + name;
-							break;
-						}
-					}
-				}
-				XsltForms_browser.setType(node, name);
-			}
-		}
-		for (var j = 0, len1 = el.childNodes.length; j < len1; j++) {
-			el.childNodes[j].xfElement.refresh(node, i2);
-		}
-	}
-};
-
-
-		
-
-XsltForms_bind.prototype.recalculate = function() {
-	var el = this.element;
-	if (this.calculate) {
-		for (var i = 0, len = this.nodes.length; i < len; i++) {
-			var node = this.nodes[i];
-			var ctx = new XsltForms_exprContext(node, i + 1, this.nodes);
-			var value = XsltForms_globals.stringValue(this.calculate.evaluate(ctx, node));
-			value = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").normalize(value);
-			XsltForms_browser.setValue(node, value);
-			this.model.addChange(node);
-			XsltForms_browser.debugConsole.write("Calculate " + node.nodeName + " " + value);
-		}
-	}
-	for (var j = 0, len1 = el.childNodes.length; j < len1; j++) {
-		el.childNodes[j].xfElement.recalculate();
-	}
-};
-
-	
-		
-		
-		
-function XsltForms_submission(subform, id, model, ref, bind, action, method, version, indent,
-			mediatype, encoding, omitXmlDeclaration, cdataSectionElements,
-			replace, targetref, instance, separator, includenamespaceprefixes, validate, relevant,
-			synchr, show, serialization) {
-	if (document.getElementById(id)) {
-		return;
-	}
-	this.init(subform, id, model, "xforms-submission");
-	this.model = model;
-	if (!model.defaultSubmission) {
-		model.defaultSubmission = this;
-	}
-	this.action = action;
-	if (action.substr && action.substr(0,7) === "file://" && !(document.applets.xsltforms || document.getElementById("xsltforms_applet")) ) {
-		XsltForms_browser.loadapplet();
-	}
-	this.method = method;
-	this.replace = replace;
-	this.targetref = targetref;
-	this.version = version;
-	this.indent = indent;
-	this.validate = validate;
-	this.relevant = relevant;
-	this.synchr = synchr;
-	this.show = show;
-	this.serialization = serialization;
-	if (mediatype) {
-		var lines = mediatype.split(";");
-		this.mediatype = lines[0];
-		for (var i = 1, len = lines.length; i < len; i++) {
-			var vals = lines[i].split("=");
-			switch (vals[0].replace(/^\s+/g,'').replace(/\s+$/g,'')) {
-				case "action":
-					this.soapAction = vals[1].replace(/^\s+/g,'').replace(/\s+$/g,'');
-					break;
-				case "charset":
-					this.charset = vals[1].replace(/^\s+/g,'').replace(/\s+$/g,'');
-					break;
-			}
-		}
-		if (this.mediatype === "application/zip" || this.mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
-			this.charset = "x-user-defined-binary";
-		}
-	}
-	this.encoding = encoding || "UTF-8";
-	this.omitXmlDeclaration = omitXmlDeclaration;
-	this.cdataSectionElements = cdataSectionElements;
-	this.instance = instance;
-	this.separator = separator === "&amp;"? "&" : separator;
-	this.includenamespaceprefixes = includenamespaceprefixes;
-	this.headers = [];
-	if (ref || bind) {
-		this.binding = new XsltForms_binding(null, ref, model.element, bind);
-		this.eval_ = function() {
-			return this.binding.evaluate()[0];
-		};
-	} else {
-		this.eval_ = function() {
-			return this.model.getInstanceDocument();
-		};
-	}
-}
-
-XsltForms_submission.prototype = new XsltForms_coreElement();
-
-
-		
-
-XsltForms_submission.prototype.header = function(nodeset, combine, name, values) {
-	this.headers.push({nodeset: nodeset, combine: combine, name: name, values: values});
-	return this;
-};
-
-		
-
-XsltForms_submission.prototype.submit = function() {
-	XsltForms_globals.openAction();
-	var node = this.eval_();
-	var action = "error";
-	if(this.action.evaluate) {
-		action = XsltForms_globals.stringValue(this.action.evaluate());
-	} else {
-		action = this.action;
-	}
-	var method = "post";
-	var subm = this;
-	if(this.method.evaluate) {
-		method = XsltForms_globals.stringValue(this.method.evaluate());
-	} else {
-		method = this.method;
-	}
-	var evcontext = {"method": method, "resource-uri": action};
-	if (action.subst && action.subst(0, 8) === "local://" && (typeof(localStorage) === 'undefined')) {
-		evcontext["error-type"] = "validation-error";
-		this.issueSubmitException_(evcontext, null, {message: "local:// submission not supported"});
-		XsltForms_globals.closeAction();
-		return;
-	}
-	if (node) {
-		if (this.validate && !XsltForms_globals.validate_(node)) {
-			XsltForms_globals.validationError = true;
-			XsltForms_globals.addChange(subm.model);
-			XsltForms_xmlevents.dispatch(subm.model, "xforms-rebuild");
-			XsltForms_globals.refresh();
-			evcontext["error-type"] = "validation-error";
-			this.issueSubmitException_(evcontext, null, null);
-			XsltForms_globals.closeAction();
-			return;
-		}
-		if ((method === "get" || method === "delete") && this.serialization !== "none" && action.substr(0, 9) !== "opener://" && action.substr(0, 8) !== "local://") {
-			var tourl = XsltForms_submission.toUrl_(node, this.separator);
-			action += (action.indexOf('?') === -1? '?' : this.separator) +
-				tourl.substr(0, tourl.length - this.separator.length);
-		}
-	}
-	var ser = "";
-	if (this.serialization !== "none") {
-		XsltForms_xmlevents.dispatch(this, "xforms-submit-serialize");
-		ser = node ? XsltForms_browser.saveXML(node, this.relevant) : "";
-		switch (this.mediatype) {
-			case "text/csv": 
-				ser = XsltForms_browser.xml2csv(ser, this.separator);
-				break;
-			case "application/zip":
-			case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-			case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-				var instance = document.getElementById(XsltForms_browser.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "instance")).xfElement;
-				if (!instance.archive) {
-					alert("Not an archive!");
-				}
-				ser = XsltForms_browser.xml2zip(instance.archive, this.mediatype);
-		}
-	}
-	var instance = this.instance;
-	if (action.substr(0, 7) === "file://" || action.substr(0, 9) === "opener://" || action.substr(0, 8) === "local://") {
-		if (action.substr(0, 7) === "file://" && method === "put") {
-			if (!XsltForms_browser.writeFile(action.substr(7), subm.encoding, "string", "XSLTForms Java Saver", ser)) {
-				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
-			}
-			XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
-		} else if (action.substr(0, 9) === "opener://" && method === "put") {
-			try {
-				window.opener.XsltForms_globals.xmlrequest('put', action.substr(9), ser);
-			} catch (e) {
-				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
-				XsltForms_globals.closeAction();
-				return;
-			}
-			XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
-		} else if (action.substr(0, 8) === "local://" && method === "put") {
-			try {
-				window.localStorage.setItem(action.substr(8), ser);
-			} catch (e) {
-				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
-				XsltForms_globals.closeAction();
-				return;
-			}
-			XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
-		} else if (action.substr(0, 8) === "local://" && method === "delete") {
-			try {
-				window.localStorage.removeItem(action.substr(8));
-			} catch (e) {
-				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
-				XsltForms_globals.closeAction();
-				return;
-			}
-			XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
-		} else if (method === "get") {
-			if (action.substr(0, 7) === "file://") {
-				ser =  XsltForms_browser.readFile(action.substr(7), subm.encoding, "string", "XSLTForms Java Loader");
-			} else if (action.substr(0, 8) === "local://") {
-				try {
-					ser = window.localStorage.getItem(action.substr(8));
-				} catch (e) {
-					XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
-					XsltForms_globals.closeAction();
-					return;
-				} 
-			} else if (action.substr(0, 9) === "opener://") {
-				try {
-					ser = window.opener.XsltForms_globals.xmlrequest('get', action.substr(9));
-				} catch (e) {
-					XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
-					XsltForms_globals.closeAction();
-					return;
-				} 
-			} else {
-				eval("ser = (" + action.substr(11) + ");");
-			}
-			if (ser !== "" && (subm.replace === "instance" || (subm.targetref && subm.replace === "text"))) {
-				var ctxnode = !instance ? (node ? (node.documentElement ? node.documentElement : node.ownerDocument.documentElement) : subm.model.getInstance().documentElement) : document.getElementById(instance).xfElement.doc.documentElement;
-				if (subm.targetref) {
-					var targetnode = subm.targetref.evaluate(ctxnode);
-					if (targetnode && targetnode[0]) {
-						if (subm.replace === "instance") {
-							XsltForms_browser.loadXML(targetnode[0], ser);
-						} else {
-							XsltForms_browser.loadTextNode(targetnode[0], ser);
-						}
-					}
-				} else {
-					var inst = !instance ? (node ? document.getElementById(XsltForms_browser.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "instance")).xfElement : subm.model.getInstance()) : document.getElementById(instance).xfElement;
-					inst.setDoc(ser, false, true);
-				}
-				XsltForms_globals.addChange(subm.model);
-				XsltForms_xmlevents.dispatch(subm.model, "xforms-rebuild");
-				XsltForms_globals.refresh();
-				XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
-			} else {
-				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
-			}
-		}
-		XsltForms_globals.closeAction();
-		return;
-	}
-	if (action.substr(0,11) === "javascript:") {
-		if (method === "get") {
-			eval("ser = (" + action.substr(11) + ");");
-			if (ser !== "" && (subm.replace === "instance" || (subm.targetref && subm.replace === "text"))) {
-				var ctxnode = !instance ? (node ? (node.documentElement ? node.documentElement : node.ownerDocument.documentElement) : subm.model.getInstance().documentElement) : document.getElementById(instance).xfElement.doc.documentElement;
-				if (subm.targetref) {
-					var targetnode = subm.targetref.evaluate(ctxnode);
-					if (targetnode && targetnode[0]) {
-						if (subm.replace === "instance") {
-							XsltForms_browser.loadXML(targetnode[0], ser);
-						} else {
-							XsltForms_browser.loadTextNode(targetnode[0], ser);
-						}
-					}
-				} else {
-					var inst = !instance ? (node ? document.getElementById(XsltForms_browser.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "instance")).xfElement : subm.model.getInstance()) : document.getElementById(instance).xfElement;
-					inst.setDoc(ser, false, true);
-				}
-				XsltForms_globals.addChange(subm.model);
-				XsltForms_xmlevents.dispatch(subm.model, "xforms-rebuild");
-				XsltForms_globals.refresh();
-				XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
-			} else {
-				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
-			}
-		}
-		XsltForms_globals.closeAction();
-		return;
-	}
-	var synchr = this.synchr;
-	var body;
-	if(method === "xml-urlencoded-post") {
-		var outForm = document.getElementById("xsltforms_form");
-		if(outForm) {
-			outForm.firstChild.value = ser;
-		} else {
-			outForm = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "form") : document.createElement("form");
-			outForm.setAttribute("method", "post");
-			outForm.setAttribute("action", action);
-			outForm.setAttribute("id", "xsltforms_form");
-			var txt = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "input") : document.createElement("input");
-			txt.setAttribute("type", "hidden");
-			txt.setAttribute("name", "postdata");
-			txt.setAttribute("value", ser);
-			outForm.appendChild(txt);
-			body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
-			body.insertBefore(outForm, body.firstChild);
-		}
-		outForm.submit();
-		XsltForms_globals.closeAction();
-	} else {
-		/*
-		var cross = false;
-		if (action.match(/^[a-zA-Z0-9+\.\-]+:\/\//)) {
-			var domain = /^([a-zA-Z0-9+\.\-]+:\/\/[^\/]*)/;
-			var sdom = domain.exec(action);
-			var ldom = domain.exec(document.location.href);
-			cross = sdom[0] !== ldom[0];
-		}
-		*/
-		if (this.mediatype === "text/jsonp") {
-			XsltForms_browser.jsoninstobj = !instance ? (node ? document.getElementById(XsltForms_browser.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "instance")).xfElement : this.model.getInstance()) : document.getElementById(instance).xfElement;
-			var scriptelt = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "script") : document.createElement("script");
-			scriptelt.setAttribute("src", action.replace(/&amp;/g, "&")+((action.indexOf("?") === -1) ? "?" : "&")+"callback=jsoninst");
-			scriptelt.setAttribute("id", "jsoninst");
-			scriptelt.setAttribute("type", "text/javascript");
-			body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
-			body.insertBefore(scriptelt, body.firstChild);
-			XsltForms_xmlevents.dispatch(this, "xforms-submit-done");
-			XsltForms_globals.closeAction();
-		} else {
-			// TODO: Validate binding target is not empty
-			if (!node && (method !== "get" || method !== "delete")) {
-				evcontext["error-type"] = "no-data";
-				this.issueSubmitException_(evcontext, null, null);
-				return;
-			}
-			var req = null;
-			try {
-				evcontext["resource-uri"] = action;
-				req = XsltForms_browser.openRequest(method, action, !synchr);
-				var func = function() {
-					if (!synchr && req.readyState !== 4) {
-						return;
-					}
-					try {
-						if (req.status !== 0 && (req.status < 200 || req.status >= 300)) {
-							evcontext["error-type"] = "resource-error";
-							subm.issueSubmitException_(evcontext, req, null);
-							XsltForms_globals.closeAction();
-							return;
-						}
-						if (subm.replace === "instance" || (subm.targetref && subm.replace === "text")) {
-							if (subm.targetref) {
-								var ctxnode = !instance ? (node ? (node.documentElement ? node.documentElement : node.ownerDocument.documentElement) : subm.model.getInstance().documentElement) : document.getElementById(instance).xfElement.doc.documentElement;
-								var targetnode = subm.targetref.evaluate(ctxnode);
-								if (targetnode && targetnode[0]) {
-									if (subm.replace === "instance") {
-										XsltForms_browser.loadXML(targetnode[0], req.responseText);
-									} else {
-										XsltForms_browser.loadTextNode(targetnode[0], req.responseText);
-									}
-								}
-							} else {
-								var inst = !instance ? (node ? document.getElementById(XsltForms_browser.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "instance")).xfElement : subm.model.getInstance()) : document.getElementById(instance).xfElement;
-								inst.setDocFromReq(req, subm.mediatype, false, true);
-							}
-							XsltForms_globals.addChange(subm.model);
-							XsltForms_xmlevents.dispatch(subm.model, "xforms-rebuild");
-							XsltForms_globals.refresh();
-						}
-						XsltForms_submission.requesteventlog(evcontext, req);
-						XsltForms_xmlevents.dispatch(subm, "xforms-submit-done", null, null, null, null, evcontext);
-						XsltForms_globals.closeAction();
-						if (subm.replace === "all") {
-							var resp = req.responseText;
-							var piindex = resp.indexOf("<?xml-stylesheet", 0);
-							while ( piindex !== -1) {
-								var xslhref = resp.substr(piindex, resp.substr(piindex).indexOf("?>")).replace(/^.*href=\"([^\"]*)\".*$/, "$1");
-								resp = XsltForms_browser.transformText(resp, xslhref, false);
-								piindex = resp.indexOf("<?xml-stylesheet", 0);
-							}
-							if( subm.show === "new" ) {
-								if (req.getResponseHeader("Content-Type") === "application/octet-stream;base64") {
-									//window.open("data:application/octet-stream;base64," + resp,"_blank");
-									location.href ="data:application/octet-stream;base64," + resp;
-								} else {
-									var w = window.open("about:blank","_blank");
-									w.document.write(resp);
-									w.document.close();
-								}
-							} else {
-								XsltForms_browser.dialog.hide("statusPanel", false);
-								XsltForms_globals.close();
-								if(document.write) {
-									document.write(resp);
-									document.close();
-								} else {
-									//document.documentElement.parentNode.replaceChild(req.responseXML.documentElement,document.documentElement);
-									if (resp.indexOf("<?", 0) === 0) {
-										resp = resp.substr(resp.indexOf("?>")+2);
-									}                       
-									//alert(resp);
-									document.documentElement.innerHTML = resp;
-								}
-							}
-						}
-					} catch(e) {
-						XsltForms_browser.debugConsole.write(e || e.message);
-						evcontext["error-type"] = "parse-error";
-						subm.issueSubmitException_(evcontext, req, e);
-						XsltForms_globals.closeAction();
-					}
-				};
-				if (!synchr) {
-					req.onreadystatechange = func;
-				}
-				var media = this.mediatype;
-				var mt = (media || "application/xml") + (this.charset? ";charset=" + this.charset : "");
-				XsltForms_browser.debugConsole.write("Submit " + this.method + " - " + mt + " - " + action + " - " + synchr);
-				var len = this.headers.length;
-				if (len !== 0) {
-					var headers = [];
-					for (var i = 0, len0 = this.headers.length; i < len0; i++) {
-						var nodes = [];
-						if (this.headers[i].nodeset) {
-							nodes = this.headers[i].nodeset.evaluate();
-						} else {
-							nodes = [subm.model.getInstanceDocument().documentElement];
-						}
-						var hname;
-						for (var n = 0, lenn = nodes.length; n < lenn; n++) {
-							if (this.headers[i].name.evaluate) {
-								hname = XsltForms_globals.stringValue(this.headers[i].name.evaluate(nodes[n]));
-							} else {
-								hname = this.headers[i].name;
-							}
-							if (hname !== "") {
-								var hvalue = "";
-								var j;
-								var len2;
-								for (j = 0, len2 = this.headers[i].values.length; j < len2; j++) {
-									var hv = this.headers[i].values[j];
-									var hv2;
-									if (hv.evaluate) {
-										hv2 = XsltForms_globals.stringValue(hv.evaluate(nodes[n]));
-									} else {
-										hv2 = hv;
-									}
-									hvalue += hv2;
-									if (j < len2 - 1) {
-										hvalue += ",";
-									}
-								}
-								var len3;
-								for (j = 0, len3 = headers.length; j < len3; j++) {
-									if (headers[j].name === hname) {
-										switch (this.headers[i].combine) {
-											case "prepend":
-												headers[j].value = hvalue + "," + headers[j].value;
-												break;
-											case "replace":
-												headers[j].value = hvalue;
-												break;
-											default:
-												headers[j].value += "," + hvalue;
-												break;
-										}
-										break;
-									}
-								}
-								if (j === len3) {
-									headers.push({name: hname, value: hvalue});
-								}
-							}
-						}
-					}
-					for (var k = 0, len4 = headers.length; k < len4; k++) {
-						req.setRequestHeader(headers[k].name, headers[k].value);
-					}
-				}
-				if (method === "get" || method === "delete") {
-					if (media === XsltForms_submission.SOAP_) {
-						req.setRequestHeader("Accept", mt);
-					} else {
-						if (subm.replace === "instance") {
-							req.setRequestHeader("Accept", "application/xml,text/xml");
-						}
-					}
-					if ((subm.mediatype === "application/zip" || subm.mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" )&& req.overrideMimeType) {
-						req.overrideMimeType('text/plain; charset=x-user-defined');
-					}
-					req.send(null);
-				} else {
-					req.setRequestHeader("Content-Type", mt);
-					if (media === XsltForms_submission.SOAP_) {
-						req.setRequestHeader("SOAPAction", this.soapAction);
-					} else {
-						if (subm.replace === "instance") {
-							req.setRequestHeader("Accept", "application/xml,text/xml");
-						}
-					}
-					req.send(ser);
-				}
-				if (synchr) {
-					func();
-				}
-			} catch(e) {
-				XsltForms_browser.debugConsole.write(e.message || e);
-				evcontext["error-type"] = "resource-error";
-				subm.issueSubmitException_(evcontext, req, e);
-				XsltForms_globals.closeAction();
-			}
-		}
-	}
-};
-
-XsltForms_submission.SOAP_ = "application/soap+xml";
-
-
-		
-
-XsltForms_submission.requesteventlog = function(evcontext, req) {
-	evcontext["response-status-code"] = req.status;
-	evcontext["response-reason-phrase"] = req.statusText;
-	evcontext["response-headers"] = [];
-	var rheads = req.getAllResponseHeaders();
-	var rheaderselts = "";
-	if (rheads) {
-		rheads = rheads.replace(/\r/, "").split("\n");
-		for (var i = 0, len = rheads.length; i < len; i++) {
-			var colon = rheads[i].indexOf(":");
-			if (colon !== -1) {
-				var name = rheads[i].substring(0, colon).replace(/^\s+|\s+$/, "");
-				var value = rheads[i].substring(colon+1).replace(/^\s+|\s+$/, "");
-				rheaderselts += "<header><name>"+XsltForms_browser.escape(name)+"</name><value>"+XsltForms_browser.escape(value)+"</value></header>";
-			}
-		}
-	}
-	evcontext.rheadsdoc = XsltForms_browser.createXMLDocument("<data>"+rheaderselts+"</data>");
-	if (evcontext.rheadsdoc.documentElement.firstChild) {
-		var rh = evcontext.rheadsdoc.documentElement.firstChild;
-		evcontext["response-headers"] = [rh];
-		while (rh.nextSibling) {
-			rh = rh.nextSibling;
-			evcontext["response-headers"].push(rh);
-		}
-	}
-	if (req.responseXML) {
-		evcontext["response-body"] = [XsltForms_browser.createXMLDocument(req.responseText)];
-	} else {
-		evcontext["response-body"] = req.responseText || "";
-	}
-};
-
-		
-
-XsltForms_submission.prototype.issueSubmitException_ = function(evcontext, req, ex) {
-	if (ex) {
-		evcontext.message = ex.message || ex;
-		evcontext["stack-trace"] = ex.stack;
-	}
-	if (req) {
-		XsltForms_submission.requesteventlog(evcontext, req);
-	}
-	XsltForms_xmlevents.dispatch(this, "xforms-submit-error", null, null, null, null, evcontext);
-};
-
-		
-
-XsltForms_submission.toUrl_ = function(node, separator) {
-	var url = "";
-	var val = "";
-	var hasChilds = false;
-	for(var i = 0, len = node.childNodes.length; i < len; i++) {
-		var child = node.childNodes[i];
-		switch (child.nodeType) {
-			case XsltForms_nodeType.ELEMENT:
-				hasChilds = true;
-				url += this.toUrl_(child, separator);
-				break;
-			case XsltForms_nodeType.TEXT:
-				val += child.nodeValue;
-				break;
-		}
-	}
-	if (!hasChilds && val.length > 0) {
-		url += node.nodeName + '=' + encodeURIComponent(val) + separator;
-	}
-	return url;
-};
-
-	
-		
-		
-		
-var XsltForms_processor = {
-
-		
-
-	error : function(element, type, value) {
-			alert(type+": "+value);
-		}
-};
-
-	
-		
-		
-function XsltForms_timer(subform, id, time) {
-	if (document.getElementById(id)) {
-		return;
-	}
-	this.init(subform, id, null, "xforms-timer");
-	this.running = false;
-	this.time = time;
-}
-
-XsltForms_timer.prototype = new XsltForms_coreElement();
-
-XsltForms_timer.prototype.start = function() {
-	this.running = true;
-	var timer = this;
-	setTimeout(function() { timer.run(); }, this.time);
-};
-
-XsltForms_timer.prototype.stop = function() {
-	this.running = false;
-};
-
-XsltForms_timer.prototype.run = function() {
-	if (this.running) {
-		var timer = this;
-		XsltForms_globals.openAction();
-		XsltForms_xmlevents.dispatch(timer.element, "ajx-time");
-		XsltForms_globals.closeAction();
-		setTimeout(function() { timer.run(); }, this.time);
-	}
-};
-    
-	
-	
-		
-		
-		
-		
-function XsltForms_confirm(subform, id, binding, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.id = id;
-	this.binding = binding;
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_confirm.prototype = new XsltForms_abstractAction();
-
-XsltForms_confirm.prototype.run = function(element, ctx, evt) {
-	var text;
-	if (this.binding) {
-		var node = this.binding.evaluate(ctx)[0];
-		if (node) {
-			text = XsltForms_browser.getValue(node);
-		}
-	} else {
-		var e = XsltForms_idManager.find(this.id);
-		XsltForms_globals.build(e, ctx);
-		text = e.textContent || e.innerText;
-	}
-	if (text) {
-		var res = XsltForms_browser.confirm(text.trim());
-		if (!res) {
-			evt.stopPropagation();
-			evt.stopped = true;
-		}
-	}
-};
-
-	
-		
-		
-function XsltForms_setproperty(subform, name, value, literal, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.name = name;
-	this.value = value;
-	this.literal = literal;
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_setproperty.prototype = new XsltForms_abstractAction();
-
-XsltForms_setproperty.prototype.run = function(element, ctx) {
-	var value = this.literal;
-	if (this.value) {
-		//value = this.value.evaluate(node); // ??? What is node?
-		if (typeof(value) !== "string" && typeof(value.length) !== "undefined") {
-			value = value.length > 0? XsltForms_browser.getValue(value[0]) : "";
-		}
-	}
-	if (value) {
-		XsltForms_browser.i18n.lang = value;
-		XsltForms_browser.debugConsole.write("setproperty " + name + " = " + value);
-	}
-};
-    
-	
-		
-		
-		
-function XsltForms_abstractAction() {
-}
-
-
-		
-
-XsltForms_abstractAction.prototype.init = function(ifexpr, whileexpr, iterateexpr) {
-	this.ifexpr = XsltForms_xpath.get(ifexpr);
-	this.whileexpr = XsltForms_xpath.get(whileexpr);
-	this.iterateexpr = XsltForms_xpath.get(iterateexpr);
-};
-
-
-		
-
-XsltForms_abstractAction.prototype.execute = function(element, ctx, evt) {
-	if (evt.stopped) { return; }
-	if (!ctx) {
-		ctx = element.node || (XsltForms_globals.defaultModel.getInstanceDocument() ? XsltForms_globals.defaultModel.getInstanceDocument().documentElement : null);
-	}
-	// for now, iterate overrides while.
-	if (this.iterateexpr) {
-		if (this.whileexpr) {
-			XsltForms_globals.error(this.element, "xforms-compute-exception", "@iterate cannot be used with @while");
-		}
-		var nodes = this.iterateexpr.evaluate(ctx);
-		for (var i = 0, len = nodes.length; i < len; i++) {
-			this.exec_(element, nodes[i], evt);
-		}
-	} else if (this.whileexpr) {
-		while (XsltForms_globals.booleanValue(this.whileexpr.evaluate(ctx))) {
-			if (!this.exec_(element, ctx, evt)) {
-				break;
-			}
-		}
-	} else {
-		this.exec_(element, ctx, evt);
-	}
-};
-
-
-		
-
-XsltForms_abstractAction.prototype.exec_ = function(element, ctx, evt) {
-	if (this.ifexpr) {
-		if (XsltForms_globals.booleanValue(this.ifexpr.evaluate(ctx))) {
-			this.run(element, ctx, evt);
-		} else {
-			return false;
-		}
-	} else {
-		this.run(element, ctx, evt);
-	}
-	return true;
-};
-
-
-		
-
-XsltForms_abstractAction.prototype.run = function(element, ctx, evt) { };
-
-	
-		
-		
-		
-function XsltForms_action(subform, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.init(ifexpr, whileexpr, iterateexpr);
-	this.childs = [];
-}
-
-XsltForms_action.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_action.prototype.add = function(action) {
-	this.childs.push(action);
-	return this;
-};
-
-
-		
-
-XsltForms_action.prototype.run = function(element, ctx, evt) {
-	XsltForms_browser.forEach(this.childs, "execute", element, ctx, evt);
-};
-    
-	
-		
-		
-		
-function XsltForms_delete(subform, nodeset, model, bind, at, context, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.binding = new XsltForms_binding(null, nodeset, model, bind);
-	//this.at = at?XsltForms_xpath.get(at):null;
-	this.at = XsltForms_xpath.get(at);
-	this.context = XsltForms_xpath.get(context);
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_delete.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_delete.prototype.run = function(element, ctx) {
-	if (this.context) {
-		ctx = this.context.evaluate(ctx)[0];
-	}
-	if (!ctx) {
-		return;
-	}
-	var nodes = this.binding.evaluate(ctx);
-	if(this.at) {
-		var index = XsltForms_globals.numberValue(this.at.evaluate(new XsltForms_exprContext(ctx, 1, nodes)));
-		if(!nodes[index - 1]) {
-			return;
-		}
-		nodes = [nodes[index - 1]];
-	}
-	var model;
-	var instance;
-	if (nodes.length > 0) {
-		model = document.getElementById(XsltForms_browser.getMeta(nodes[0].documentElement ? nodes[0].documentElement : nodes[0].ownerDocument.documentElement, "model")).xfElement;
-		instance = model.findInstance(nodes[0]);
-	}
-	for (var i = 0, len = nodes.length; i < len; i++) {
-		var node = nodes[i];
-		XsltForms_mipbinding.nodedispose(node);
-		var repeat = XsltForms_browser.getMeta(node, "repeat");
-		if (node.nodeType === XsltForms_nodeType.ATTRIBUTE) {
-			if (node.ownerElement) {
-				node.ownerElement.removeAttributeNS(node.namespaceURI, node.nodeName);
-			} else {
-				node.selectSingleNode("..").removeAttributeNS(node.namespaceURI, node.nodeName);
-			}
-		} else {
-			node.parentNode.removeChild(node);
-		}
-		if (repeat) {
-			document.getElementById(repeat).xfElement.deleteNode(node);
-		}
-	}
-	if (nodes.length > 0) {
-		XsltForms_globals.addChange(model);
-		model.setRebuilded(true);
-		XsltForms_xmlevents.dispatch(instance, "xforms-delete");
-	}
-};
-    
-	
-		
-		
-		
-function XsltForms_dispatch(subform, name, target, properties, ifexpr, whileexpr, iterateexpr, delay) {
-	this.subform = subform;
-	this.name = name;
-	this.target = target;
-	this.properties = properties;
-	this.init(ifexpr, whileexpr, iterateexpr);
-	this.delay = delay;
-}
-
-XsltForms_dispatch.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_dispatch.prototype.run = function(element, ctx, evt) {
-	var name = this.name;
-	if (name.evaluate) {
-		name = XsltForms_globals.stringValue(name.evaluate());
-	}
-	var target = this.target;
-	if (target && target.evaluate) {
-		target = XsltForms_globals.stringValue(target.evaluate());
-	}
-	if (!target) {
-		switch (name) {
-			case "xforms-submit":
-				target = document.getElementById(XsltForms_browser.getMeta(ctx.ownerDocument.documentElement, "model")).xfElement.defaultSubmission;
-				break;
-			case "xforms-reset":
-				target = document.getElementById(XsltForms_browser.getMeta(ctx.ownerDocument.documentElement, "model")).xfElement;
-				break;
-		}
-	} else {
-		target = typeof target === "string"? document.getElementById(target) : target;
-	}
-	var evtctx = {};
-	for (var prop in this.properties) {
-		if (prop !== "" && this.properties.hasOwnProperty(prop)) {
-			evtctx[prop] = this.properties[prop].evaluate ? this.properties[prop].evaluate() : this.properties[prop];
-		}
-	}
-	var delay = 0;
-	if (this.delay) {
-		if (this.delay.evaluate) {
-			delay = XsltForms_globals.numberValue(this.delay.evaluate());
-		} else {
-			delay = XsltForms_globals.numberValue(this.delay);
-		}
-	}
-	if (delay > 0 ) {
-		window.setTimeout("XsltForms_xmlevents.dispatch(document.getElementById('"+target.id+"'),'"+name+"')", delay);
-	} else {
-		XsltForms_xmlevents.dispatch(target, name, null, null, null, null, evtctx);
-	}
-};
-    
-	
-		
-		
-		
-function XsltForms_insert(subform, nodeset, model, bind, at, position, origin, context, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.binding = new XsltForms_binding(null, nodeset, model, bind);
-	this.origin = XsltForms_xpath.get(origin);
-	this.context = XsltForms_xpath.get(context);
-	this.at = XsltForms_xpath.get(at);
-	this.position = position;
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_insert.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_insert.prototype.run = function(element, ctx) {
-	if (this.context) {
-		ctx = this.context.evaluate(ctx)[0];
-	}
-	if (!ctx) {
-		return;
-	}
-	var nodes = [];
-	if( this.binding.bind || this.binding.xpath ) {
-		nodes = this.binding.evaluate(ctx);
-	}
-	var index = 0;
-	var node = null;
-	var originNodes = [];
-	var parent = null;
-	var pos = this.position === "after"? 1 : 0;
-	var res = 0;
-	if (this.origin) {
-		originNodes = this.origin.evaluate(ctx);
-	}
-	if (originNodes.length === 0) {
-		if (nodes.length === 0) {
-			return;
-		}
-		originNodes.push(nodes[nodes.length - 1]);
-	}
-	for(var i = 0, len = originNodes.length; i < len; i += 1) {
-		node = originNodes[i];
-		if (nodes.length === 0) {
-			parent = ctx;
-		} else {
-			parent = nodes[0].nodeType === XsltForms_nodeType.DOCUMENT? nodes[0] : nodes[0].nodeType === XsltForms_nodeType.ATTRIBUTE? nodes[0].ownerDocument ? nodes[0].ownerDocument : nodes[0].selectSingleNode("..") : nodes[0].parentNode;
-			if (parent.nodeType !== XsltForms_nodeType.DOCUMENT && node.nodeType !== XsltForms_nodeType.ATTRIBUTE) {
-				res = this.at ? Math.round(XsltForms_globals.numberValue(this.at.evaluate(new XsltForms_exprContext(ctx, 1, nodes)))) + i - 1: nodes.length - 1;
-				index = isNaN(res)? nodes.length : res + pos;
-			}
-		}
-		XsltForms_browser.debugConsole.write("insert " + node.nodeName + " in " + parent.nodeName + " at " + index + " - " + ctx.nodeName);
-		if (node.nodeType === XsltForms_nodeType.ATTRIBUTE) {
-			XsltForms_browser.setAttributeNS(parent, node.namespaceURI, node.nodeName, node.nodeValue);
-		} else {
-			var clone = node.cloneNode(true);
-			if (parent.nodeType === XsltForms_nodeType.DOCUMENT) {
-				var first = parent.documentElement;
-				var prevmodel = XsltForms_browser.getMeta(first, "model");
-				var previnst = XsltForms_browser.getMeta(first, "instance");
-				parent.removeChild(first);
-				first = null;
-				XsltForms_browser.setMeta(clone, "instance", previnst);
-				XsltForms_browser.setMeta(clone, "model", prevmodel);
-				parent.appendChild(clone);
-			} else {
-				var nodeAfter;
-				if (index >= nodes.length && nodes.length !== 0) {
-					nodeAfter = nodes[nodes.length - 1].nextSibling;
-				} else {
-					nodeAfter = nodes[index];
-				}
-				if (nodeAfter) {
-					nodeAfter.parentNode.insertBefore(clone, nodeAfter);
-				} else {
-					parent.appendChild(clone);
-				}
-				var repeat = nodes.length > 0? XsltForms_browser.getMeta(nodes[0], "repeat") : null;
-				nodes.push(clone);
-				if (repeat) {
-					document.getElementById(repeat).xfElement.insertNode(clone, nodeAfter);
-				}
-			}
-		}
-	}
-	var model = document.getElementById(XsltForms_browser.getMeta(parent.documentElement ? parent.documentElement : parent.ownerDocument.documentElement, "model")).xfElement;
-	XsltForms_globals.addChange(model);
-	model.setRebuilded(true);
-	var evcontext = {"inserted-nodes": XsltForms_globals.stringValue([clone]), "origin-nodes": "dummy", "insert-location-node": "dummy", position: "dummy"};
-	XsltForms_xmlevents.dispatch(model.findInstance(parent), "xforms-insert", null, null, null, null, evcontext);
-};
-    
-	
-		
-		
-		
-function XsltForms_load(subform, binding, resource, show, targetid, instance, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.binding = binding;
-	this.resource = resource;
-	this.show = show;
-	this.targetid = targetid;
-	this.instance = instance;
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_load.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_load.prototype.run = function(element, ctx) {
-	var href = this.resource;
-	if (this.binding) {
-		var node = this.binding.evaluate(ctx)[0];
-		if (node) {
-			href = XsltForms_browser.getValue(node);
-		}
-	} else {
-		if (href && typeof href === 'object') {
-			href = XsltForms_globals.stringValue(this.resource.xpath.evaluate(ctx));
-		} else {
-			if (typeof href === 'string') {
-				href = XsltForms_browser.unescape(href); 
-			}
-		}
-	}
-	if (href) {
-		if(href.substr(0, 11) === "javascript:") {
-			try {
-				eval("{XsltForms_context={elementId:\""+element.getAttribute("id")+"\"};"+href.substr(11)+"}");
-			} catch (e) {
-				alert("XSLTForms Exception\n--------------------------\n\nError evaluating the following Javascript expression :\n\n"+href.substr(11)+"\n\n"+e);
-			}
-		} else if (this.show === "new") {
-			window.open(href);
-		} else if (this.show === "embed") {
-			XsltForms_globals.openAction();
-			var req = null;
-			var method = "get";
-			var evcontext = {"method": method, "resource-uri": href};
-			try {
-				req = XsltForms_browser.openRequest(method, href, false);
-				XsltForms_browser.debugConsole.write("Load " + href);
-				req.send(null);
-				if (req.status !== 0 && (req.status < 200 || req.status >= 300)) {
-					evcontext["error-type"] = "resource-error";
-					this.issueLoadException_(evcontext, req, null);
-					XsltForms_globals.closeAction();
-					return;
-				}
-				XsltForms_submission.requesteventlog(evcontext, req);
-				XsltForms_globals.closeAction();
-				var resp = req.responseText;
-				var piindex = resp.indexOf("<?xml-stylesheet", 0);
-				while ( piindex !== -1) {
-					var xslhref = resp.substr(piindex, resp.substr(piindex).indexOf("?>")).replace(/^.*href=\"([^\"]*)\".*$/, "$1");
-					resp = XsltForms_browser.transformText(resp, xslhref, false);
-					piindex = resp.indexOf("<?xml-stylesheet", 0);
-				}
-				XsltForms_browser.dialog.hide("statusPanel", false);
-				var sp = XsltForms_globals.stringSplit(resp, "XsltForms_MagicSeparator");
-				var subjs = "/* xsltforms-subform-" + XsltForms_globals.nbsubforms + " " + sp[2] + " xsltforms-subform-" + XsltForms_globals.nbsubforms + " */";
-				var imain = subjs.indexOf('"xsltforms-mainform"');
-				var targetelt = XsltForms_idManager.find(this.targetid);
-				var targetsubform = targetelt.xfSubform;
-				if (targetsubform) {
-					targetsubform.dispose();
-				}
-				subjs = '(function(){var xsltforms_subform_eltid = "' + targetelt.id + '";var xsltforms_parentform = XsltForms_subform.subforms["' + this.subform.id + '"];' + subjs.substring(0, imain) + '"xsltforms-subform-' + XsltForms_globals.nbsubforms + '"' + subjs.substring(imain + 20) + "})();";
-				var subbody = "<!-- xsltforms-subform-" + XsltForms_globals.nbsubforms + " " + sp[4] + " xsltforms-subform-" + XsltForms_globals.nbsubforms + " -->"
-				imain = subbody.indexOf(' id="xsltforms-mainform');
-				while (imain !== -1) {
-					subbody = subbody.substring(0, imain) + ' id="xsltforms-subform-' + XsltForms_globals.nbsubforms + subbody.substring(imain + 23);
-					imain = subbody.indexOf(' id="xsltforms-mainform');
-				}
-				var targetxf = targetelt.xfElement;
-				if (targetelt.xfElement) {
-					targetelt = targetelt.children[targetelt.children.length - 1];
-				}
-				targetelt.innerHTML = subbody;
-				targetelt.hasXFElement = null;
-				var scriptelt = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "script") : document.createElement("script");
-				scriptelt.setAttribute("id", "xsltforms-subform-" + XsltForms_globals.nbsubforms + "-script");
-				scriptelt.setAttribute("type", "text/javascript");
-				if (XsltForms_browser.isIE) {
-					scriptelt.text = subjs;
-				} else {
-					scriptelt.appendChild(document.createTextNode(subjs));
-				}
-				var body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
-				body.insertBefore(scriptelt, body.firstChild);
-				XsltForms_browser.setClass(targetelt, "xforms-subform-loaded", true);
-				if (targetxf) {
-					XsltForms_xmlevents.dispatch(targetxf, "xforms-load-done", null, null, null, null, evcontext);
-				}
-				XsltForms_globals.nbsubforms++;
-			} catch(e2) {
-				XsltForms_browser.debugConsole.write(e2.message || e2);
-				evcontext["error-type"] = "resource-error";
-				this.issueLoadException_(evcontext, req, e2);
-				XsltForms_globals.closeAction();
-			}
-		} else {
-			location.href = href;
-		}
-	} else {
-		if (this.instance) {
-			var instance = document.getElementById(this.instance);
-			if (!instance) { throw {name: "instance " + this.instance + " not found"}; }
-			var ser = XsltForms_browser.saveXML(instance.xfElement.doc.documentElement);
-			var lw;
-			if (this.show === "new") {
-				lw = window.open('data:text/xml,' + ser, this.instance);
-				lw.document.close();
-			} else {
-				if (this.show === "replace") {
-					lw = window.open("about:blank", _self);
-					lw.document.write(ser);
-					lw.document.close();
-				}
-			}
-		}
-	}
-};
-
-		
-
-XsltForms_load.prototype.issueLoadException_ = function(evcontext, req, ex) {
-	if (ex) {
-		evcontext.message = ex.message || ex;
-		evcontext["stack-trace"] = ex.stack;
-	}
-	if (req) {
-		XsltForms_submission.requesteventlog(evcontext, req);
-	}
-	XsltForms_xmlevents.dispatch(document.getElementById(this.targetid), "xforms-link-exception", null, null, null, null, evcontext);
-};
-
-		
-
-XsltForms_load.subform = function(resource, targetid, ref) {
-	if (ref) {
-		var parent = ref;
-		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
-			if (XsltForms_browser.hasClass(parent, "xforms-repeat-item")) {
-				XsltForms_repeat.selectItem(parent);
-			}
-			parent = parent.parentNode;
-		}
-	}
-	var targetelt = XsltForms_idManager.find(targetid);
-	var subform = null;
-	parent = targetelt;
-	while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
-		if (parent.xfSubform) {
-			subform = parent.xfSubform;
-			break;
-		}
-		parent = parent.parentNode;
-	}
-	var a = new XsltForms_load(subform, null, resource, "embed", targetid);
-	a.run();
-}
-
-	
-		
-		
-		
-function XsltForms_message(subform, id, binding, level, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.binding = binding;
-	this.id = id;
-	this.level = level;
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_message.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_message.prototype.run = function(element, ctx) {
-	var text;
-	if (this.binding) {
-		var node = this.binding.evaluate(ctx)[0];
-		if (node) {
-			text = XsltForms_browser.getValue(node);
-		}
-	} else {
-		var e = XsltForms_idManager.find(this.id);
-		var building = XsltForms_globals.building;
-		XsltForms_globals.building = true;
-		XsltForms_globals.build(e, ctx);
-		XsltForms_globals.building = building;
-		text = e.textContent || e.innerText;
-	}
-
-	if (text) {
-		alert(text.trim());
-	}
-};
-    
-	
-		
-		
-		
-function XsltForms_script(subform, binding, stype, script, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.binding = binding;
-	this.stype = stype;
-	this.script = script;
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_script.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_script.prototype.run = function(element, ctx) {
-	var script = this.script;
-	switch (this.stype) {
-		case "text/javascript":
-			if (this.binding) {
-				var node = this.binding.evaluate(ctx)[0];
-				if (node) {
-					script = XsltForms_browser.getValue(node);
-				}
-			} else {
-				if (typeof script === 'object') {
-					script = XsltForms_globals.stringValue(this.script.xpath.evaluate(ctx));
-				} else {
-					if (typeof script === 'string') {
-						script = XsltForms_browser.unescape(script); 
-					}
-				}
-			}
-			if (script) {
-				try {
-					eval("{XsltForms_context={elementId:\""+element.getAttribute("id")+"\"};"+script+"}");
-				} catch (e) {
-					alert("XSLTForms Exception\n--------------------------\n\nError evaluating the following Javascript expression :\n\n"+script+"\n\n"+e);
-				}
-			}
-			break;
-		case "application/xquery":
-			this.script.xpath.evaluate(ctx);
-			break;
-	}
-};
-
-	
-		
-		
-		
-function XsltForms_setindex(subform, repeat, index, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.repeat = repeat;
-	this.index = XsltForms_xpath.get(index);
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_setindex.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_setindex.prototype.run = function(element, ctx) {
-	var repeat = XsltForms_idManager.find(this.repeat);
-	var index = XsltForms_globals.numberValue(this.index.evaluate(ctx));
-	XsltForms_browser.debugConsole.write("setIndex " + index);
-	if (!isNaN(index)) {
-		repeat.xfElement.setIndex(index);
-	}
-};
-
-	
-		
-		
-		
-function XsltForms_setnode(subform, binding, value, inout, context, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.binding = binding;
-	this.value = value? XsltForms_xpath.get(value) : null;
-	this.inout = inout;
-	this.context = XsltForms_xpath.get(context);
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_setnode.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_setnode.prototype.run = function(element, ctx) {
-	var node = this.binding.evaluate(ctx)[0];
-	if (node) {
-		if (this.context) {
-			ctx = this.context.evaluate(ctx)[0];
-		}
-		var value = this.value? XsltForms_globals.stringValue(this.context ? this.value.evaluate(ctx, ctx) : this.value.evaluate(node, ctx)) : this.literal;
-		var modelid = XsltForms_browser.getMeta(node.ownerDocument.documentElement, "model");
-		var instanceid = XsltForms_browser.getMeta(node.ownerDocument.documentElement, "instance");
-		XsltForms_globals.openAction();
-		if (this.inout) {
-			while (node.firstChild) {
-				node.removeChild(node.firstChild);
-			}
-			var tempnode = node.ownerDocument.createTextNode("temp");
-			node.appendChild(tempnode);
-			XsltForms_browser.loadXML(tempnode, value || "");
-		} else {
-			XsltForms_browser.loadXML(node, value || "");
-			XsltForms_browser.setMeta(node.ownerDocument.documentElement, "model", modelid);
-			XsltForms_browser.setMeta(node.ownerDocument.documentElement, "instance", instanceid);
-		}
-		var model = document.getElementById(modelid).xfElement;
-		XsltForms_globals.addChange(model);
-		XsltForms_browser.debugConsole.write("Setnode " + node.nodeName + (this.inout ? " inner" : " outer") + " = " + value); 
-		XsltForms_xmlevents.dispatch(model, "xforms-rebuild");
-		XsltForms_globals.refresh();
-		XsltForms_globals.closeAction();
-	}
-};
-
-	
-		
-		
-		
-function XsltForms_setvalue(subform, binding, value, literal, context, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.binding = binding;
-	this.value = value? XsltForms_xpath.get(value) : null;
-	this.literal = literal;
-	this.context = XsltForms_xpath.get(context);
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_setvalue.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_setvalue.prototype.run = function(element, ctx) {
-	var node = this.binding.evaluate(ctx)[0];
-	if (node) {
-		if (this.context) {
-			ctx = this.context.evaluate(ctx)[0];
-		}
-		var value = this.value? XsltForms_globals.stringValue(this.context ? this.value.evaluate(ctx, ctx) : this.value.evaluate(node, ctx)) : this.literal;
-		XsltForms_globals.openAction();
-		XsltForms_browser.setValue(node, value || "");
-		document.getElementById(XsltForms_browser.getMeta(node.ownerDocument.documentElement, "model")).xfElement.addChange(node);
-		XsltForms_browser.debugConsole.write("Setvalue " + node.nodeName + " = " + value); 
-		XsltForms_globals.closeAction();
-	}
-};
-
-	
-		
-		
-		
-function XsltForms_toggle(subform, caseId, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.caseId = caseId;
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_toggle.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_toggle.prototype.run = function(element, ctx) {
-	XsltForms_toggle.toggle(this.caseId, ctx);
-};
-
-
-		
-
-XsltForms_toggle.toggle = function(caseId, ctx) {
-	XsltForms_globals.openAction();
-	if (typeof caseId === 'object') {
-		if (!ctx) {
-			ctx = XsltForms_globals.defaultModel.getInstanceDocument() ? XsltForms_globals.defaultModel.getInstanceDocument().documentElement : null;
-		}
-		caseId = XsltForms_globals.stringValue(caseId.xpath.evaluate(ctx));
-	}
-	var element = XsltForms_idManager.find(caseId);
-	var childs = element ? element.parentNode.childNodes : [];
-	var ul;
-	var index = -1;
-	if (childs.length > 0 && childs[0].nodeName.toLowerCase() === "ul") {
-		ul = childs[0];
-	}
-	for (var i = ul ? 1 : 0, len = childs.length; i < len; i++) {
-		var child = childs[i];
-		if (child === element) {
-			index = i - 1;
-		} else {
-			if (child.style && child.style.display !== "none") {
-				child.style.display = "none";
-				if (ul) {
-					XsltForms_browser.setClass(ul.childNodes[i - 1], "ajx-tab-selected", false);
-				}
-			}
-			XsltForms_xmlevents.dispatch(child, "xforms-deselect");
-		}
-	}
-	if (element && element.style.display === "none") {
-		element.style.display = "block";
-		if (ul) {
-			XsltForms_browser.setClass(ul.childNodes[index], "ajx-tab-selected", true);
-		}
-	}
-	if (element) {
-		XsltForms_xmlevents.dispatch(element, "xforms-select");
-	}
-	XsltForms_globals.closeAction();
-};
-
-	
-		
-		
-		
-function XsltForms_unload(subform, targetid, ifexpr, whileexpr, iterateexpr) {
-	this.subform = subform;
-	this.targetid = targetid;
-	this.init(ifexpr, whileexpr, iterateexpr);
-}
-
-XsltForms_unload.prototype = new XsltForms_abstractAction();
-
-
-		
-
-XsltForms_unload.prototype.run = function(element, ctx) {
-	var targetid = this.targetid || this.subform.eltid;
-	var targetelt = XsltForms_idManager.find(targetid);
-	targetelt.xfSubform.dispose();
-	targetelt.xfSubform = null;
-	if (targetelt.xfElement) {
-		targetelt = targetelt.children[targetelt.children.length - 1];
-	}
-	targetelt.innerHTML = "";
-	targetelt.hasXFElement = null;
-	XsltForms_browser.setClass(targetelt, "xforms-subform-loaded", false);
-};
-
-		
-
-XsltForms_unload.subform = function(targetid, ref) {
-	if (ref) {
-		var parent = ref;
-		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
-			if (XsltForms_browser.hasClass(parent, "xforms-repeat-item")) {
-				XsltForms_repeat.selectItem(parent);
-			}
-			parent = parent.parentNode;
-		}
-	}
-	var targetelt = XsltForms_idManager.find(targetid);
-	var subform = null;
-	parent = targetelt;
-	while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
-		if (parent.xfSubform) {
-			subform = parent.xfSubform;
-			break;
-		}
-		parent = parent.parentNode;
-	}
-	var a = new XsltForms_unload(subform, targetid);
-	a.run();
-}
-
-	
-	
-		
-		
-		
-		
-function XsltForms_tree(subform, id, binding) {
-	this.init(subform, id);
-	this.binding = binding;
-	this.hasBinding = true;
-	this.root = XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "ul")[0] : this.element.getElementsByTagName("ul")[0];
-	this.label = this.root.firstChild.cloneNode(true);
-}
-
-XsltForms_tree.prototype = new XsltForms_element();
-
-XsltForms_tree.prototype.dispose = function() {
-	this.root = null;
-	this.selected = null;
-	XsltForms_element.prototype.dispose.call(this);
-};
-
-XsltForms_tree.prototype.build_ = function(ctx) {
-	var node = this.evaluateBinding(this.binding, ctx)[0];
-	if (node) {
-		var nodes = [];
-		this.buildTree(this.root, 0, node, nodes);
-		if (!this.selected || !XsltForms_browser.inArray(this.selected, nodes)) {
-			this.select(this.root.firstChild);
-		}
-	}
-};
-
-XsltForms_tree.prototype.select = function(item) {
-	var changed = true;
-	var init = !!this.selected;
-	if (init) {
-		if (this.selected === item) {
-			changed = false;
-		} else {
-			XsltForms_browser.setClass(this.selected, "xforms-tree-item-selected", false);
-			XsltForms_browser.setClass(this.selected.childNodes[1], "xforms-tree-item-label-selected", false);
-		}
-	}
-	if (changed) {
-		this.element.node = item.node;
-		this.selected = item;
-		XsltForms_browser.setClass(item, "xforms-tree-item-selected", true);
-		XsltForms_browser.setClass(item.childNodes[1], "xforms-tree-item-label-selected", true);
-		XsltForms_globals.openAction();
-		XsltForms_globals.addChange(this);
-		XsltForms_globals.addChange(document.getElementById(XsltForms_browser.getMeta(item.node.ownerDocument.documentElement, "model")).xfElement);
-		XsltForms_globals.closeAction();
-	}
-};
-
-XsltForms_tree.prototype.click = function(target) {
-	if (target.className === "xforms-tree-item-button") {
-		var ul = target.nextSibling.nextSibling;
-		if (ul) {
-			ul.style.display = ul.style.display !== "none"? "none" : "block";
-		}
-	} else if (XsltForms_browser.hasClass(target, "xforms-tree-item-label")) {
-		this.select(target.parentNode);
-	}
-};
-
-XsltForms_tree.prototype.buildTree = function(parent, index, node, nodes) {
-	var li = null;
-	var ul = null;
-	var label = null;
-	var childs = node.childNodes;
-	var nochild = childs.length === 0;
-	nodes.push(node);
-	if (parent.childNodes.length < index + 1) {
-		li = this.label.cloneNode(true);
-		parent.appendChild(li);
-		XsltForms_repeat.initClone(li);
-	} else {
-		li = parent.childNodes[index];
-		var last = li.lastChild;
-		if (last.nodeName.toLowerCase() === "ul") {
-			ul = last;
-			if (nochild) {
-				XsltForms_globals.dispose(ul);
-				li.removeChild(ul);
-			}
-		}
-	}
-	li.node = node;
-	XsltForms_browser.setClass(li, "xforms-tree-item-fork", !nochild);
-	XsltForms_browser.setClass(li, "xforms-tree-item-leaf", nochild);
-	for (var i = 0, len = childs.length; i < len; i++) {
-		var child = childs[i];
-		if (child.nodeType === XsltForms_nodeType.ELEMENT) {
-			if (!ul) {
-				ul = XsltForms_browser.createElement("ul", li);
-			}
-			this.buildTree(ul, i, child, nodes);
-		}
-	}
-	if (ul) {
-		for (var j = ul.childNodes.length, len1 = childs.length; j > len1; j--) {
-			XsltForms_globals.dispose(ul.lastChild);
-			ul.removeChild(ul.lastChild);
-		}
-	}
-};
-
-XsltForms_tree.prototype.refresh = function() {
-};
-    
-	
-		
-		
-		
-function XsltForms_element() {
-}
-
-
-		
-
-XsltForms_element.depsId = 0;
-
-XsltForms_element.prototype.init = function(subform, id) {
-	this.subform = subform;
-	this.element = document.getElementById(id);
-	if (this.element.xfElement) {
-		if (!(this.element.xfElement instanceof Array)) {
-			this.element.xfElement = [this.element.xfElement];
-		}
-		this.element.xfElement.push(this);
-	} else {
-		this.element.xfElement = this;
-	}
-	this.depsElements = [];
-	this.depsNodesBuild = [];
-	this.depsNodesRefresh = [];
-	this.depsIdB = XsltForms_element.depsId++;
-	this.depsIdR = XsltForms_element.depsId++;
-};
-
-
-		
-
-XsltForms_element.prototype.dispose = function() {
-	if(this.element) {
-		this.element.xfElement = null;
-		this.element.hasXFElement = null;
-		this.element = null;
-	}
-	this.depsElements = null;
-	if (this.depsNodesBuild) {
-		for (var i = 0, len = this.depsNodesBuild.length; i < len; i++) {
-			XsltForms_browser.rmValueMeta(this.depsNodesBuild[i], "depfor", this.depsIdB);
-		}
-	}
-	this.depsNodesBuild = null;
-	if (this.depsNodesRefresh) {
-		for (var i2 = 0, len2 = this.depsNodesRefresh.length; i2 < len2; i2++) {
-			XsltForms_browser.rmValueMeta(this.depsNodesRefresh[i2], "depfor", this.depsIdR);
-		}
-	}
-	this.depsNodesRefresh = null;
-};
-
-
-		
-
-XsltForms_element.prototype.build = function(ctx) {
-	if (this.hasBinding) {
-		var deps = this.depsElements;
-		var depsN = this.depsNodesBuild;
-		var depsR = this.depsNodesRefresh;
-		var build = !XsltForms_globals.ready || (deps.length === 0) || ctx !== this.ctx;
-		var refresh = false;
-		var changes = XsltForms_globals.changes;
-		for (var i0 = 0, len0 = depsN.length; !build && i0 < len0; i0++) {
-			build = depsN[i0].nodeName === "";
-		}
-		for (var i = 0, len = deps.length; !build && i < len; i++) {
-			var el = deps[i];
-			for (var j = 0, len1 = changes.length; !build && j < len1; j++) {
-				if (el === changes[j]) {
-					if (el.instances) { //model
-						if (el.rebuilded || el.newRebuilded) {
-							build = true;
-						} else {
-							for (var k = 0, len2 = depsN.length; !build && k < len2; k++) {
-								build = XsltForms_browser.inArray(depsN[k], el.nodesChanged);
-							}
-							if (!build) {
-								for (var n = 0, len3 = depsR.length; n < len3; n++) {
-									refresh = XsltForms_browser.inArray(depsR[n], el.nodesChanged);
-								}
-							}
-						}
-					} else {
-						build = true;
-					}
-				}
-			}
-		}
-		this.changed = build || refresh;
-		if (build) {
-			for (var i4 = 0, len4 = depsN.length; i4 < len4; i4++) {
-				XsltForms_browser.rmValueMeta(depsN[i4], "depfor", this.depsIdB);
-			}
-			depsN.length = 0;
-			for (var i5 = 0, len5 = depsR.length; i5 < len5; i5++) {
-				XsltForms_browser.rmValueMeta(depsR[i5], "depfor", this.depsIdR);
-			}
-			depsR.length = 0;
-			deps.length = 0;
-			this.ctx = ctx;
-			this.build_(ctx);
-		}
-	} else {
-		this.element.node = ctx;
-	}
-};
-
-		
-
-XsltForms_element.prototype.evaluateBinding = function(binding, ctx) {
-	var nodes = null;
-	var errmsg = null;
-	if (binding) {
-		nodes = binding.evaluate(ctx, this.depsNodesBuild, this.depsIdB, this.depsElements);
-		if (nodes || nodes === "") {
-			return nodes;
-		}
-		// A 'null' binding means bind-ID was not found.
-		errmsg = "non-existent bind-ID("+ binding.bind + ") on element(" + this.element.id + ")!";
-	} else {
-		errmsg = "no binding defined for element("+ this.element.id + ")!";
-	}
-	XsltForms_browser.assert(errmsg);
-	if (XsltForms_globals.building && XsltForms_globals.debugMode) {
-		//
-		// Do not fail here, to keep on searching for more errors.
-		XsltForms_globals.bindErrMsgs.push(errmsg);
-		XsltForms_xmlevents.dispatch(this.element, "xforms-binding-exception");
-		nodes = [];
-	} else {
-		XsltForms_globals.error(this.element, "xforms-binding-exception", errmsg);
-	}
-	return nodes;
-};
-
-	
-		
-		
-		
-function XsltForms_control() {
-	this.isControl = true;
-}
-
-XsltForms_control.prototype = new XsltForms_element();
-
-
-		
-
-XsltForms_control.prototype.initFocus = function(element, principal) {
-	if (principal) {
-		this.focusControl = element;
-	}
-	XsltForms_browser.events.attach(element, "focus", XsltForms_control.focusHandler);
-	XsltForms_browser.events.attach(element, "blur", XsltForms_control.blurHandler);
-};
-
-
-		
-
-XsltForms_control.prototype.dispose = function() {
-	this.focusControl = null;
-	XsltForms_element.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_control.prototype.focus = function(focusEvent, evcontext) {
-	if (this.isOutput) {
-		return;
-	}
-	if (XsltForms_globals.focus !== this) {
-		XsltForms_globals.openAction();
-		XsltForms_globals.blur(true);
-		XsltForms_globals.focus = this;
-		XsltForms_browser.setClass(this.element, "xforms-focus", true);
-		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
-		var parent = this.element.parentNode;
-		while (parent.nodeType === XsltForms_nodeType.ELEMENT) {
-			if (typeof parent.node !== "undefined" && XsltForms_browser.hasClass(parent, "xforms-repeat-item")) {
-				XsltForms_repeat.selectItem(parent);
-			}
-			parent = parent.parentNode;
-		}
-		XsltForms_xmlevents.dispatch(XsltForms_globals.focus, "DOMFocusIn", null, null, null, null, evcontext);
-		XsltForms_globals.closeAction();
-		if (this.full && !focusEvent) { // select full
-			this.focusFirst();
-		}
-	}
-	var fcontrol = this.focusControl;
-	XsltForms_globals.posibleBlur = false;
-	if (fcontrol && !focusEvent) {
-		var control = this.focusControl;
-		var name = control.nodeName.toLowerCase();
-		control.focus();
-		control.focus();
-		if (name === "input" || name === "textarea") {
-			try {
-				control.select();
-			} catch (e) {
-			}
-		}
-	}
-};
-
-
-		
-
-XsltForms_control.prototype.build_ = function(ctx) {
-	var result = this.evaluateBinding(this.binding, ctx);
-	if (typeof result === "object") {
-		var node = result[0];
-		var element = this.element;
-		var old = element.node;
-		if (old !== node || !XsltForms_globals.ready) {
-			element.node = node;
-			this.nodeChanged = true;
-		}
-		if (node) {
-			this.depsNodesRefresh.push(node);
-		}
-	} else {
-		this.outputValue = result;
-	}
-};
-
-
-		
-
-XsltForms_control.prototype.refresh = function() {
-	var element = this.element;
-	var node = element.node;
-	if (node) {
-		var value = XsltForms_browser.getValue(node, true, this.complex);
-		XsltForms_globals.openAction();
-		var changed = value !== this.currentValue || this.nodeChanged;
-		if (this.relevant) {
-			XsltForms_browser.setClass(element, "xforms-disabled", false);
-		}
-		this.changeProp(node, "required", "xforms-required", "xforms-optional", changed, value);
-		this.changeProp(node, "notrelevant", "xforms-disabled", "xforms-enabled", changed, value);
-		this.changeProp(node, "readonly", "xforms-readonly", "xforms-readwrite", changed, value);
-		this.changeProp(node, "notvalid", "xforms-invalid", "xforms-valid", changed, value);
-		this.currentValue = value;
-		if (changed) {
-			this.setValue(value);
-			if (!this.nodeChanged && !this.isTrigger) {
-				XsltForms_xmlevents.dispatch(element, "xforms-value-changed");
-			}
-		}
-		XsltForms_globals.closeAction();
-	} else if (this.outputValue !== undefined) {
-		this.setValue(this.outputValue);
-		XsltForms_browser.setClass(element, "xforms-disabled", false);
-	} else {
-		XsltForms_browser.setClass(element, "xforms-disabled", !this.hasValue);
-	}
-	this.nodeChanged = false;
-};
-
-
-		
-
-XsltForms_control.prototype.changeProp = function(node, prop, onTrue, onFalse, changed, nvalue) {
-	var value = (prop === "notvalid" && nvalue === "" && !XsltForms_globals.validationError) ? false : XsltForms_browser.getBoolMeta(node, prop);
-	if (changed || value !== this[prop]) {
-		if (!this.nodeChanged && !this.isTrigger) {
-			XsltForms_xmlevents.dispatch(this.element, (value? onTrue : onFalse));
-		}
-		this[prop] = value;
-		XsltForms_browser.setClass(this.element, onTrue, value);
-		XsltForms_browser.setClass(this.element, onFalse, !value);
-		if(prop === "readonly" && this.changeReadonly) {
-			this.changeReadonly();
-		}
-	}
-};
-
-
-		
-
-XsltForms_control.prototype.valueChanged = function(value) {
-	var node = this.element.node;
-	var model = document.getElementById(XsltForms_browser.getMeta(node.ownerDocument.documentElement, "model")).xfElement;
-	var schtyp = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string");
-	if (value && value.length > 0 && schtyp.parse) {
-		try { value = schtyp.parse(value); } catch(e) { }
-	}
-	if (value !== XsltForms_browser.getValue(node)) {
-		XsltForms_globals.openAction();
-		XsltForms_browser.setValue(node, value);
-		model.addChange(node);
-		XsltForms_xmlevents.dispatch(model, "xforms-recalculate");
-		XsltForms_globals.refresh();
-		XsltForms_globals.closeAction();
-	}
-};
-
-
-		
-
-XsltForms_control.getXFElement = function(element) {
-	var xf = null;
-	while (!xf && element) {
-		xf = element.xfElement;
-		if (xf && !xf.isControl) {
-			xf = null;
-		}
-		element = element.parentNode;
-	}
-	return xf;
-};
-
-
-		
-
-XsltForms_control.focusHandler = function() {
-	var xf = XsltForms_control.getXFElement(this);
-	if (XsltForms_globals.focus !== xf) {
-		xf.focus(true);
-	} else {
-		XsltForms_globals.posibleBlur = false;
-	}
-};
-
-
-		
-
-XsltForms_control.blurHandler = function() {
-	if (XsltForms_control.getXFElement(this) === XsltForms_globals.focus) {
-		XsltForms_globals.posibleBlur = true;
-		setTimeout(function(){XsltForms_globals.blur();}, 200);
-	}
-};
-    
-	
-		
-		
-		
-function XsltForms_avt(subform, id, attrname, binding) {
-	this.init(subform, id);
-	this.attrname = attrname;
-	this.binding = binding;
-	this.hasBinding = true;
-	this.isOutput = true;
-	if (this.binding && this.binding.type) {
-		this.element.setAttribute(this.attrname, "");
-	}
-}
-
-XsltForms_avt.prototype = new XsltForms_control();
-
-
-		
-
-XsltForms_avt.prototype.clone = function(id) { 
-	return new XsltForms_avt(this.subform, id, this.attrname, this.binding);
-};
-
-
-		
-
-XsltForms_avt.prototype.dispose = function() {
-	XsltForms_control.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_avt.prototype.setValue = function(value) {
-	this.element.setAttribute(this.attrname, value);
-};
-
-		
-
-XsltForms_avt.prototype.getValue = function(value) {
-	return this.element.getAttribute(this.attrname);
-};
-
-	
-		
-		
-		
-function XsltForms_group(subform, id, binding, casebinding) {
-	XsltForms_globals.counters.group++;
-	this.init(subform, id);
-	if (binding) {
-		this.hasBinding = true;
-		this.binding = binding;
-	} else {
-		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
-	}
-	this.casebinding = casebinding;
-}
-
-XsltForms_group.prototype = new XsltForms_element();
-
-
-		
-
-XsltForms_group.prototype.dispose = function() {
-	XsltForms_globals.counters.group--;
-	XsltForms_element.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_group.prototype.clone = function(id) { 
-	return new XsltForms_group(this.subform, id, this.binding, this.casebinding);
-};
-
-
-		
-
-XsltForms_group.prototype.build_ = function(ctx) {
-	var nodes = this.evaluateBinding(this.binding, ctx);
-	this.element.node = nodes[0];
-	this.depsNodesRefresh.push(nodes[0]);
-	if (this.casebinding) {
-		var caseref = this.evaluateBinding(this.casebinding, nodes[0]);
-		if (caseref) {
-			XsltForms_toggle.toggle(XsltForms_globals.stringValue(caseref));
-		}
-	}
-};
-
-
-		
-
-XsltForms_group.prototype.refresh = function() {
-	var element = this.element;
-	var disabled = !element.node || XsltForms_browser.getBoolMeta(element.node, "notrelevant");
-	XsltForms_browser.setClass(element, "xforms-disabled", disabled);
-	var ul = element.parentNode.children ? element.parentNode.children[0] : element.parentNode.childNodes[0];
-	if (ul.nodeName.toLowerCase() === "ul") {
-		var childs = element.parentNode.children || element.parentNode.childNodes;
-		var tab;
-		for (var i = 1, len = childs.length; i < len; i++) {
-			if (childs[i] === element) {
-				tab = ul.childNodes[i - 1];
-			}
-		}
-		XsltForms_browser.setClass(tab, "xforms-disabled", disabled);
-	}
-};
-
-	
-		
-		
-		
-function XsltForms_input(subform, id, valoff, itype, binding, inputmode, incremental, delay, mediatype, aidButton, clone) {
-	XsltForms_globals.counters.input++;
-	this.init(subform, id);
-	this.binding = binding;
-	this.inputmode = typeof inputmode === "string"? XsltForms_input.InputMode[inputmode] : inputmode;
-	this.incremental = incremental;
-	this.delay = delay;
-	this.timer = null;
-	var cells = this.element.children;
-	this.valoff = valoff;
-	this.cell = cells[valoff];
-	this.isClone = clone;
-	this.hasBinding = true;
-	this.itype = itype;
-	this.bolAidButton = aidButton;
-	this.mediatype = mediatype;
-	this.initFocus(this.cell.children[0], true);
-	if (aidButton) {
-		this.aidButton = cells[valoff + 1].children[0];
-		this.initFocus(this.aidButton);
-	}
-}
-
-XsltForms_input.prototype = new XsltForms_control();
-
-
-		
-
-XsltForms_input.prototype.clone = function(id) { 
-	return new XsltForms_input(this.subform, id, this.valoff, this.itype, this.binding, this.inputmode, this.incremental, this.delay, this.mediatype, this.bolAidButton, true);
-};
-
-
-		
-
-XsltForms_input.prototype.dispose = function() {
-	this.cell = null;
-	this.calendarButton = null;
-	XsltForms_globals.counters.input--;
-	XsltForms_control.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_input.prototype.initInput = function(type) {
-	var cell = this.cell;
-	var input = cell.children[0];
-	var tclass = type["class"];
-	if (input.type === "password") {
-		this.type = XsltForms_schema.getType("xsd_:string");
-		this.initEvents(input, true);
-	} else if (input.nodeName.toLowerCase() === "textarea") {
-		this.type = type;
-		if (this.mediatype === "application/xhtml+xml" && type.rte && type.rte.toLowerCase() === "tinymce") {
-			input.id = this.element.id + "_textarea";
-			XsltForms_browser.debugConsole.write(input.id+": init="+XsltForms_globals.tinyMCEinit);
-			if (!XsltForms_globals.tinyMCEinit) {
-				var initinfo;
-				eval("initinfo = " + (type.appinfo ? type.appinfo : "{}"));
-				initinfo.mode = "none";
-				initinfo.setup = function(ed) {
-					ed.onKeyUp.add(function(ed) {
-						XsltForms_control.getXFElement(document.getElementById(ed.id)).valueChanged(ed.getContent() || "");
-					});
-					ed.onChange.add(function(ed) {
-						XsltForms_control.getXFElement(document.getElementById(ed.id)).valueChanged(ed.getContent() || "");
-					});
-					ed.onUndo.add(function(ed) {
-						XsltForms_control.getXFElement(document.getElementById(ed.id)).valueChanged(ed.getContent() || "");
-					});
-					ed.onRedo.add(function(ed) {
-						XsltForms_control.getXFElement(document.getElementById(ed.id)).valueChanged(ed.getContent() || "");
-					});
-				};
-				XsltForms_browser.debugConsole.write(input.id+": initinfo="+initinfo);
-				tinyMCE.init(initinfo);
-				XsltForms_globals.tinyMCEinit = true;
-			}
-			tinyMCE.execCommand("mceAddControl", true, input.id);
-		}
-		this.initEvents(input, false);
-	} else if (type !== this.type) {
-		this.type = type;
-		if (tclass === "boolean" || this.itype !== input.type) {
-			while (cell.firstChild) {
-				cell.removeChild(cell.firstChild);
-			}
-		} else {
-			while (cell.firstChild.nodeType === XsltForms_nodeType.TEXT) {
-				cell.removeChild(cell.firstChild);
-			}
-			for (var i = cell.childNodes.length - 1; i >= 1; i--) {
-				cell.removeChild(cell.childNodes[i]);
-			}
-		}
-		if (tclass === "boolean") {
-			input = XsltForms_browser.createElement("input");
-			input.type = "checkbox";
-			cell.appendChild(input);
-		} else {
-			if(this.itype !== input.type) {
-				input = XsltForms_browser.createElement("input", cell, null, "xforms-value");
-			}
-			this.initEvents(input, (this.itype === "text"));
-			if (tclass === "date" || tclass === "datetime") {
-				this.calendarButton = XsltForms_browser.createElement("button", cell, "...", "aid-button");
-				this.calendarButton.setAttribute("type", "button");
-				this.initFocus(this.calendarButton);
-			} else if (tclass === "number") {
-				input.style.textAlign = "right";
-			}
-			var max = type.getMaxLength();
-			if (max) {
-				input.maxLength = max;
-			} else {
-				input.removeAttribute("maxLength");
-			}
-			var length = type.getDisplayLength();
-			if (length) { 
-				input.size = length;
-			} else { 
-				input.removeAttribute("size");
-			}
-		}
-	}
-	this.initFocus(input, true);
-	this.input = input;
-};
-
-
-		
-
-XsltForms_input.prototype.setValue = function(value) {
-	var node = this.element.node;
-	var type = node ? XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string") : XsltForms_schema.getType("xsd_:string");
-	if (!this.input || type !== this.type) {
-		this.initInput(type);
-		this.changeReadonly();
-	}
-//	XsltForms_browser.debugConsole.write(this.input.id+": setValue("+value+")");
-//	if (this.type.rte && this.type.rte.toLowerCase() === "tinymce" && tinymce.get(this.input.id) === undefined) {
-//		XsltForms_browser.debugConsole.write(this.input.id+" is undefined");
-//	}
-	if (type["class"] === "boolean") {
-		this.input.checked = value === "true";
-	} else if (this.type.rte && this.type.rte.toLowerCase() === "tinymce") { // && tinymce.get(this.input.id) && tinymce.get(this.input.id).getContent() !== value) {
-		this.input.value = value || "";
-		//tinymce.get(this.input.id).setContent(value);
-		//this.input.value = tinymce.get(this.input.id).getContent() || "";
-		//XsltForms_browser.debugConsole.write(this.input.id+": getContent() ="+tinymce.get(this.input.id).getContent());
-		XsltForms_browser.debugConsole.write(this.input.id+".value ="+this.input.value);
-	} else if (this.input.value !== value) { // && this !== XsltForms_globals.focus) {
-		this.input.value = value || "";
-	}
-};
-
-
-		
-
-XsltForms_input.prototype.changeReadonly = function() {
-	var node = this.element.node;
-	var type = node ? XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string") : XsltForms_schema.getType("xsd_:string");
-	if (this.input) {
-		if (type["class"] === "boolean") {
-			this.input.disabled = this.readonly;
-		}
-		this.input.readOnly = this.readonly;
-		if (this.calendarButton) {
-			this.calendarButton.style.display = this.readonly ? "none" : "";
-		}
-	}
-};
-
-
-		
-
-XsltForms_input.prototype.initEvents = function(input, canActivate) {
-	if (this.inputmode) {
-		XsltForms_browser.events.attach(input, "keyup", XsltForms_input.keyUpInputMode);
-	}
-	if (canActivate) {
-		XsltForms_browser.events.attach(input, "keydown", XsltForms_input.keyDownActivate);
-		XsltForms_browser.events.attach(input, "keypress", XsltForms_input.keyPressActivate);
-		if (this.incremental) {
-			XsltForms_browser.events.attach(input, "keyup", XsltForms_input.keyUpIncrementalActivate);
-		} else {
-			XsltForms_browser.events.attach(input, "keyup", XsltForms_input.keyUpActivate);
-		}
-	} else {
-		if (this.incremental) {
-			XsltForms_browser.events.attach(input, "keyup", XsltForms_input.keyUpIncremental);
-		}
-	}
-};
-
-
-		
-
-XsltForms_input.prototype.blur = function(target) {
-	XsltForms_globals.focus = null;
-	var input = this.input;
-	var value;
-	if (!this.incremental) {
-		XsltForms_browser.assert(input, this.element.id);
-		value = input.type === "checkbox"? (input.checked? "true" : "false") : input.nodeName.toLowerCase() !== "textarea" ? input.value : (this.type.rte && this.type.rte.toLowerCase() === "tinymce") ? tinyMCE.get(input.id).getContent() : input.value;
-		this.valueChanged(value);
-	} else {
-		var node = this.element.node;
-		value = input.value;
-		if (value && value.length > 0 && XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").format) {
-			try { input.value = XsltForms_browser.getValue(node, true); } catch(e) { }
-		}
-		if (this.timer) {
-			window.clearTimeout(this.timer);
-			this.timer = null;
-		}
-	}
-};
-
-
-		
-
-XsltForms_input.prototype.click = function(target) {
-	if (target === this.aidButton) {
-		XsltForms_globals.openAction();
-		XsltForms_xmlevents.dispatch(this, "ajx-aid");
-		XsltForms_globals.closeAction();
-	} else if (target === this.input && this.type["class"] === "boolean") {
-		XsltForms_globals.openAction();
-		this.valueChanged(target.checked? "true" : "false");
-		XsltForms_xmlevents.dispatch(this, "DOMActivate");
-		XsltForms_globals.closeAction();
-	} else if (target === this.calendarButton) {
-		XsltForms_calendar.show(target.previousSibling, this.type["class"] === "datetime"? XsltForms_calendar.SECONDS : XsltForms_calendar.ONLY_DATE);
-	}
-};
-
-
-		
-
-XsltForms_input.keyUpInputMode = function() {
-	var xf = XsltForms_control.getXFElement(this);
-	this.value = xf.inputmode(this.value);
-};
-
-
-		
-
-XsltForms_input.keyDownActivate = function(a) {
-	this.keyDownCode = a.keyCode;
-};
-
-
-		
-
-XsltForms_input.keyPressActivate = function(a) {
-	this.keyPressCode = a.keyCode;
-};
-
-
-		
-
-XsltForms_input.keyUpActivate = function(a) {
-	var xf = XsltForms_control.getXFElement(this);
-	if (a.keyCode === 13 && (this.keyDownCode === 13 || this.keyPressCode === 13)) {
-		XsltForms_globals.openAction();
-		xf.valueChanged(this.value || "");
-		XsltForms_xmlevents.dispatch(xf, "DOMActivate");
-		XsltForms_globals.closeAction();
-	}
-	this.keyDownCode = this.keyPressCode = null;
-};
-
-
-		
-
-XsltForms_input.keyUpIncrementalActivate = function(a) {
-	var xf = XsltForms_control.getXFElement(this);
-	if (a.keyCode === 13 && (this.keyDownCode === 13 || this.keyPressCode === 13)) {
-		XsltForms_globals.openAction();
-		xf.valueChanged(this.value || "");
-		XsltForms_xmlevents.dispatch(xf, "DOMActivate");
-		XsltForms_globals.closeAction();
-	} else {
-		if (xf.delay && xf.delay > 0) {
-			if (xf.timer) {
-				window.clearTimeout(xf.timer);
-			}
-			xf.timer = window.setTimeout("XsltForms_globals.openAction();document.getElementById('" + xf.element.id + "').xfElement.valueChanged('" + (this.value.addslashes() || "") + "');XsltForms_globals.closeAction();", xf.delay);
-		} else {
-			XsltForms_globals.openAction();
-			xf.valueChanged(this.value || "");
-			XsltForms_globals.closeAction();
-		}
-	}
-	this.keyDownCode = this.keyPressCode = null;
-};
-
-
-		
-
-XsltForms_input.keyUpIncremental = function() {
-	var xf = XsltForms_control.getXFElement(this);
-	if (xf.delay && xf.delay > 0) {
-		if (xf.timer) {
-			window.clearTimeout(xf.timer);
-		}
-		xf.timer = window.setTimeout("XsltForms_globals.openAction();document.getElementById('" + xf.element.id + "').xfElement.valueChanged('" + (this.value.addslashes() || "") + "');XsltForms_globals.closeAction();", xf.delay);
-	} else {
-		XsltForms_globals.openAction();
-		xf.valueChanged(this.value || "");
-		XsltForms_globals.closeAction();
-	}
-};
-
-
-		
-
-XsltForms_input.InputMode = {
-	lowerCase : function(value) { return value.toLowerCase(); },
-	upperCase : function(value) { return value.toUpperCase(); },
-	titleCase : function(value) { return value.charAt(0).toUpperCase() + value.substring(1).toLowerCase(); },
-	digits : function(value) {
-		if (/^[0-9]*$/.exec(value)) {
-			return value;
-		} else {
-			alert("Character not valid");
-			var digits = "1234567890";
-			var newValue = "";
-			for (var i = 0, len = value.length; i < len; i++) {
-				if (digits.indexOf(value.charAt(i)) !== -1) {
-					newValue += value.charAt(i);
-				}
-			}
-			return newValue;
-		}
-	}
-};
-
-	
-		
-		
-		
-function XsltForms_item(subform, id, bindingL, bindingV) {
-	XsltForms_globals.counters.item++;
-	this.init(subform, id);
-	if (bindingL || bindingV) {
-		this.hasBinding = true;
-		this.bindingL = bindingL;
-		this.bindingV = bindingV;
-	} else {
-		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
-	}
-	var element = this.element;
-	if (element.nodeName.toLowerCase() !== "option") {
-		this.input = XsltForms_browser.isXhtml ? element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input")[0] : element.getElementsByTagName("input")[0];
-		this.input.name = XsltForms_control.getXFElement(this.element).element.id;
-		XsltForms_browser.events.attach(this.input, "focus", XsltForms_control.focusHandler);
-		XsltForms_browser.events.attach(this.input, "blur", XsltForms_control.blurHandler);
-		this.label = XsltForms_browser.isXhtml ? element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "span")[0] : element.getElementsByTagName("span")[0];
-	}
-}
-
-XsltForms_item.prototype = new XsltForms_element();
-
-
-		
-
-XsltForms_item.prototype.clone = function(id) { 
-	return new XsltForms_item(this.subform, id, this.bindingL, this.bindingV);
-};
-
-
-		
-
-XsltForms_item.prototype.dispose = function() {
-	this.input = null;
-	this.label = null;
-	XsltForms_globals.counters.item--;
-	XsltForms_element.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_item.prototype.build_ = function(ctx) {
-	var element = this.element;
-	var xf = element.parentNode.xfElement;
-	if (xf && xf.isRepeat) {
-		ctx = element.node;
-	} else {
-		element.node = ctx;
-	}
-	if (this.bindingL) {
-		element.nodeL = this.evaluateBinding(this.bindingL, ctx)[0];
-		this.depsNodesRefresh.push(element.nodeL);
-	}
-	if (this.bindingV) {
-		element.nodeV = this.evaluateBinding(this.bindingV, ctx)[0];
-		this.depsNodesRefresh.push(element.nodeV);
-	}
-};
-
-
-		
-
-XsltForms_item.prototype.refresh = function() {
-	var element = this.element;
-	if (element.nodeName.toLowerCase() === "option") {
-		if (element.nodeL) {
-			try { 
-				element.text = XsltForms_browser.getValue(element.nodeL, true);
-			} catch(e) {
-			}
-		}
-		if (element.nodeV) {
-			try {
-				element.value = XsltForms_browser.getValue(element.nodeV);
-			} catch(e2) {
-			}
-		}
-	} else {
-		if (element.nodeL) {
-			XsltForms_browser.setValue(this.label, XsltForms_browser.getValue(element.nodeL, true));
-		}
-		if (element.nodeV) {
-			this.input.value = XsltForms_browser.getValue(element.nodeV);
-		}
-	}
-};
-
-
-		
-
-XsltForms_item.prototype.click = function (target) {
-	var input = this.input;
-	if (input) {
-		var xf = XsltForms_control.getXFElement(this.element);
-		if (!xf.element.node.readonly && target === input) {
-			xf.itemClick(input.value);
-		}
-	}
-};
-    
-	
-		
-		
-		
-function XsltForms_itemset(subform, id, nodesetBinding, labelBinding, valueBinding) {
-	XsltForms_globals.counters.itemset++;
-	this.init(subform, id);
-	this.nodesetBinding = nodesetBinding;
-	this.labelBinding = labelBinding;
-	this.valueBinding = valueBinding;
-	this.hasBinding = true;
-}
-
-XsltForms_itemset.prototype = new XsltForms_element();
-
-
-		
-
-XsltForms_itemset.prototype.build_ = function(ctx) {
-	if (this.element.getAttribute("cloned")) {
-		return;
-	}
-	this.nodes = this.evaluateBinding(this.nodesetBinding, ctx);
-	var next = this.element;
-	var parentNode = next.parentNode;
-	var length = this.nodes.length;
-	var oldNode = next;
-	var listeners = next.listeners;
-	for (var cont = 1; true;) {
-		next = next.nextSibling;
-		if (next) {
-			if (next.nodeType === XsltForms_nodeType.ELEMENT) {
-				if (next.getAttribute("cloned")) {
-					if (cont >= length) {
-						next.listeners = null;
-						parentNode.removeChild(next);
-						next = oldNode;
-					} else {
-						next.node = this.nodes[cont];
-						this.refresh_(next, cont++);
-						oldNode = next;
-					}
-				}
-			} else {
-				var n = next.previousSibling;
-				next.parentNode.removeChild(next);
-				next = n;
-			}
-		} else {
-			for (var i = cont; i < length; i++) {
-				var node = this.element.cloneNode(true);
-				node.setAttribute("cloned", "true");
-				XsltForms_idManager.cloneId(node);
-				node.node = this.nodes[i];
-				parentNode.appendChild(node);
-				this.refresh_(node, i);
-				if (listeners && !XsltForms_browser.isIE) {
-					for (var j = 0, len = listeners.length; j < len; j++) {
-						listeners[j].clone(node);
-					}
-				}
-			}
-			break;
-		}
-	}
-	if (length > 0) {
-		this.element.node = this.nodes[0];
-		this.refresh_(this.element, 0);
-	} else {
-		this.element.value = "\xA0";
-		this.element.text = "\xA0";
-	}
-};
-
-
-		
-
-XsltForms_itemset.prototype.refresh = function() {
-	var parent = this.element.parentNode;
-	var i = 0;
-	while (parent.childNodes[i] !== this.element) {
-		i++;
-	}
-	for (var j = 0, len = this.nodes.length; j < len || j === 0; j++) {
-		XsltForms_browser.setClass(parent.childNodes[i+j], "xforms-disabled", this.nodes.length === 0);
-	}
-};
-
-
-		
-
-XsltForms_itemset.prototype.clone = function(id) {
-	return new XsltForms_itemset(this.subform, id, this.nodesetBinding, this.labelBinding, this.valueBinding);
-};
-
-
-		
-
-XsltForms_itemset.prototype.dispose = function() {
-	XsltForms_globals.counters.itemset--;
-	XsltForms_element.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_itemset.prototype.refresh_ = function(element, cont) {
-	var ctx = this.nodes[cont];
-	var nodeLabel = this.evaluateBinding(this.labelBinding, ctx)[0];
-	var nodeValue = this.evaluateBinding(this.valueBinding, ctx)[0];
-	if (nodeLabel) {
-		this.depsNodesRefresh.push(nodeLabel);
-		try {
-			element.text = XsltForms_browser.getValue(nodeLabel, true);
-		} catch(e) {
-		}
-	}
-	if (nodeValue) {
-		this.depsNodesRefresh.push(nodeValue);
-		try {
-			element.value = XsltForms_browser.getValue(nodeValue);
-		} catch(e2) {
-		}
-	}
-};
-
-	
-		
-		
-		
-function XsltForms_label(subform, id, binding) {
-	XsltForms_globals.counters.label++;
-	this.init(subform, id);
-	if (binding) {
-		this.hasBinding = true;
-		this.binding = binding;
-	}
-}
-
-XsltForms_label.prototype = new XsltForms_element();
-
-
-		
-
-XsltForms_label.prototype.clone = function(id) { 
-	return new XsltForms_label(this.subform, id, this.binding);
-};
-
-
-		
-
-XsltForms_label.prototype.dispose = function() {
-	XsltForms_globals.counters.label--;
-	XsltForms_element.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_label.prototype.build_ = function(ctx) {
-	var nodes = this.evaluateBinding(this.binding, ctx);
-	this.element.node = nodes[0];
-	this.depsNodesRefresh.push(nodes[0]);
-};
-
-
-		
-
-XsltForms_label.prototype.refresh = function() {
-	var node = this.element.node;
-	var value = node? XsltForms_browser.getValue(node, true) : "";
-	XsltForms_browser.setValue(this.element.getAttributeNode("label") ? this.element.getAttributeNode("label") : this.element, value);
-};
-    
-	
-		
-		
-		
-function XsltForms_output(subform, id, valoff, binding, mediatype) {
-	XsltForms_globals.counters.output++;
-	this.init(subform, id);
-	this.valoff = valoff;
-	var children = this.element.children || this.element.childNodes;
-	if (children.length !== 0) {
-		var cells = children;
-		this.valueElement = cells[valoff];
-	} else {
-		this.valueElement = this.element;
-	}
-	var valuechildren = this.valueElement.children || this.valueElement.childNodes;
-	if (valuechildren.length !== 0) {
-		this.valueElement = valuechildren[0];
-	}
-	this.hasBinding = true;
-	this.binding = binding;
-	this.mediatype = mediatype;
-	this.complex = mediatype === "application/xhtml+xml";
-	this.isOutput = true;
-	if (this.binding && this.binding.type) {
-		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
-	}
-}
-
-XsltForms_output.prototype = new XsltForms_control();
-
-
-		
-
-XsltForms_output.prototype.clone = function(id) { 
-	return new XsltForms_output(this.subform, id, this.valoff, this.binding, this.mediatype);
-};
-
-
-		
-
-XsltForms_output.prototype.dispose = function() {
-	this.valueElement = null;
-	XsltForms_globals.counters.output--;
-	XsltForms_control.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_output.prototype.setValue = function(value) {
-	var node = this.element.node;
-	var element = this.valueElement;
-	if (element.nodeName.toLowerCase() === "span" || element.nodeName.toLowerCase() === "tspan" || element.nodeName.toLowerCase() === "label") {
-		if (this.mediatype === "application/xhtml+xml") {
-			while (element.firstChild) {
-				element.removeChild(element.firstChild);
-			}
-			if (value) {
-				element.innerHTML = value;
-			}
-		} else if (this.mediatype === "image/svg+xml") {
-			while (element.firstChild) {
-				element.removeChild(element.firstChild);
-			}
-			if (XsltForms_browser.isIE && !XsltForms_browser.isIE9) {
-				var xamlScript = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "script") : document.createElement("script");
-				xamlScript.setAttribute("type", "text/xaml");
-				xamlScript.setAttribute("id", this.element.id+"-xaml");
-				xamlScript.text = XsltForms_browser.transformText(value, XsltForms_browser.ROOT + "svg2xaml.xsl", false, "width", element.currentStyle.width, "height", element.currentStyle.height);
-				element.appendChild(xamlScript);
-				var xamlObject = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "object") : document.createElement("object");
-				xamlObject.setAttribute("width", element.currentStyle.width+"px");
-				xamlObject.setAttribute("height", element.currentStyle.height+"px");
-				xamlObject.setAttribute("type", "application/x-silverlight");
-				xamlObject.setAttribute("style", "min-width: " + element.currentStyle.width+"px");
-				//xamlObject.setAttribute("style", "min-width: " + xamlScript.text.substring(xamlScript.text.indexOf('<Canvas Width="')+15,xamlScript.text.indexOf('" Height="')) + "px");
-				var xamlParamSource = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "param") : document.createElement("param");
-				xamlParamSource.setAttribute("name", "source");
-				xamlParamSource.setAttribute("value", "#"+this.element.id+"-xaml");
-				xamlObject.appendChild(xamlParamSource);
-				var xamlParamOnload = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "param") : document.createElement("param");
-				xamlParamOnload.setAttribute("name", "onload");
-				xamlParamOnload.setAttribute("value", "onLoaded");
-				xamlObject.appendChild(xamlParamOnload);
-				var xamlParamIswindowless = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "param") : document.createElement("param");
-				xamlParamIswindowless.setAttribute("name", "iswindowless");
-				xamlParamIswindowless.setAttribute("value", "true");
-				xamlObject.appendChild(xamlParamIswindowless);
-				element.appendChild(xamlObject);
-			} else if (XsltForms_browser.isXhtml) {
-				var cs = window.getComputedStyle(element, null);
-				XDocument.parse(value, element);
-				element.firstChild.setAttribute("width", cs.getPropertyValue("min-width"));
-				element.firstChild.setAttribute("height", cs.getPropertyValue("min-height"));
-			} else {
-				var svgObject = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "object") : document.createElement("object");
-				svgObject.setAttribute("type", "image/svg+xml");
-				svgObject.setAttribute("data", "data:image/svg+xml,"+ value);
-				//svgObject.setAttribute("height", "400px");
-				element.appendChild(svgObject);
-			}
-		} else {
-			XsltForms_browser.setValue(element, value);
-		}
-	} else {
-		element.src = value;
-	}
-};
-
-		
-
-XsltForms_output.prototype.getValue = function(format) {
-	var node = this.element.node;
-	var element = this.valueElement;
-	if (element.nodeName.toLowerCase() === "span") {
-		return XsltForms_browser.getValue(element, format);
-	} else {
-		var value = element.src;
-		if (value && format && element.type.format) {
-			try { 
-				value = element.type.format(value);
-			} catch(e) { 
-			}
-		}
-		return value;
-	}
-};
-
-	
-		
-		
-		
-function XsltForms_range(subform, id, valoff, binding, incremental, start, end, step, aidButton, clone) {
-	XsltForms_globals.counters.upload++;
-	this.init(subform, id);
-	this.binding = binding;
-	this.incremental = incremental;
-	var cells = this.element.children;
-	this.valoff = valoff;
-	this.cell = cells[valoff];
-	this.rail = this.cell.children[0].children[0];
-	this.cursor = this.rail.children[0];
-	this.outputvalue = this.cell.children[0].children[1];
-	this.isClone = clone;
-	this.hasBinding = true;
-	this.bolAidButton = aidButton;
-	this.start = parseFloat(start);
-	this.end = parseFloat(end);
-	this.step = parseFloat(step);
-	this.value = "";
-	this.initFocus(this.cell.children[0], true);
-	XsltForms_browser.events.attach(this.rail, "focus", function(evt) {
-		var target = XsltForms_browser.events.getTarget(evt);
-		var parent = target;
-		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
-			var xf = parent.xfElement;
-			if (xf) {
-				alert("rail_focus "+xf.element.id);
-				break;
-			}
-			parent = parent.parentNode;
-		}
-	} );
-	XsltForms_browser.events.attach(this.rail, "mousedown", function(evt) {
-		var target = XsltForms_browser.events.getTarget(evt);
-		var parent = target;
-		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
-			var xf = parent.xfElement;
-			if (xf) {
-				var newPos = evt.clientX + (window.pageLeft !== undefined ? window.pageLeft : (document.documentElement && document.documentElement.scrollLeft !== undefined) ? document.documentElement.scrollLeft : document.body.scrollLeft);
-				parent = xf.rail;
-				while (parent) {
-					newPos -= parent.offsetLeft;
-					parent = parent.offsetParent;
-				}
-				var node = xf.element.node;
-				var value = Math.round(newPos / xf.rail.clientWidth * (xf.end - xf.start) / xf.step) * xf.step + xf.start;
-				var f = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").format;
-				if (f) {
-					value = f(value);
-				}
-				xf.setValue(value);
-				if (xf.incremental) {
-					XsltForms_globals.openAction();
-					xf.valueChanged(xf.value + "");
-					XsltForms_globals.closeAction();
-				}
-				if (!document.activeElement || !document.activeElement !== xf.cursor) {
-					xf.cursor.focus();
-				}
-				break;
-			}
-			parent = parent.parentNode;
-		}
-	} );
-	XsltForms_browser.events.attach(this.cursor, "mousedown", function(evt) {
-		var target = XsltForms_browser.events.getTarget(evt);
-		var parent = target;
-		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
-			var xf = parent.xfElement;
-			if (xf) {
-				xf.offset = evt.clientX + (window.pageLeft !== undefined ? window.pageLeft : (document.documentElement && document.documentElement.scrollLeft !== undefined) ? document.documentElement.scrollLeft : document.body.scrollLeft);
-				parent = xf.cursor;
-				while (parent) {
-					xf.offset -= parent.offsetLeft;
-					parent = parent.offsetParent;
-				}
-				document.onmousemove = function(evt) {
-					var target = XsltForms_browser.isIE ? document.activeElement : XsltForms_browser.events.getTarget(evt);
-					var parent = target;
-					while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
-						var xf = parent.xfElement;
-						if (xf) {
-							var newPos = evt.clientX - xf.offset + (window.pageLeft !== undefined ? window.pageLeft : (document.documentElement && document.documentElement.scrollLeft !== undefined) ? document.documentElement.scrollLeft : document.body.scrollLeft);
-							parent = xf.rail;
-							while (parent) {
-								newPos -= parent.offsetLeft;
-								parent = parent.offsetParent;
-							}
-							var node = xf.element.node;
-							var value = Math.round(newPos / xf.rail.clientWidth * (xf.end - xf.start) / xf.step) * xf.step + xf.start;
-							value = Math.min(Math.max(value, xf.start), xf.end);
-							var f = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").format;
-							if (f) {
-								value = f(value);
-							}
-							xf.setValue(value);
-							if (xf.incremental) {
-								XsltForms_globals.openAction();
-								xf.valueChanged(xf.value + "");
-								XsltForms_globals.closeAction();
-							}
-							if (!document.activeElement || !document.activeElement !== xf.cursor) {
-								xf.cursor.focus();
-							}
-							break;
-						}
-						parent = parent.parentNode;
-					}
-				};
-				document.onmouseup = function() {
-					document.onmousemove = null;
-					document.onmouseup = null;
-				};
-				if (!document.activeElement || !document.activeElement !== xf.cursor) {
-					xf.cursor.focus();
-				}
-				break;
-			}
-			parent = parent.parentNode;
-		}
-		if (typeof evt.stopPropagation == "function") {
-			evt.stopPropagation();
-		}
-		else if (typeof evt.cancelBubble != "undefined") {
-			evt.cancelBubble = true;	
-		}
-		if (evt.preventDefault) {
-			evt.preventDefault();
-		}
-	} );
-	if (aidButton) {
-		this.aidButton = cells[valoff + 1].children[0];
-		this.initFocus(this.aidButton);
-	}
-}
-
-XsltForms_range.prototype = new XsltForms_control();
-
-
-		
-
-XsltForms_range.prototype.clone = function(id) { 
-	return new XsltForms_range(this.subform, id, this.valoff, this.binding, this.incremental, this.start, this.end, this.step, this.bolAidButton, true);
-};
-
-
-		
-
-XsltForms_range.prototype.dispose = function() {
-	this.cell = null;
-	XsltForms_globals.counters.range--;
-	XsltForms_control.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_range.prototype.setValue = function(value) {
-	this.outputvalue.innerHTML = value;
-	var node = this.element.node;
-	var f = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").parse;
-	if (f) {
-		value = f(value);
-	}
-	if (this.value !== value) {
-		this.value = value;
-		this.cursor.style.left = Math.round(this.rail.clientWidth * (this.value - this.start) / (this.end - this.start)) + "px";
-	}
-};
-
-
-		
-
-XsltForms_range.prototype.blur = function(target) {
-	XsltForms_globals.focus = null;
-	if (!this.incremental) {
-		XsltForms_browser.assert(this.input, this.element.id);
-		this.valueChanged(this.value);
-	}
-};
-
-
-	
-		
-		
-		
-function XsltForms_repeat(subform, id, nbsiblings, binding, clone) {
-	XsltForms_globals.counters.repeat++;
-	this.init(subform, id);
-	this.nbsiblings = nbsiblings;
-	this.binding = binding;
-	this.index = 1;
-	var el = this.element;
-	this.isRepeat = true;
-	this.hasBinding = true;
-	this.root = XsltForms_browser.hasClass(el, "xforms-control")? el.lastChild : el;
-	this.isItemset = XsltForms_browser.hasClass(el, "xforms-itemset");
-}
-
-XsltForms_repeat.prototype = new XsltForms_element();
-
-
-		
-
-XsltForms_repeat.prototype.dispose = function() {
-	this.root = null;
-	XsltForms_globals.counters.repeat--;
-	XsltForms_element.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_repeat.prototype.setIndex = function(index) {
-	if (this.index !== index) {
-		var node = this.nodes[index - 1];
-		if (node) {    
-			XsltForms_globals.openAction();
-			this.index = index;
-			this.element.node = node;
-			XsltForms_globals.addChange(this);
-			XsltForms_globals.addChange(document.getElementById(XsltForms_browser.getMeta(node.ownerDocument.documentElement, "model")).xfElement);
-			XsltForms_globals.closeAction();
-		}
-	}
-};
-
-
-		
-
-XsltForms_repeat.prototype.deleteNode = function(node) {
-	var newNodes = [];
-	var nodes = this.nodes;
-	for (var i = 0, len = nodes.length; i < len; i++) {
-		if (node !== nodes[i]) {
-			newNodes.push(nodes[i]);
-		}
-	}
-	this.nodes = newNodes;
-	this.setIndex(this.index === nodes.length? this.index - 1 : this.index);
-};
-
-
-		
-
-XsltForms_repeat.prototype.insertNode = function(node, nodeAfter) {
-	var nodes = this.nodes;
-	if (nodeAfter) {
-		var newNodes = [];
-		var index = 1;
-		for (var i = 0, len = nodes.length; i < len; i++) {
-			if (nodeAfter === nodes[i]) {
-				newNodes.push(node);
-				index = i + 1;
-			}
-			newNodes.push(nodes[i]);
-		}
-		this.nodes = newNodes;
-		this.setIndex(index);
-	} else {
-		nodes.push(node);
-		this.setIndex(nodes.length);
-	}
-};
-
-
-		
-
-XsltForms_repeat.prototype.build_ = function(ctx) {
-	var nodes0 = this.evaluateBinding(this.binding, ctx);
-	var nodes = [];
-	for (var n = 0, ln = nodes0.length; n < ln; n++) {
-		if (!XsltForms_browser.getBoolMeta(nodes0[n], "notrelevant")) {
-			nodes.push(nodes0[n]);
-		}
-	}
-	this.nodes = nodes;
-	n = nodes.length;
-	if (this.nbsiblings === 0) {
-		var r = this.root;
-		while (r.firstChild.nodeType === XsltForms_nodeType.TEXT) {
-			r.removeChild(r.firstChild);
-		}
-		var r0 = r.children ? r.children[0] : r.childNodes[0];
-		XsltForms_repeat.forceOldId(r0);
-		var l = r.children ? r.children.length : r.childNodes.length;
-		for (var i = l; i < n; i++) {
-			var child = r0.cloneNode(true);
-			r.appendChild(child);
-			XsltForms_repeat.initClone(child);
-		}
-		for (var j = n; j < l && r.childNodes.length > 1; j++) {
-			XsltForms_globals.dispose(r.lastChild);
-			r.removeChild(r.lastChild);
-		}
-		for (var k = 0; k < n; k++) {
-			XsltForms_browser.setMeta(nodes[k], "repeat", this.element.id);
-			if (r.children) {
-				r.children[k].node = nodes[k];
-			} else {
-				r.childNodes[k].node = nodes[k];
-			}
-		}
-	} else {
-		var r0 = this.root;
-		XsltForms_repeat.forceOldId(r0);
-		var r = r0.parentNode;
-		var cc = r.firstChild;
-		var i0 = 0;
-		while (cc) {
-			if (cc === r0) {
-				break;
-			}
-			i0++;
-			cc = cc.nextSibling;
-		}
-		var l = 1;
-		var rl = r.childNodes[i0 + this.nbsiblings];
-		while (rl && (rl.id === this.element.id || rl.oldid === this.element.id)) {
-			l++;
-			rl = r.childNodes[i0 + l*this.nbsiblings];
-		}
-		for (var i = l; i < n; i++) {
-			var child = r0.cloneNode(true);
-			r.insertBefore(child, rl);
-			XsltForms_repeat.initClone(child);
-			delete child.xfElement;
-			var r0s = r0.nextSibling;
-			for (var isb = 1; isb < this.nbsiblings; isb++, r0s = r0s.nextSibling) {
-				child = r0s.cloneNode(true)
-				r.insertBefore(child, rl);
-				XsltForms_repeat.initClone(child);
-			}
-		}
-		for (var j = n; j < l; j++) {
-			var rj = r.childNodes[i0 + (n+1)*this.nbsiblings];
-			if (!(rj && (rj.id === this.element.id || rj.oldid === this.element.id))) {
-				break;
-			}
-			for (var jsb = 0; jsb < this.nbsiblings; jsb++) {
-				XsltForms_globals.dispose(r.children[i0 + n*this.nbsiblings]);
-				r.removeChild(r.children[i0 + n*this.nbsiblings]);
-			}
-		}
-		for (var k = 0; k < n; k++) {
-			XsltForms_browser.setMeta(nodes[k], "repeat", this.element.id);
-			if (r.children) {
-				r.children[i0 + k*this.nbsiblings].node = nodes[k];
-			} else {
-				r.childNodes[i0 + k*this.nbsiblings].node = nodes[k];
-			}
-		}
-	}
-	if (this.index > n) {
-		this.index = 1;
-	}
-	this.element.node = nodes[this.index - 1];
-};
-
-
-		
-
-XsltForms_repeat.prototype.refresh = function(selected) {
-	var empty = this.nodes.length === 0;
-	XsltForms_browser.setClass(this.element, "xforms-disabled", empty);
-	if (!empty && !this.isItemset) {
-		var childs = this.root.children || this.root.childNodes;
-		for (var i = 0, len = childs.length; i < len; i++) {
-			var sel = selected && (this.index === i + 1);
-			childs[i].selected = sel;
-			XsltForms_browser.setClass(childs[i], "xforms-repeat-item-selected", sel);
-		}
-	}
-};
-
-
-		
-
-XsltForms_repeat.prototype.clone = function(id) { 
-	return new XsltForms_repeat(this.subform, id, this.nbsiblings, this.binding, true);
-};
-
-
-		
-
-XsltForms_repeat.initClone = function(element) {
-	var id = element.id;
-	if (id) {
-		XsltForms_idManager.cloneId(element);
-		element.xfElement = null;
-		var oldid = element.getAttribute("oldid");
-		var original = document.getElementById(oldid);
-		var xf = original.xfElement;
-		if (xf) {
-			if (xf instanceof Array) {
-				for (var ixf = 0, lenxf = xf.length; ixf < lenxf; ixf++) {
-					xf[ixf].clone(element.id);
-				}
-			} else {
-				xf.clone(element.id);
-			}
-		}
-		var listeners = original.listeners;
-		if (listeners && (!XsltForms_browser.isIE || XsltForms_browser.isIE9)) {
-			for (var i = 0, len = listeners.length; i < len; i++) {
-				listeners[i].clone(element);
-			}
-		}
-	}
-	var next = element.firstChild;
-	while (next) {
-		var child = next;
-		next = next.nextSibling;
-		if (child.id && child.getAttribute("cloned")) {
-			element.removeChild(child);
-		} else {
-			XsltForms_repeat.initClone(child);
-		}
-	}
-};
-
-
-		
-
-XsltForms_repeat.forceOldId = function(element) {
-	var id = element.id;
-	if (id) {
-		if (id.substr(0, 8) === "clonedId") {
-			return;
-		}
-		element.setAttribute("oldid", id);
-	}
-	var next = element.firstChild;
-	while (next) {
-		var child = next;
-		next = next.nextSibling;
-		XsltForms_repeat.forceOldId(child);
-	}
-};
-
-
-		
-
-XsltForms_repeat.selectItem = function(element) {
-	var par = element.parentNode;
-	if (par) {
-		var repeat = par.xfElement? par : par.parentNode;
-		var childs = par.children;
-		XsltForms_browser.assert(repeat.xfElement, element.nodeName +  " - " + repeat.nodeName);
-		for (var i = 0, len = childs.length; i < len; i++) {
-			if (childs[i] === element) {
-				repeat.xfElement.setIndex(i + 1);
-				break;
-			}
-		}
-	}
-};
-
-	
-		
-		
-		
-function XsltForms_select(subform, id, multiple, full, binding, incremental, clone) {
-	XsltForms_globals.counters.select++;
-	this.init(subform, id);
-	this.binding = binding;
-	this.multiple = multiple;
-	this.full = full;
-	this.incremental = incremental;
-	this.isClone = clone;
-	this.hasBinding = true;
-	this.outRange = false;
-	if (!this.full) {
-		this.select = XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "select")[0] : this.element.getElementsByTagName("select")[0];
-		this.initFocus(this.select);
-		XsltForms_browser.events.attach(this.select, "change", incremental? XsltForms_select.incrementalChange : XsltForms_select.normalChange);
-	}
-}
-
-XsltForms_select.prototype = new XsltForms_control();
-
-
-		
-
-XsltForms_select.prototype.clone = function(id) { 
-	return new XsltForms_select(this.subform, id, this.multiple, this.full, this.binding, this.incremental, true);
-};
-
-
-		
-
-XsltForms_select.prototype.dispose = function() {
-	this.select = null;
-	this.selectedOptions = null;
-	XsltForms_globals.counters.select--;
-	XsltForms_control.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_select.prototype.focusFirst = function() {
-	var input = XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input")[0] : this.element.getElementsByTagName("input")[0];
-	input.focus();
-	if (XsltForms_browser.isOpera) {
-		input.focus();
-	}
-};
-
-
-		
-
-XsltForms_select.prototype.setValue = function(value) {
-	if (!this.full && (!value || value === "")) {
-		this.selectedOptions = [];
-		if (this.select.options[0] && this.select.options[0].value !== "\xA0") {
-			var empty = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "option") : document.createElement("option");
-			empty.value = "\xA0";
-			empty.text = "\xA0";
-			empty.id = "";
-			if (this.select.children[0]) {
-				this.select.insertBefore(empty, this.select.children[0]);
-			} else {
-				this.select.appendChild(empty);
-			}
-			this.select.selectedIndex = 0;
-		}
-	} else {
-		if (!this.full && this.select.firstChild && this.select.firstChild.value === "\xA0") {
-			//this.select.removeChild(this.select.firstChild);
-			this.select.remove(0);
-		}
-		var vals = value? (this.multiple? value.split(XsltForms_globals.valuesSeparator) : [value]) : [""];
-		var list = this.full? (XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input") : this.element.getElementsByTagName("input")) : this.select.options;
-		var well = true;
-		for (var i = 0, len = vals.length; well && i < len; i++) {
-			var val = vals[i];
-			var found = false;
-			for (var j = 0, len1 = list.length; !found && j < len1; j++) {
-				if (list[j].value === val) {
-					found = true;
-				}
-			}
-			well = found;
-		}
-		if (well || (this.multiple && !value)) {
-			if (this.outRange) {
-				this.outRange = false;
-				XsltForms_xmlevents.dispatch(this, "xforms-in-range");
-			}
-		} else if ((!this.multiple || value) && !this.outRange) {
-			this.outRange = true;
-			XsltForms_xmlevents.dispatch(this, "xforms-out-of-range");
-		}
-		vals = this.multiple? vals : [vals[0]];
-		var readonly = this.element.node.readonly;
-		var item;
-		if (this.full) {
-			for (var n = 0, len2 = list.length; n < len2; n++) {
-				item = list[n];
-				item.checked = XsltForms_browser.inArray(item.value, vals);
-			}
-		} else {
-			this.selectedOptions = [];
-			for (var k = 0, len3 = list.length; k < len3; k++) {
-				item = list[k];
-				var b = XsltForms_browser.inArray(item.value, vals);
-				if (b) {
-					this.selectedOptions.push(item);
-				}
-				try {
-					item.selected = b;
-				} catch(e) {
-				}
-			}
-		}
-	}
-};
-
-
-		
-
-XsltForms_select.prototype.changeReadonly = function() {
-	if (this.full) {
-		var list = XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input") : this.element.getElementsByTagName("input");
-		for (var i = 0, len = list.length; i < len; i++) {
-			list[i].disabled = this.readonly;
-		}
-	} else {
-		if (!XsltForms_browser.dialog.knownSelect(this.select)) {
-			this.select.disabled = this.readonly;
-		}
-	}
-};
-
-
-		
-
-XsltForms_select.prototype.itemClick = function(value) {
-	var inputs = XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input") : this.element.getElementsByTagName("input");
-	var input;
-	XsltForms_globals.openAction();
-	if (this.multiple) {
-		var newValue = null;
-		for (var i = 0, len = inputs.length; i < len; i++) {
-			input = inputs[i];
-			if (input.value === value) {
-				XsltForms_xmlevents.dispatch(input.parentNode, input.checked? "xforms-select" : "xforms-deselect");
-			}
-			if (input.checked) {
-				newValue = (newValue ? newValue + XsltForms_globals.valuesSeparator : "") + input.value;
-			}
-		}
-		value = newValue;
-	} else {
-		var old = this.value || XsltForms_browser.getValue(this.element.node);
-		var inputSelected = null;
-		if (old === value) {
-			XsltForms_globals.closeAction();
-			return;
-		}
-		for (var j = 0, len1 = inputs.length; j < len1; j++) {
-			input = inputs[j];
-			input.checked = input.value === value;
-			if (input.value === old) {
-				XsltForms_xmlevents.dispatch(input.parentNode, "xforms-deselect");
-			} else if (input.value === value) {
-				inputSelected = input;
-			}
-		}
-		XsltForms_xmlevents.dispatch(inputSelected.parentNode, "xforms-select");
-	}
-	if (this.incremental) {
-		this.valueChanged(value || "");
-	} else {
-		this.value = value || "";
-	}
-	XsltForms_globals.closeAction();
-};
-
-
-		
-
-XsltForms_select.prototype.blur = function(evt) {
-	if (this.value) {
-		XsltForms_globals.openAction();
-		this.valueChanged(this.value);
-		XsltForms_globals.closeAction();
-		this.value = null;
-	}
-};
-
-
-		
-
-XsltForms_select.normalChange = function(evt) {
-	var xf = XsltForms_control.getXFElement(this);
-	var news = [];
-	var value = "";
-	var old = xf.getSelected();
-	var opts = this.options;
-	XsltForms_globals.openAction();
-	for (var i = 0, len = old.length; i < len; i++) {
-		if (old[i].selected) {
-			news.push(old[i]);
-		} else {
-			XsltForms_xmlevents.dispatch(old[i], "xforms-deselect");
-		}
-	}
-	var opt;
-	for (var j = 0, len1 = opts.length; j < len1; j++) {
-		opt = opts[j];
-		if (opt.selected) {
-			value = value? value + XsltForms_globals.valuesSeparator + opt.value : opt.value;
-		}
-	}
-	for (var k = 0, len2 = opts.length; k < len2; k++) {
-		opt = opts[k];
-		if (opt.selected) {
-			if (!XsltForms_browser.inArray(opt, news)) {
-				news.push(opt);
-				XsltForms_xmlevents.dispatch(opt, "xforms-select");
-			}
-		}
-	}
-	xf.value = value;
-	xf.selectedOptions = news;
-	XsltForms_globals.closeAction();
-};
-
-
-		
-
-XsltForms_select.incrementalChange = function(evt) {
-	var xf = XsltForms_control.getXFElement(this);
-	XsltForms_globals.openAction();
-	XsltForms_select.normalChange.call(this, evt);
-	xf.valueChanged(xf.value);
-	XsltForms_globals.closeAction();
-};
-
-
-		
-
-XsltForms_select.prototype.getSelected = function() {
-	var s = this.selectedOptions;
-	if (!s) {
-		s = [];
-		var opts = this.select.options;
-		for (var i = 0, len = opts.length; i < len; i++) {
-			if (opts[i].selected) {
-				s.push(opts[i]);
-			}
-		}
-	}
-	return s;
-};
-
-	
-		
-		
-		
-function XsltForms_trigger(subform, id, binding, clone) {
-	XsltForms_globals.counters.trigger++;
-	this.init(subform, id);
-	this.binding = binding;
-	this.hasBinding = !!binding;
-	if(!this.hasBinding) {
-		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
-	}
-	this.isTrigger = true;
-	var button = XsltForms_browser.isXhtml ? (this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "a")[0] || this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "button")[0]) : (this.element.getElementsByTagName("a")[0] || this.element.getElementsByTagName("button")[0]);
-	this.input = button;
-	this.initFocus(button);
-}
-
-XsltForms_trigger.prototype = new XsltForms_control();
-
-
-		
-
-XsltForms_trigger.prototype.setValue = function () { };
-
-
-		
-
-XsltForms_trigger.prototype.changeReadonly = function() {
-	this.input.disabled = this.readonly;
-};
-
-
-		
-
-XsltForms_trigger.prototype.clone = function (id) {
-	return new XsltForms_trigger(this.subform, id, this.binding, true);
-};
-
-
-		
-
-XsltForms_trigger.prototype.dispose = function() {
-	XsltForms_globals.counters.trigger--;
-	XsltForms_element.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_trigger.prototype.click = function (target, evcontext) {
-	XsltForms_globals.openAction();
-	XsltForms_xmlevents.dispatch(this, "DOMActivate", null, null, null, null, evcontext);
-	XsltForms_globals.closeAction();
-};
-
-
-		
-
-XsltForms_trigger.prototype.blur = function () { };
-
-	
-		
-		
-		
-function XsltForms_upload(subform, id, valoff, binding, incremental, filename, mediatype, aidButton, clone) {
-	XsltForms_globals.counters.upload++;
-	this.init(subform, id);
-	this.binding = binding;
-	this.incremental = incremental;
-	this.filename = filename;
-	var cells = this.element.children;
-	this.valoff = valoff;
-	this.cell = cells[valoff];
-	this.input = this.cell.children[0];
-	this.isClone = clone;
-	this.hasBinding = true;
-	this.bolAidButton = aidButton;
-	this.mediatype = mediatype;
-	this.value = "";
-	this.initFocus(this.cell.children[0], true);
-	if (!window.FileReader && !(document.applets.xsltforms || document.getElementById("xsltforms_applet"))) {
-		XsltForms_browser.loadapplet();
-	}
-	if (aidButton) {
-		this.aidButton = cells[valoff + 1].children[0];
-		this.initFocus(this.aidButton);
-	}
-}
-
-XsltForms_upload.prototype = new XsltForms_control();
-
-
-		
-
-XsltForms_upload.prototype.clone = function(id) { 
-	return new XsltForms_input(this.subform, id, this.valoff, this.binding, this.incremental, this.filename, this.mediatype, this.bolAidButton, true);
-};
-
-
-		
-
-XsltForms_upload.prototype.dispose = function() {
-	this.cell = null;
-	XsltForms_globals.counters.upload--;
-	XsltForms_control.prototype.dispose.call(this);
-};
-
-
-		
-
-XsltForms_upload.prototype.setValue = function(value) {
-	var node = this.element.node;
-	this.type = node ? XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string") : XsltForms_schema.getType("xsd_:string");
-	if (this.value !== value) {
-		this.value = value || "";
-	}
-};
-
-
-		
-
-XsltForms_upload.prototype.blur = function(target) {
-	XsltForms_globals.focus = null;
-	if (!this.incremental) {
-		XsltForms_browser.assert(this.input, this.element.id);
-		this.valueChanged(this.value);
-	}
-};
-
-
-		
-
-XsltForms_upload.prototype.directclick = function() {
-	if (window.FileReader || this.type.name === "anyURI") {
-		return true;
-	}
-	if (this.type.nsuri !== "http://www.w3.org/2001/XMLSchema" || (this.type.name !== "anyURI" && this.type.name !== "base64Binary" && this.type.name !== "hexBinary")) {
-		alert("Unexpected type for upload control: " + this.type.nsuri + " " + this.type.name);
-		throw "Error";
-	} else {
-		var filename = "unselected";
-		this.value = XsltForms_browser.readFile("", "ISO-8859-1", this.type.name, "XSLTForms Java Upload");
-		if (document.applets.xsltforms) {
-			filename = document.applets.xsltforms.lastChosenFileName;
-		} else {
-			if( document.getElementById("xsltforms_applet") ) {
-				filename = document.getElementById("xsltforms_applet").xsltforms.lastChosenFileName;
-			}
-		}
-		filename = filename.split('\\').pop();
-		this.input.value = filename;
-		if (this.incremental) {
-			this.valueChanged(this.value);
-		}
-		if(this.filename.evaluate) {
-			var filenameref = this.filename.evaluate(this.element.node)[0];
-			if (filenameref) {
-				XsltForms_globals.openAction();
-				XsltForms_browser.setValue(filenameref, filename || "");
-				var model = document.getElementById(XsltForms_browser.getMeta(filenameref.ownerDocument.documentElement, "model")).xfElement;
-				model.addChange(filenameref);
-				XsltForms_xmlevents.dispatch(model, "xforms-recalculate");
-				XsltForms_globals.refresh();
-				XsltForms_globals.closeAction();
-			}
-		}
-	}
-	return false;
-};
-
-
-		
-
-XsltForms_upload.prototype.change = function() {
-	if (this.type.nsuri !== "http://www.w3.org/2001/XMLSchema" || (this.type.name !== "anyURI" && this.type.name !== "base64Binary" && this.type.name !== "hexBinary")) {
-		alert("Unexpected type for upload control: " + this.type.nsuri + " " + this.type.name);
-		throw "Error";
-	} else {
-		var filename = "unselected";
-		if (this.type.name === "anyURI") {
-			filename = this.input.value;
-			filename = filename.split('\\').pop();
-			this.value = filename;
-			if (this.incremental) {
-				this.valueChanged(filename);
-			}
-		} else {
-			var value = "";
-			var xf = this;
-			try {
-				var fr = new FileReader();
-				var file = xf.input.files[0];
-				if( !file ) {
-					alert("No file!?!");
-					return;
-				}
-				filename = file.name;
-				if( xf.type.name === "hexBinary" ) {
-					fr.onload = function(e) {
-						var bytes = new Uint8Array(e.target.result);
-						for( var i = 0, len = bytes.length; i < len; i++) {
-							var c = bytes[i] >> 4;
-							var d = bytes[i] & 0xF;
-							value += String.fromCharCode(c > 9 ? c + 55 : c + 48, d > 9 ? d + 55 : d + 48);
-						}
-						xf.value = value;
-						if (xf.incremental) {
-							xf.valueChanged(value);
-						}
-					}
-				} else {
-					fr.onload = function(e) {
-						var bytes = new Uint8Array(e.target.result);
-						var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-						var len = bytes.length;
-						bytes[len] = bytes[len+1] = 0;
-						for( var i = 0; i < len; i += 3) {
-							var c1 = bytes[i] >> 2;
-							var c2 = ((bytes[i] & 3) << 4) | (bytes[i+1] >> 4);
-							var c3 = ((bytes[i+1] & 15) << 2) | (bytes[i+2] >> 6);
-							var c4 = bytes[i+2] & 63;
-							if( i === len - 1) {
-								c3 = c4 = 64;
-							} else if( i === len -2) {
-								c4 = 64;
-							}
-							value += b64.charAt(c1) + b64.charAt(c2) + b64.charAt(c3) + b64.charAt(c4);
-						}
-						xf.value = value;
-						if (xf.incremental) {
-							xf.valueChanged(value);
-						}
-					}
-				}
-				fr.readAsArrayBuffer(file);
-			} catch (e) {
-				xf.value = XsltForms_browser.readFile(xf.input.value, "ISO-8859-1", xf.type.name, "");
-				if (xf.incremental) {
-					xf.valueChanged(xf.value);
-				}
-			}
-		}
-		if(this.filename.evaluate) {
-			var filenameref = this.filename.evaluate(this.element.node)[0];
-			if (filenameref) {
-				XsltForms_globals.openAction();
-				XsltForms_browser.setValue(filenameref, filename || "");
-				var model = document.getElementById(XsltForms_browser.getMeta(filenameref.ownerDocument.documentElement, "model")).xfElement;
-				model.addChange(filenameref);
-				XsltForms_xmlevents.dispatch(model, "xforms-recalculate");
-				XsltForms_globals.refresh();
-				XsltForms_globals.closeAction();
-			}
-		}
-	}
-};
-
-
-	
-		
-		
-		
-function XsltForms_calendar() {
-	var calendar = this;
-	var body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
-	this.element = XsltForms_browser.createElement("table", body, null, "calendar");
-	var tHead = XsltForms_browser.createElement("thead", this.element);
-	var trTitle = XsltForms_browser.createElement("tr", tHead);
-	var title = XsltForms_browser.createElement("td", trTitle, null, "title");
-	title.colSpan = 7;
-	this.selectMonth = XsltForms_browser.createElement("select", title);
-	XsltForms_browser.events.attach(this.selectMonth, "change", function() {
-		XsltForms_calendar.INSTANCE.refresh();
-	} );
-	for (var i = 0; i < 12; i++) {
-		var o = XsltForms_browser.createElement("option", this.selectMonth, XsltForms_browser.i18n.get("calendar.month" + i));
-		o.setAttribute("value", i);
-	}
-	this.inputYear = XsltForms_browser.createElement("input", title);
-	this.inputYear.readOnly = true;
-	XsltForms_browser.events.attach(this.inputYear, "mouseup", function() {
-		var cal = XsltForms_calendar.INSTANCE;
-		cal.yearList.show();
-	} );
-	XsltForms_browser.events.attach(this.inputYear, "change", function() {
-		XsltForms_calendar.INSTANCE.refresh();
-	} );
-	var close = XsltForms_browser.createElement("button", title, "X");
-	close.setAttribute("type", "button");
-	close.setAttribute("title", "Close");
-	XsltForms_browser.events.attach(close, "click", function() {
-		XsltForms_calendar.close();
-	} );
-	var trDays = XsltForms_browser.createElement("tr", tHead, null, "names");
-	var ini = parseInt(XsltForms_browser.i18n.get("calendar.initDay"), 10);
-	for (var j = 0; j < 7; j++) {
-		var ind = (j + ini) % 7;
-		this.createElement(trDays, "name", XsltForms_browser.i18n.get("calendar.day" + ind));
-	}
-	this.tBody = XsltForms_browser.createElement("tbody", this.element);
-	var handler = function(event) {
-		var value = XsltForms_browser.events.getTarget(event).childNodes[0].nodeValue;
-		var cal = XsltForms_calendar.INSTANCE;
-		if (value !== "") {
-			cal.day = value;
-			var date = new Date(cal.inputYear.value,cal.selectMonth.value,cal.day);
-			if (cal.isTimestamp) {
-				date.setSeconds(cal.inputSec.value);
-				date.setMinutes(cal.inputMin.value);
-				date.setHours(cal.inputHour.value);
-				cal.input.value = XsltForms_browser.i18n.format(date, null, true);
-			} else {
-				cal.input.value = XsltForms_browser.i18n.formatDate(date);
-			}
-			XsltForms_calendar.close();
-			XsltForms_browser.events.dispatch(cal.input, "keyup");
-			cal.input.focus();
-		}
-	};
-	for (var dtr = 0; dtr < 6; dtr++) {
-		var trLine = XsltForms_browser.createElement("tr", this.tBody);
-		for (var day = 0; day < 7; day++) {
-			this.createElement(trLine, "day", " ", 1, handler);
-		}
-	}
-	var tFoot = XsltForms_browser.createElement("tfoot", this.element);
-	var trFoot = XsltForms_browser.createElement("tr", tFoot);
-	var tdFoot = XsltForms_browser.createElement("td", trFoot);
-	tdFoot.colSpan = 7;
-	this.inputHour = XsltForms_browser.createElement("input", tdFoot);
-	this.inputHour.readOnly = true;
-	XsltForms_browser.events.attach(this.inputHour, "mouseup", function() {
-		XsltForms_calendar.INSTANCE.hourList.show();
-	} );
-	tdFoot.appendChild(document.createTextNode(":"));
-	this.inputMin = XsltForms_browser.createElement("input", tdFoot);
-	this.inputMin.readOnly = true;
-	XsltForms_browser.events.attach(this.inputMin, "mouseup", function() {
-		XsltForms_calendar.INSTANCE.minList.show();
-	} );
-	tdFoot.appendChild(document.createTextNode(":"));
-	this.inputSec = XsltForms_browser.createElement("input", tdFoot);
-	this.inputSec.readOnly = true;
-	XsltForms_browser.events.attach(this.inputSec, "mouseup", function() {
-		if (XsltForms_calendar.INSTANCE.type >= XsltForms_calendar.SECONDS) {
-			XsltForms_calendar.INSTANCE.secList.show();
-		}
-	} );
-	this.yearList = new XsltForms_numberList(title, "calendarList", this.inputYear, 1900, 2050);
-	this.hourList = new XsltForms_numberList(tdFoot, "calendarList", this.inputHour, 0, 23, 2);
-	this.minList = new XsltForms_numberList(tdFoot, "calendarList", this.inputMin, 0, 59, 2);
-	this.secList = new XsltForms_numberList(tdFoot, "calendarList", this.inputSec, 0, 59, 2);
-}
-
-
-		
-
-XsltForms_calendar.prototype.today = function() {
-	this.refreshControls(new Date());
-};
-
-
-		
-
-XsltForms_calendar.prototype.refreshControls = function(date) {
-	this.day = date.getDate();
-	this.selectMonth.value = date.getMonth();
-	this.inputYear.value = date.getYear() < 1000 ? 1900 + date.getYear() : date.getYear();
-	if (this.isTimestamp) {
-		this.inputHour.value = XsltForms_browser.zeros(date.getHours(), 2);
-		this.inputMin.value = this.type >= XsltForms_calendar.MINUTES ? XsltForms_browser.zeros(date.getMinutes(), 2) : "00";
-		this.inputSec.value = this.type >= XsltForms_calendar.SECONDS ? XsltForms_browser.zeros(date.getSeconds(), 2) : "00";
-	}
-	this.refresh();
-};
-
-
-		
-
-XsltForms_calendar.prototype.refresh = function() {
-	var firstDay = this.getFirstDay();
-	var daysOfMonth = this.getDaysOfMonth();
-	var ini = parseInt(XsltForms_browser.i18n.get("calendar.initDay"), 10);
-	var cont = 0;
-	var day = 1;
-	var currentMonthYear = this.selectMonth.value === this.currentMonth && this.inputYear.value === this.currentYear;
-	for (var i = 0; i < 6; i++) {
-		var trLine = this.tBody.childNodes[i];
-		for (var j = 0; j < 7; j++, cont++) {
-			var cell = trLine.childNodes[j];
-			var dayInMonth = (cont >= firstDay && cont < firstDay + daysOfMonth);
-			XsltForms_browser.setClass(cell, "hover", false);
-			XsltForms_browser.setClass(cell, "today", currentMonthYear && day === this.currentDay);
-			XsltForms_browser.setClass(cell, "selected", dayInMonth && day === this.day);
-			XsltForms_browser.setClass(cell, "weekend", (j+ini)%7 > 4);
-			cell.firstChild.nodeValue = dayInMonth ? day++ : "";
-		}
-	}
-};
-
-
-		
-
-XsltForms_calendar.prototype.getFirstDay = function() {
-	var date = new Date();
-	date.setDate(1);
-	date.setMonth(this.selectMonth.value);
-	date.setYear(this.inputYear.value);
-	var ini = parseInt(XsltForms_browser.i18n.get("calendar.initDay"), 10);
-	var d = date.getDay();
-	return (d + (6 - ini)) % 7;
-};
-
-
-		
-
-XsltForms_calendar.prototype.getDaysOfMonth = function() {
-	var year = parseInt(this.inputYear.value, 10);
-	var month = parseInt(this.selectMonth.value, 10);
-	if (month === 1 && ((0 === (year % 4)) && ((0 !== (year % 100)) || (0 === (year % 400))))) {
-		return 29;
-	}
-	return XsltForms_calendar.daysOfMonth[this.selectMonth.value];
-};
-
-
-		
-
-XsltForms_calendar.prototype.createElement = function(parent, className, text, colspan, handler) {
-	var element = XsltForms_browser.createElement("td", parent, text, className);
-	if (colspan > 1) {
-		element.colSpan = colspan;
-	}
-	if (handler) {
-		XsltForms_browser.events.attach(element, "click", handler);
-		XsltForms_browser.initHover(element);
-	}
-	return element;
-};
-
-XsltForms_calendar.daysOfMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-XsltForms_calendar.ONLY_DATE = 0;
-XsltForms_calendar.HOURS = 1;
-XsltForms_calendar.MINUTES = 2;
-XsltForms_calendar.SECONDS = 3;
-
-
-		
-
-XsltForms_calendar.show = function(input, type) {
-	var cal = XsltForms_calendar.INSTANCE;
-	if (!cal) {
-		cal = new XsltForms_calendar();
-		XsltForms_calendar.INSTANCE = cal;
-	}
-	if (!type) {
-		type = XsltForms_calendar.ONLY_DATE;
-	}
-	cal.input = input;
-	cal.type = type;
-	cal.isTimestamp = type !== XsltForms_calendar.ONLY_DATE;
-	XsltForms_browser.setClass(cal.element, "date", !cal.isTimestamp);
-	var date;
-	try {
-		date = cal.isTimestamp? XsltForms_browser.i18n.parse(input.value) : XsltForms_browser.i18n.parseDate(input.value);
-	} catch (e) {
-		date = new Date();
-	}
-	if (date) {
-		cal.refreshControls(date);
-	} else {
-		cal.today();
-	}
-	XsltForms_browser.dialog.show(cal.element, input, false);
-};
-
-
-		
-
-XsltForms_calendar.close = function() {
-	var cal = XsltForms_calendar.INSTANCE;
-	cal.yearList.close();
-	XsltForms_browser.dialog.hide(cal.element, false);
-};
-    
-	
-	
-		
-		
-		
-		
-		
-function XsltForms_type() {
-}
-
-
-		
-
-XsltForms_type.prototype.setSchema = function(schema) {
-	this.schema = schema;
-	return this;
-};
-
-
-		
-
-XsltForms_type.prototype.setName = function(name) {
-	this.name = name;
-	this.nsuri = this.schema.ns;
-	this.schema.types[name] = this;
-	return this;
-};
-
-
-		
-
-XsltForms_type.prototype.canonicalValue = function(value) {
-	value = value.toString();
-	switch (this.whiteSpace) {
-		case "replace":
-			value = value.replace(/[\t\r\n]/g, " ");
-			break;
-		case "collapse":
-			value = value.replace(/[\t\r\n ]+/g, " ").replace(/^\s+|\s+$/g, "");
-			break;
-	}
-
-	return value;
-};
-
-
-		
-
-XsltForms_type.prototype.getMaxLength = function() {
-	return this.maxLength ? this.maxLength : (this.length ? this.length : (this.totalDigits ? this.totalDigits + 1 : null));
-};
-
-
-		
-
-XsltForms_type.prototype.getDisplayLength = function() {
-	return this.displayLength;
-};
-    
-	
-		
-		
-		
-function XsltForms_schema(subform, ns, name, prefixes) {
-	if(XsltForms_schema.all[ns]) {
-		XsltForms_globals.error(XsltForms_globals.defaultModel, "xforms-link-exception", "More than one schema with the same namespace declaration");
-		return;
-	}
-	this.subform = subform;
-	this.name = name;
-	this.ns = ns;
-	this.types = {};
-	this.prefixes = prefixes || {};
-	XsltForms_schema.all[ns] = this;
-	if (subform) {
-		subform.schemas.push(this);
-	}
-}
-
-
-		
-
-XsltForms_schema.prototype.dispose = function(subform) {
-	XsltForms_schema.all[this.ns] = null;
-	this.types = null;
-	this.prefixes = null;
-};
-
-		
-
-XsltForms_schema.all = {};
-
-
-		
-
-XsltForms_schema.prototype.getType = function(name) {
-	if (name.indexOf(":") !== -1) {
-		var res = name.split(":");
-		var prefix = res[0];
-		var ns = this.prefixes[prefix];
-		if (ns) {
-			return XsltForms_schema.getTypeNS(ns, res[1]);
-		}
-		return XsltForms_schema.getType(name);
-	}
-	var type = this.types[name];
-	if (!type) {
-		alert("Type " + name + " not defined");
-		throw "Error";
-	}
-	return type;
-};
-
-
-		
-
-XsltForms_schema.getType = function(name) {
-	var res = name.split(":");
-	if (typeof(res[1]) === "undefined") {
-		return XsltForms_schema.getTypeNS(XsltForms_schema.prefixes.xforms, res[0]);
-	} else {
-		return XsltForms_schema.getTypeNS(XsltForms_schema.prefixes[res[0]], res[1]);
-	}
-};
-
-
-		
-
-XsltForms_schema.getTypeNS = function(ns, name) {
-	var schema = XsltForms_schema.all[ns];
-	if (!schema) {
-		alert("Schema for namespace " + ns + " not defined for type " + name);
-		throw "Error";
-	}
-	var type = schema.types[name];	
-	if (!type) {
-		if (XsltForms_globals.debugMode) {
-			alert("Type " + name + " not defined in namespace " + ns);
-		}
-		type = XsltForms_schema.getTypeNS("http://www.w3.org/2001/XMLSchema", "string");
-	}
-	return type;
-};
-
-
-		
-
-XsltForms_schema.get = function(subform, ns) {
-	var schema = XsltForms_schema.all[ns];
-	if (!schema) {
-		schema = new XsltForms_schema(subform, ns);
-	}
-	return schema;
-};
-
-
-		
-
-XsltForms_schema.prefixes = {
-	"xsd_" : "http://www.w3.org/2001/XMLSchema",
-	"xsd" : "http://www.w3.org/2001/XMLSchema",
-	"xs" : "http://www.w3.org/2001/XMLSchema",
-	"xf" : "http://www.w3.org/2002/xforms",
-	"xform" : "http://www.w3.org/2002/xforms",
-	"xforms" : "http://www.w3.org/2002/xforms",
-	"xsltforms" : "http://www.agencexml.com/xsltforms",
-	"rte" : "http://www.agencexml.com/xsltforms/rte",
-	"dcterms" : "http://purl.org/dc/terms/"
-};
-
-
-		
-
-XsltForms_schema.registerPrefix = function(prefix, namespace) {
-	this.prefixes[prefix] = namespace;
-};
-    
-	
-		
-		
-		
-function XsltForms_atomicType() {
-	this.patterns = [];
-}
-
-XsltForms_atomicType.prototype = new XsltForms_type();
-
-
-		
-
-XsltForms_atomicType.prototype.setBase = function(base) {
-	var baseType = typeof base === "string"? this.schema.getType(base) : base;
-	for (var id in baseType)  {
-		if (baseType.hasOwnProperty(id)) {
-			var value = baseType[id];
-			if (id === "patterns") {
-				XsltForms_browser.copyArray(value, this.patterns);
-			} else if (id !== "name" && id !== "nsuri") {
-				this[id] = value;
-			}
-		}
-	}
-	return this;
-};
-
-
-		
-
-XsltForms_atomicType.prototype.put = function(name, value) {
-	if (name === "base") {
-		this.setBase(value);
-	} else if (name === "pattern") {
-		XsltForms_browser.copyArray([value], this.patterns);
-	} else if (name === "length") {
-		this.length = parseInt(value, 10);
-	} else if (name === "enumeration") {
-		if (!this.enumeration) {
-			this.enumeration = [];
-		}
-		this.enumeration.push(value);
-	} else {
-		this[name] = value;
-	}
-	
-	return this;
-};
-
-
-		
-
-/** If valid return canonicalValue else null*/
-XsltForms_atomicType.prototype.validate = function (value) {
-	value = this.canonicalValue(value);
-	for (var i = 0, len = this.patterns.length; i < len; i++) {
-		if (!value.match(this.patterns[i])) {
-			return false;
-		}
-	}
-	if (this.enumeration) {
-		var matched = false;
-		for (var j = 0, len1 = this.enumeration.length; j < len1; j++) {
-			if (value === this.canonicalValue(this.enumeration[j])) {
-				matched = true;
-				break;
-			}
-		}
-		if (!matched) {
-			return false;
-		}
-	}
-	var l = value.length;
-	var value_i = parseInt(value, 10);
-	if ( (this.length && this.length !== l) ||
-		(this.minLength && l < this.minLength) ||
-		(this.maxLength && l > this.maxLength) ||
-		(this.maxInclusive && value_i > this.maxInclusive) ||
-		(this.maxExclusive && value_i >= this.maxExclusive) ||
-		(this.minInclusive && value_i < this.minInclusive) ||
-		(this.minExclusive && value_i <= this.minExclusive) ) {
-		return false;
-	}
-	if (this.totalDigits || this.fractionDigits) {
-		var index = value.indexOf(".");
-		var integer = parseInt(index !== -1? value.substring(0, index) : value, 10);
-		var decimal = index !== -1? value.substring(index + 1) : "";
-		if (index !== -1) {
-			if (this.fractionDigits === 0) {
-				return false;
-			}
-			var dl = decimal.length - 1;
-			while (dl >= 0 && decimal.charAt(dl) === 0) {
-				dl--;
-			}
-			decimal = decimal.substring(0, dl + 1);
-		}
-		if ( (this.totalDigits && integer.length + decimal.length > this.totalDigits) ||
-			(this.fractionDigits && decimal.length > this.fractionDigits)) {
-			return false;
-		}
-	}
-	return true;
-};
-
-
-		
-
-XsltForms_atomicType.prototype.normalize = function (value) {
-	if (this.fractionDigits) {
-		var number = parseFloat(value);
-		var num;
-		if (isNaN(number)) {
-			return "NaN";
-		}
-		if (number === 0) {
-			num = XsltForms_browser.zeros(0, this.fractionDigits + 1, true);
-		} else {
-			var mult = XsltForms_browser.zeros(1, this.fractionDigits + 1, true);
-			num = "" + Math.round(number * mult);
-		}
-		if (this.fractionDigits !== 0) {
-			var index = num.length - this.fractionDigits;
-			return (index === 0 ? "0" : num.substring(0, index)) + "." + num.substring(index);
-		}
-		return num;
-	}
-	return value;
-};
-    
-	
-		
-		
-		
-function XsltForms_listType() {
-	this.whiteSpace = "collapse";
-}
-
-XsltForms_listType.prototype = new XsltForms_type();
-
-
-		
-
-XsltForms_listType.prototype.setItemType = function(itemType) {
-	this.itemType = typeof itemType === "string"? this.schema.getType(itemType) : itemType;
-	return this;
-};
-
-
-		
-
-XsltForms_listType.prototype.validate = function (value) {
-	var items = this.baseType.canonicalValue.call(this, value).split(" ");
-	value = "";
-	if (items.length === 1 && items[0] === "") {
-		items = [];
-	}
-	for (var i = 0, len = items.length; i < len; i++) {
-		var item = XsltForms_itemType.validate(items[i]);
-		if (!item) {
-			return null;
-		}
-		value += value.length === 0? item : " " + item;
-	}
-	if ( (this.length && this.length !== 1) ||
-		(this.minLength && 1 < this.minLength) ||
-		(this.maxLength && 1 > this.maxLength)) {
-		return null;
-	}
-	return null;
-};
-
-
-		
-
-XsltForms_listType.prototype.canonicalValue = function(value) {
-	var items = this.baseType.canonicalValue(value).split(" ");
-	var cvalue = "";
-	for (var i = 0, len = items.length; i < len; i++) {
-		var item = this.itemType.canonicalValue(items[i]);
-		cvalue += (cvalue.length === 0 ? "" : " ") + item;
-	}
-	return cvalue;
-};
-
-	
-		
-		
-		
-function XsltForms_unionType(memberTypes) {
-	this.baseTypes = [];
-	this.memberTypes = memberTypes ? memberTypes.split(" ") : [];
-}
-
-XsltForms_unionType.prototype = new XsltForms_type();
-
-
-		
-
-XsltForms_unionType.prototype.addType = function(type) {
-	this.baseTypes.push(typeof type === "string"? this.schema.getType(type) : type);
-	return this;
-};
-
-
-		
-
-XsltForms_unionType.prototype.addTypes = function() {
-	for (var i = 0, len = this.memberTypes.length; i < len; i++ ) {
-		this.baseTypes.push(this.schema.getType(this.memberTypes[i]));
-	}
-	return this;
-};
-
-
-		
-
-XsltForms_unionType.prototype.validate = function (value) {
-	for (var i = 0, len = this.baseTypes.length; i < len; ++i) {
-		if (this.baseTypes[i].validate(value)) {
-			return true;
-		}
-	}
-	return false;
-};
-    
-	
-		
-		
-		
-var XsltForms_typeDefs = {
-
-		
-
-	initAll : function() {
-		this.init("http://www.w3.org/2001/XMLSchema", this.Default);
-		this.init("http://www.w3.org/2002/xforms", this.XForms);
-		this.init("http://www.agencexml.com/xsltforms", this.XSLTForms);
-		this.init("http://purl.org/dc/terms/", this.DublinCore);
-	},
-
-		
-
-	init : function(ns, list) {
-		var schema = XsltForms_schema.get(null, ns);
-		for (var id in list) {
-			if (list.hasOwnProperty(id)) {
-				var type = new XsltForms_atomicType();
-				type.setSchema(schema);
-				type.setName(id);
-				var props = list[id];
-				var base = props.base;
-				if (base) {
-					type.setBase(base);
-				}
-				for (var prop in props) {
-					if (prop !== "base") {
-						type[prop] = props[prop];
-					}
-				}
-			}
-		}
-	},
-	ctes : {
-		i : "A-Za-z_\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\xFF",
-		c : "A-Za-z_\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\xFF\\-\\.0-9\\xB7"
-	}
-};
-
-
-		
-
-XsltForms_typeDefs.Default = {
-
-		
-
-	"string" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"whiteSpace" : "preserve"
-	},
-
-		
-
-	"boolean" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^(true|false|0|1)$" ],
-		"class" : "boolean"
-	},
-
-		
-
-	"decimal" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^[\\-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$" ],
-		"class" : "number",
-		"format" : function(value) {
-			return XsltForms_browser.i18n.formatNumber(value, this.fractionDigits);
-		},
-		"parse" : function(value) {
-			return XsltForms_browser.i18n.parseNumber(value);
-		}
-	},
-
-		
-
-	"float" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^(([\\-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][\\-+]?[0-9]+)?|-?INF|NaN)$" ],
-		"class" : "number"
-	},
-
-		
-
-	"double" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^(([\\-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][-+]?[0-9]+)?|-?INF|NaN)$" ],
-		"class" : "number"
-	},
-
-		
-
-	"dateTime" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
-		"class" : "datetime",
-		"displayLength" : 20,
-		"format" : function(value) {
-			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parse(value, "yyyy-MM-ddThh:mm:ss"),null, true);
-		},
-		"parse" : function(value) {
-			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parse(value), "yyyy-MM-ddThh:mm:ss", true);
-		}
-	},
-
-		
-
-	"date" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
-		"class" : "date",
-		"displayLength" : 10,
-		"format" : function(value) {
-			return XsltForms_browser.i18n.formatDate(XsltForms_browser.i18n.parse(value, "yyyy-MM-dd"), null, true);
-		},
-		"parse" : function(value) {
-			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parseDate(value), "yyyy-MM-dd", true);
-		}
-	},
-
-		
-
-	"time" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
-		"displayLength" : 8
-	},
-
-		
-
-	"duration" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^-?P(?!$)([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T(?!$)([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?$" ]
-	},
-
-		
-
-	"gDay" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^---(0[1-9]|[12][0-9]|3[01])$" ]
-	},
-
-		
-
-	"gMonth" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^--(0[1-9]|1[012])$" ]
-	},
-
-		
-
-	"gMonthDay" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^--(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$" ]
-	},
-
-		
-
-	"gYear" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^([\\-+]?([0-9]{4}|[1-9][0-9]{4,}))?$" ]
-	},
-
-		
-
-	"gYearMonth" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^([12][0-9]{3})-(0[1-9]|1[012])$" ]
-	},
-
-		
-
-	"integer" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:decimal",
-		"fractionDigits" : "0"
-	},
-
-		
-
-	"nonPositiveInteger" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:integer",
-		"patterns" : [ "^(-[0-9]+|0)$" ]
-	},
-
-		
-
-	"nonNegativeInteger" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:integer",
-		"patterns" : [ "^\\+?[0-9]+$" ]
-	},
-
-		
-
-	"negativeInteger" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:integer",
-		"patterns" : [ "^-0*[1-9][0-9]*$" ]
-	},
-
-		
-
-	"positiveInteger" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:integer",
-		"patterns" : [ "^\\+?0*[1-9][0-9]*$" ]
-	},
-
-		
-
-	"byte" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:integer",
-		"minInclusive" : -128,
-		"maxInclusive" : 127
-	},
-
-		
-
-	"short" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:integer",
-		"minInclusive" : -32768,
-		"maxInclusive" : 32767
-	},
-
-		
-
-	"int" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:integer",
-		"minInclusive" : -2147483648,
-		"maxInclusive" : 2147483647
-},
-
-		
-
-	"long" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:integer",
-		"minInclusive" : -9223372036854775808,
-		"maxInclusive" : 9223372036854775807
-},
-
-		
-
-	"unsignedByte" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:nonNegativeInteger",
-		"maxInclusive" : 255
-	},
-
-		
-
-	"unsignedShort" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:nonNegativeInteger",
-		"maxInclusive" : 65535
-	},
-
-		
-
-	"unsignedInt" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:nonNegativeInteger",
-		"maxInclusive" : 4294967295
-	},
-
-		
-
-	"unsignedLong" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:nonNegativeInteger",
-		"maxInclusive" : 18446744073709551615
-},
-
-		
-
-	"normalizedString" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"whiteSpace" : "replace"
-	},
-
-		
-
-	"token" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"whiteSpace" : "collapse"
-	},
-
-		
-
-	"language" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:token",
-		"patterns" : [ "^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$" ]
-	},
-
-		
-
-	"anyURI" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:token",
-		"patterns" : [ "^(([^:\\/?#]+):)?(\\/\\/([^\\/\\?#]*))?([^\\?#]*)(\\?([^#]*))?(#([^\\:#\\[\\]\\@\\!\\$\\&\\\\'\\(\\)\\*\\+\\,\\;\\=]*))?$" ]
-	},
-
-		
-
-	"Name" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:token",
-		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.i + ":][" + XsltForms_typeDefs.ctes.c + ":]*$" ]
-	},
-
-		
-
-	"NCName" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:token",
-		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*$" ]
-	},
-
-		
-
-	"QName" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:token",
-		"patterns" : [ "^(([a-zA-Z][0-9a-zA-Z+\\-\\.]*:)?/{0,2}[0-9a-zA-Z;/?:@&=+$\\.\\>> -_!~*'()%]+)?(>> #[0-9a-zA-Z;/?:@&=+$\\.\\-_!~*'()%]+)?:[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*$" ]
-	},
-
-		
-
-	"ID" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:NCName"
-	},
-
-		
-
-	"IDREF" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"base" : "xsd_:NCName"
-	},
-
-		
-
-	"IDREFS" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*( +[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*)*$" ]
-	},
-
-		
-
-	"NMTOKEN" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.c + "]+$" ]
-	},
-
-		
-
-	"NMTOKENS" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.c + "]+( +[" + XsltForms_typeDefs.ctes.c + "]+)*$" ]
-	},
-
-		
-
-	"base64Binary" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^[a-zA-Z0-9+/=]+$" ]
-	},
-
-		
-
-	"hexBinary" : {
-		"nsuri" : "http://www.w3.org/2001/XMLSchema",
-		"patterns" : [ "^[0-9A-Fa-f]+$" ],
-		"format" : function(value) {
-			return value.toUpperCase();
-		},
-		"parse" : function(value) {
-			return value.toUpperCase();
-		}
-	}
-};
-
-
-		
-
-XsltForms_typeDefs.XForms = {
-
-		
-
-	"string" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"whiteSpace" : "preserve"
-	},
-
-		
-
-	"boolean" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(true|false|0|1)?$" ],
-		"class" : "boolean"
-	},
-
-		
-
-	"decimal" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^([\\-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+))?$" ],
-		"class" : "number",
-		"format" : function(value) {
-			return XsltForms_browser.i18n.formatNumber(value, this.fractionDigits);
-		},
-		"parse" : function(value) {
-			return XsltForms_browser.i18n.parseNumber(value);
-		}
-	},
-
-		
-
-	"float" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^((([\\-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][\\-+]?[0-9]+)?|-?INF|NaN))?$" ],
-		"class" : "number"
-	},
-
-		
-
-	"double" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^((([\\-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][-+]?[0-9]+)?|-?INF|NaN))?$" ],
-		"class" : "number"
-	},
-
-		
-
-	"dateTime" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?)?$" ],
-		"class" : "datetime",
-		"displayLength" : 20,
-		"format" : function(value) {
-			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parse(value, "yyyy-MM-ddThh:mm:ss"), null, true);
-		},
-		"parse" : function(value) {
-			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parse(value), "yyyy-MM-ddThh:mm:ss", true);
-		}
-	},
-
-		
-
-	"date" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?)?$" ],
-		"class" : "date",
-		"displayLength" : 10,
-		"format" : function(value) {
-			return XsltForms_browser.i18n.formatDate(XsltForms_browser.i18n.parse(value, "yyyy-MM-dd"), null, true);
-		},
-		"parse" : function(value) {
-			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parseDate(value), "yyyy-MM-dd", true);
-		}
-	},
-
-		
-
-	"time" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?)?$" ],
-		"displayLength" : 8
-	},
-
-		
-
-	"duration" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(-?P(?!$)([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T(?!$)([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?)?$" ]
-	},
-
-		
-
-	"dayTimeDuration" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(-?P([0-9]+D(T([0-9]+(H([0-9]+(M([0-9]+(\\.[0-9]*)?S|\\.[0-9]+S)?|(\\.[0-9]*)?S)|(\\.[0-9]*)?S)?|M([0-9]+(\\.[0-9]*)?S|\\.[0-9]+S)?|(\\.[0-9]*)?S)|\\.[0-9]+S))?|T([0-9]+(H([0-9]+(M([0-9]+(\\.[0-9]*)?S|\\.[0-9]+S)?|(\\.[0-9]*)?S)|(\\.[0-9]*)?S)?|M([0-9]+(\\.[0-9]*)?S|\\.[0-9]+S)?|(\\.[0-9]*)?S)|\\.[0-9]+S)))?$" ]
-	},
-
-		
-
-	"yearMonthDuration" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(-?P[0-9]+(Y([0-9]+M)?|M))?$" ]
-	},
-
-		
-
-	"gDay" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(---(0[1-9]|[12][0-9]|3[01]))?$" ]
-	},
-
-		
-
-	"gMonth" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(--(0[1-9]|1[012]))?$" ]
-	},
-
-		
-
-	"gMonthDay" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(--(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))?$" ]
-	},
-
-		
-
-	"gYear" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^([\\-+]?([0-9]{4}|[1-9][0-9]{4,}))?$" ]
-	},
-
-		
-
-	"gYearMonth" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^(([12][0-9]{3})-(0[1-9]|1[012]))?$" ]
-	},
-
-		
-
-	"integer" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:decimal",
-		"fractionDigits" : "0"
-	},
-
-		
-
-	"nonPositiveInteger" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:integer",
-		"patterns" : [ "^((-[0-9]+|0))?$" ]
-	},
-
-		
-
-	"nonNegativeInteger" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:integer",
-		"patterns" : [ "^(\\+?[0-9]+)?$" ]
-	},
-
-		
-
-	"negativeInteger" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:integer",
-		"patterns" : [ "^(-[0-9]+)?$" ]
-	},
-
-		
-
-	"positiveInteger" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:integer",
-		"patterns" : [ "^\\+?0*[1-9][0-9]*$" ]
-	},
-
-		
-
-	"byte" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:integer",
-		"minInclusive" : -128,
-		"maxInclusive" : 127
-	},
-
-		
-
-	"short" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:integer",
-		"minInclusive" : -32768,
-		"maxInclusive" : 32767
-	},
-
-		
-
-	"int" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:integer",
-		"minInclusive" : -2147483648,
-		"maxInclusive" : 2147483647
-	},
-
-		
-
-	"long" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:integer",
-		"minInclusive" : -9223372036854775808,
-		"maxInclusive" : 9223372036854775807
-	},
-
-		
-
-	"unsignedByte" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:nonNegativeInteger",
-		"maxInclusive" : 255
-	},
-
-		
-
-	"unsignedShort" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:nonNegativeInteger",
-		"maxInclusive" : 65535
-	},
-
-		
-
-	"unsignedInt" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:nonNegativeInteger",
-		"maxInclusive" : 4294967295
-	},
-
-		
-
-	"unsignedLong" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:nonNegativeInteger",
-		"maxInclusive" : 18446744073709551615
-	},
-
-		
-
-	"normalizedString" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"whiteSpace" : "replace"
-	},
-
-		
-
-	"token" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"whiteSpace" : "collapse"
-	},
-
-		
-
-	"language" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:token",
-		"patterns" : [ "^([a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*)?$" ]
-	},
-
-		
-
-	"anyURI" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:token",
-		"patterns" : [ "^((([a-zA-Z][0-9a-zA-Z+\\-\\.]*:)?/{0,2}[0-9a-zA-Z;/?:@&=+$\\.\\>> -_!~*'()%]+)?(>> #[0-9a-zA-Z;/?:@&=+$\\.\\-_!~*'()%]+)?)?$" ]
-	},
-
-		
-
-	"Name" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:token",
-		"patterns" : [ "^([" + XsltForms_typeDefs.ctes.i + ":][" + XsltForms_typeDefs.ctes.c + ":]*)?$" ]
-	},
-
-		
-
-	"NCName" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:token",
-		"patterns" : [ "^([" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*)?$" ]
-	},
-
-		
-
-	"QName" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:token",
-		"patterns" : [ "^((([a-zA-Z][0-9a-zA-Z+\\-\\.]*:)?/{0,2}[0-9a-zA-Z;/?:@&=+$\\.\\>> -_!~*'()%]+)?(>> #[0-9a-zA-Z;/?:@&=+$\\.\\-_!~*'()%]+)?:[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*)?$" ]
-	},
-
-		
-
-	"ID" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:NCName"
-	},
-
-		
-
-	"IDREF" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xforms:NCName"
-	},
-
-		
-
-	"IDREFS" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^([" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]+( +[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*)*)?$" ]
-	},
-
-		
-
-	"NMTOKEN" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.c + "]*$" ]
-	},
-
-		
-
-	"NMTOKENS" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^([" + XsltForms_typeDefs.ctes.c + "]+( +[" + XsltForms_typeDefs.ctes.c + "]+)*)?$" ]
-	},
-
-		
-
-	"base64Binary" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^[a-zA-Z0-9+/]*$" ]
-	},
-
-		
-
-	"hexBinary" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"patterns" : [ "^[0-9A-Fa-f]*$" ],
-		"format" : function(value) {
-			return value.toUpperCase();
-		},
-		"parse" : function(value) {
-			return value.toUpperCase();
-		}
-	},
-
-		
-
-	"email" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xsd_:string",
-		"whiteSpace" : "collapse",
-		"patterns" : [ "^([A-Za-z0-9!#-'\\*\\+\\-/=\\?\\^_`\\{-~]+(\\.[A-Za-z0-9!#-'\\*\\+\\-/=\\?\\^_`\\{-~]+)*@[A-Za-z0-9!#-'\\*\\+\\-/=\\?\\^_`\\{-~]+(\\.[A-Za-z0-9!#-'\\*\\+\\-/=\\?\\^_`\\{-~]+)*)?$" ]
-	},
-
-		
-
-	"card-number" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xsd_:string",
-		"patterns" : [ "^[0-9]*$" ]
-	},
-
-		
-
-	"url" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xsd_:string",
-		"whiteSpace" : "collapse",
-		"patterns" : [ "^(ht|f)tp(s?)://([a-z0-9]*:[a-z0-9]*@)?([a-z0-9.]*\\.[a-z]{2,7})$" ]
-	},
-
-		
-
-	"amount" : {
-		"nsuri" : "http://www.w3.org/2002/xforms",
-		"base" : "xsd_:decimal",
-		"format" : function(value) {
-			return XsltForms_browser.i18n.formatNumber(value, 2);
-		}
-	}
-};
-
-		
-
-XsltForms_typeDefs.XSLTForms = {
-
-		
-
-	"decimal" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"patterns" : [ "^[\\-+]?\\(*[\\-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(([+-/]|\\*)\\(*([0-9]+(\\.[0-9]*)?|\\.[0-9]+)\\)*)*$" ],
-		"class" : "number",
-		"eval" : "xsd:decimal"
-	},
-
-		
-
-	"float" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:float"
-	},
-
-		
-
-	"double" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:double"
-	},
-
-		
-
-	"integer" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:integer"
-	},
-
-		
-
-	"nonPositiveInteger" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:nonPositiveInteger"
-	},
-
-		
-
-	"nonNegativeInteger" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:nonNegativeInteger"
-	},
-
-		
-
-	"negativeInteger" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:negativeInteger"
-	},
-
-		
-
-	"positiveInteger" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:positiveInteger"
-	},
-
-		
-
-	"byte" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:byte"
-	},
-
-		
-
-	"short" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:short"
-	},
-
-		
-
-	"int" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:int"
-	},
-
-		
-
-	"long" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:long"
-	},
-
-		
-
-	"unsignedByte" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:unsignedByte"
-	},
-
-		
-
-	"unsignedShort" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:unsignedShort"
-	},
-
-		
-
-	"unsignedInt" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:unsignedInt"
-	},
-
-		
-
-	"unsignedLong" : {
-		"nsuri" : "http://www.agencexml.com/xsltforms",
-		"base" : "xsltforms:decimal",
-		"eval" : "xsd:unsignedLong"
-	}
-};
-
-		
-
-XsltForms_typeDefs.DublinCore = {
-
-		
-
-	"W3CDTF" : {
-		"nsuri" : "http://purl.org/dc/terms/",
-		"base" : "xsd_:dateTime"
-	}
-};
-
-XsltForms_typeDefs.initAll();
-
-	
-	
-		
-		
-		
-		
-		
-function XsltForms_listener(subform, observer, evtTarget, name, phase, handler) {
+function XsltForms_listener(subform, observer, evtTarget, name, phase, handler, defaultaction) {
 	phase = phase || "default";
 	if (phase !== "default" && phase !== "capture") {
 		XsltForms_globals.error(XsltForms_globals.defaultModel, "xforms-compute-exception", 
@@ -9331,11 +3162,14 @@ function XsltForms_listener(subform, observer, evtTarget, name, phase, handler) 
 	this.evtName = document.addEventListener? name : "errorupdate";
 	this.phase = phase;
 	this.handler = handler;
+	this.defaultaction = defaultaction;
 	XsltForms_browser.assert(observer);
-	if (observer.listeners && name === "xforms-subform-ready") {
-		for (var i = 0, l = observer.listeners.length; i < l; i++) {
-			if (observer.listeners[i].name === name) {
-				return;
+	if (observer.listeners) {
+		if (name === "xforms-subform-ready") {
+			for (var i = 0, l = observer.listeners.length; i < l; i++) {
+				if (observer.listeners[i].name === name) {
+					return;
+				}
 			}
 		}
 	} else {
@@ -9372,20 +3206,23 @@ function XsltForms_listener(subform, observer, evtTarget, name, phase, handler) 
 		if (event.target && event.target.nodeType === 3) {
 			event.target = event.target.parentNode;
 		}
-		if (event.currentTarget && event.type === "DOMActivate" && event.target.nodeName === "BUTTON" && !XsltForms_browser.isFF2) {
+		if (event.currentTarget && event.type === "DOMActivate" && (event.target.nodeName === "BUTTON" || (XsltForms_browser.isChrome && event.eventPhase === 3 && this.xfElement.controlName === "trigger"))  && !XsltForms_browser.isFF2) {
 			effectiveTarget = false;
 		}
-		if (event.eventPhase === 3 && !event.target.xfElement && !XsltForms_browser.isFF2) {
-			effectiveTarget = false;
-		}
+//		if (event.eventPhase === 3 && !event.target.xfElement && !XsltForms_browser.isFF2) {
+//			effectiveTarget = false;
+//		}
 		if (event.eventPhase === 3 && event.target.xfElement && event.target === event.currentTarget && !XsltForms_browser.isFF2) {
 			effectiveTarget = false;
 		}
-		if (evtTarget && event.target != evtTarget) {
+		if (evtTarget && event.target !== evtTarget) {
 			effectiveTarget = false;
 		}
 		if (effectiveTarget) {
 			handler.call(event.target, event);
+		}
+		if (!defaultaction) {
+			event.preventDefault();
 		}
 		if (!document.addEventListener) {
 			try {
@@ -9414,10 +3251,12 @@ XsltForms_listener.prototype.attach = function() {
 		
 
 XsltForms_listener.prototype.detach = function() {
-	for (var i = 0, l = this.observer.listeners.length; i < l; i++) {
-		if (this.observer.listeners[i] === this) {
-			this.observer.listeners.splice(i, 1);
-			break;
+	if( this.observer.listeners ) {
+		for (var i = 0, l = this.observer.listeners.length; i < l; i++) {
+			if (this.observer.listeners[i] === this) {
+				this.observer.listeners.splice(i, 1);
+				break;
+			}
 		}
 	}
 	XsltForms_browser.events.detach(this.observer, this.evtName, this.callback, this.phase === "capture");
@@ -9427,7 +3266,7 @@ XsltForms_listener.prototype.detach = function() {
 		
 
 XsltForms_listener.prototype.clone = function(element) {
-	var unused = new XsltForms_listener(this.subform, element, this.evtTarget, this.name, this.phase, this.handler);
+	return new XsltForms_listener(this.subform, element, this.evtTarget, this.name, this.phase, this.handler);
 };
 
 	
@@ -9509,7 +3348,6 @@ XsltForms_xmlevents.dispatch = function(target, name, type, bubbles, cancelable,
 				defaultAction.call(target.xfElement, event);
 			}
 		} else {
-			var fauxName = "errorupdate";
 			var canceler = null;
 			// Capture phase.
 			var ancestors = [];
@@ -9609,7 +3447,7 @@ XsltForms_xmlevents.define("xforms-refresh", true, true, function(event) { this.
 
 		
 
-XsltForms_xmlevents.define("xforms-focus", true, true, function(event) { this.focus(); } );
+XsltForms_xmlevents.define("xforms-focus", true, true, function(event) { this.focus ? this.focus() : this.element.focus(); } );
 
 
 		
@@ -9721,48 +3559,14 @@ XsltForms_xmlevents.define("xforms-load-done", true, false);
 
 XsltForms_xmlevents.define("xforms-load-error", true, false);
 
-	
-	
-		
-		
-		
-		
-		
-var XsltForms_xpathAxis = {
-	ANCESTOR_OR_SELF: 'ancestor-or-self',
-	ANCESTOR: 'ancestor',
-	ATTRIBUTE: 'attribute',
-	CHILD: 'child',
-	DESCENDANT_OR_SELF: 'descendant-or-self',
-	DESCENDANT: 'descendant',
-	FOLLOWING_SIBLING: 'following-sibling',
-	FOLLOWING: 'following',
-	NAMESPACE: 'namespace',
-	PARENT: 'parent',
-	PRECEDING_SIBLING: 'preceding-sibling',
-	PRECEDING: 'preceding',
-	SELF: 'self'
-};
-
-
 		
 
-var XsltForms_nodeType = {
-	ELEMENT : 1,
-	ATTRIBUTE : 2,
-	TEXT : 3,
-	CDATA_SECTION : 4,
-	ENTITY_REFERENCE : 5,
-	ENTITY : 6,
-	PROCESSING_INSTRUCTION : 7,
-	COMMENT : 8,
-	DOCUMENT : 9,
-	DOCUMENT_TYPE : 10,
-	DOCUMENT_FRAGMENT : 11,
-	NOTATION : 12
-};
+XsltForms_xmlevents.define("xforms-unload-done", true, false);
 
 	
+	
+		
+		
 		
 		
 		
@@ -9882,7 +3686,8 @@ XsltForms_binaryExpr.prototype.evaluate = function(ctx) {
 		
 		
 		
-function XsltForms_exprContext(node, position, nodelist, parent, nsresolver, current, depsNodes, depsId, depsElements) {
+function XsltForms_exprContext(subform, node, position, nodelist, parent, nsresolver, current, depsNodes, depsId, depsElements) {
+	this.subform = subform;
 	this.node = node;
 	this.current = current || node;
 	if(!position) {
@@ -9913,7 +3718,7 @@ function XsltForms_exprContext(node, position, nodelist, parent, nsresolver, cur
 		
 
 XsltForms_exprContext.prototype.clone = function(node, position, nodelist) {
-	return new XsltForms_exprContext(node || this.node, 
+	return new XsltForms_exprContext(this.subform, node || this.node, 
 		typeof position === "undefined" ? this.position : position,
 		nodelist || this.nodelist, this, this.nsresolver, this.current,
 		this.depsNodes, this.depsId, this.depsElements);
@@ -10033,48 +3838,6 @@ XsltForms_filterExpr.prototype.evaluate = function(ctx) {
 		
 		
 		
-function XsltForms_functionCallExpr(name) {
-	this.name = name;
-	this.func = XsltForms_xpathCoreFunctions[name];
-	this.xpathfunc = !!this.func;
-	this.args = [];
-	if (!this.xpathfunc) {
-		try {
-			this.func = eval(name.split(" ")[1]);
-		} catch (e) {
-		 alert(e);
-		}
-	}
-	if (!this.func) {
-		XsltForms_globals.error(this, "xforms-compute-exception", "Function " + fs[j] + "() not found");
-	}
-	for (var i = 1, len = arguments.length; i < len; i++) {
-		this.args.push(arguments[i]);
-	}
-}
-
-
-		
-
-XsltForms_functionCallExpr.prototype.evaluate = function(ctx) {
-	var arguments_ = [];
-	if (this.xpathfunc) {
-		for (var i = 0, len = this.args.length; i < len; i++) {
-			arguments_[i] = this.args[i].evaluate(ctx);
-		}
-		return this.func.call(ctx, arguments_);
-	} else {
-		for (var i2 = 0, len2 = this.args.length; i2 < len2; i2++) {
-			arguments_[i2] = XsltForms_globals.stringValue(this.args[i2].evaluate(ctx));
-		}
-		return this.func.apply(null,arguments_);
-	}
-};
-
-	
-		
-		
-		
 function XsltForms_locationExpr(absolute) {
 	this.absolute = absolute;
 	this.steps = [];
@@ -10089,7 +3852,7 @@ function XsltForms_locationExpr(absolute) {
 XsltForms_locationExpr.prototype.evaluate = function(ctx) {
 	var start = (this.absolute && ctx.root )|| !ctx.node ? ctx.root : ctx.node;
 	var m = XsltForms_browser.getMeta((start.documentElement ? start.documentElement : start.ownerDocument.documentElement), "model");
-	if (m && m != "dummy") {
+	if (m) {
 		ctx.addDepElement(document.getElementById(m).xfElement);
 	}
 	var nodes = [];
@@ -10593,6 +4356,7 @@ function XsltForms_xpath(subform, expression, unordered, compiled, ns) {
 	this.subforms = [];
 	this.subforms[subform] = true;
 	this.nbsubforms = 1;
+	this.subform = subform;
 	subform.xpaths.push(this);
 	this.expression = expression;
 	this.unordered = unordered;
@@ -10620,12 +4384,15 @@ function XsltForms_xpath(subform, expression, unordered, compiled, ns) {
 
 		
 
-XsltForms_xpath.prototype.evaluate = function(ctx, current) {
+XsltForms_xpath.prototype.evaluate = function() {
+	alert("XPath error");
+};
+XsltForms_xpath.prototype.xpath_evaluate = function(ctx, current, subform) {
 	var d1 = new Date();
 	XsltForms_browser.assert(ctx);
 //	alert("XPath evaluate \""+this.expression+"\"");
 	if (!ctx.node) {
-		ctx = new XsltForms_exprContext(ctx, null, null, null, this.nsresolver, current);
+		ctx = new XsltForms_exprContext(subform, ctx, null, null, null, this.nsresolver, current);
 	} else if (!ctx.nsresolver) {
 		ctx.nsresolver = this.nsresolver;
 	}
@@ -10645,7 +4412,7 @@ XsltForms_xpath.prototype.evaluate = function(ctx, current) {
 		this.evaltime += d2 - d1;
 		return res;
 	} catch(e) {
-		alert("XSLTForms Exception\n--------------------------\n\nError evaluating the following XPath expression :\n\n"+this.expression+"\n\n"+e.name+"\n\n"+e.message);
+		alert("XSLTForms Exception\n--------------------------\n\nError evaluating the following XPath expression :\n\n"+this.expression+"\n\n"+(e.name?e.name+"\n\n"+e.message:e));
 		return null;
 	}
 };
@@ -10769,8 +4536,401 @@ var XsltForms_mathConstants = {
 	"LOG2E":   "1.44269504088896340735992468100189213742664595415298594",
 	"SQRT1_2": "0.707106781186547524400844362104849039284835937688474038"
 };
+
+var XsltForms_xpathFunctionExceptions = {
+	lastInvalidArgumentsNumber : {
+		name : "last() : Invalid number of arguments",
+		message : "last() function has no argument"
+	},
+	positionInvalidArgumentsNumber : {
+		name : "position() : Invalid number of arguments",
+		message : "position() function has no argument"
+	},
+	countInvalidArgumentsNumber : {
+		name : "count() : Invalid number of arguments",
+		message : "count() function must have one argument exactly"
+	},
+	countInvalidArgumentType : {
+		name : "count() : Invalid type of argument",
+		message : "count() function must have a nodeset argument"
+	},
+	idInvalidArgumentsNumber : {
+		name : "id() : Invalid number of arguments",
+		message : "id() function must have one argument exactly"
+	},
+	idInvalidArgumentType : {
+		name : "id() : Invalid type of argument",
+		message : "id() function must have a nodeset or string argument"
+	},
+	localNameInvalidArgumentsNumber : {
+		name : "local-name() : Invalid number of arguments",
+		message : "local-name() function must have one argument at most"
+	},
+	localNameInvalidArgumentType : {
+		name : "local-name() : Invalid type of argument",
+		message : "local-name() function must have a nodeset argument"
+	},
+	localNameNoContext : {
+		name : "local-name() : no context node",
+		message : "local-name() function must have a nodeset argument"
+	},
+	namespaceUriInvalidArgumentsNumber : {
+		name : "namespace-uri() : Invalid number of arguments",
+		message : "namespace-uri() function must have one argument at most"
+	},
+	namespaceUriInvalidArgumentType : {
+		name : "namespace-uri() : Invalid type of argument",
+		message : "namespace-uri() function must have a nodeset argument"
+	},
+	nameInvalidArgumentsNumber : {
+		name : "name() : Invalid number of arguments",
+		message : "name() function must have one argument at most"
+	},
+	nameInvalidArgumentType : {
+		name : "name() : Invalid type of argument",
+		message : "name() function must have a nodeset argument"
+	},
+	stringInvalidArgumentsNumber : {
+		name : "string() : Invalid number of arguments",
+		message : "string() function must have one argument at most"
+	},
+	concatInvalidArgumentsNumber : {
+		name : "concat() : Invalid number of arguments",
+		message : "concat() function must have at least two arguments"
+	},
+	startsWithInvalidArgumentsNumber : {
+		name : "starts-with() : Invalid number of arguments",
+		message : "starts-with() function must have two arguments exactly"
+	},
+	endsWithInvalidArgumentsNumber : {
+		name : "ends-with() : Invalid number of arguments",
+		message : "ends-with() function must have two arguments exactly"
+	},
+	containsInvalidArgumentsNumber : {
+		name : "contains() : Invalid number of arguments",
+		message : "contains() function must have two arguments exactly"
+	},
+	substringBeforeInvalidArgumentsNumber : {
+		name : "substring-before() : Invalid number of arguments",
+		message : "substring-before() function must have two arguments exactly"
+	},
+	replaceInvalidArgumentsNumber : {
+		name : "replace() : Invalid number of arguments",
+		message : "replace() function must have three arguments exactly"
+	},
+	substringAfterInvalidArgumentsNumber : {
+		name : "substring-after() : Invalid number of arguments",
+		message : "substring-after() function must have two arguments exactly"
+	},
+	substringInvalidArgumentsNumber : {
+		name : "substring() : Invalid number of arguments",
+		message : "substring() function must have two or three arguments"
+	},
+	compareInvalidArgumentsNumber : {
+		name : "compare() : Invalid number of arguments",
+		message : "compare() function must have two arguments exactly"
+	},
+	stringLengthInvalidArgumentsNumber : {
+		name : "string-length() : Invalid number of arguments",
+		message : "string-length() function must have one argument at most"
+	},
+	normalizeSpaceInvalidArgumentsNumber : {
+		name : "normalize-space() : Invalid number of arguments",
+		message : "normalize-space() function must have one argument at most"
+	},
+	translateInvalidArgumentsNumber : {
+		name : "translate() : Invalid number of arguments",
+		message : "translate() function must have three argument exactly"
+	},
+	booleanInvalidArgumentsNumber : {
+		name : "boolean() : Invalid number of arguments",
+		message : "boolean() function must have one argument exactly"
+	},
+	notInvalidArgumentsNumber : {
+		name : "not() : Invalid number of arguments",
+		message : "not() function must have one argument exactly"
+	},
+	trueInvalidArgumentsNumber : {
+		name : "true() : Invalid number of arguments",
+		message : "true() function must have no argument"
+	},
+	falseInvalidArgumentsNumber : {
+		name : "false() : Invalid number of arguments",
+		message : "false() function must have no argument"
+	},
+	langInvalidArgumentsNumber : {
+		name : "lang() : Invalid number of arguments",
+		message : "lang() function must have one argument exactly"
+	},
+	numberInvalidArgumentsNumber : {
+		name : "number() : Invalid number of arguments",
+		message : "number() function must have one argument exactly"
+	},
+	sumInvalidArgumentsNumber : {
+		name : "sum() : Invalid number of arguments",
+		message : "sum() function must have one argument exactly"
+	},
+	sumInvalidArgumentType : {
+		name : "sum() : Invalid type of argument",
+		message : "sum() function must have a nodeset argument"
+	},
+	floorInvalidArgumentsNumber : {
+		name : "floor() : Invalid number of arguments",
+		message : "floor() function must have one argument exactly"
+	},
+	ceilingInvalidArgumentsNumber : {
+		name : "ceiling() : Invalid number of arguments",
+		message : "ceiling() function must have one argument exactly"
+	},
+	roundInvalidArgumentsNumber : {
+		name : "round() : Invalid number of arguments",
+		message : "round() function must have one argument exactly"
+	},
+	powerInvalidArgumentsNumber : {
+		name : "power() : Invalid number of arguments",
+		message : "power() function must have one argument exactly"
+	},
+	randomInvalidArgumentsNumber : {
+		name : "random() : Invalid number of arguments",
+		message : "random() function must have no argument"
+	},
+	booleanFromStringInvalidArgumentsNumber : {
+		name : "boolean-from-string() : Invalid number of arguments",
+		message : "boolean-from-string() function must have one argument exactly"
+	},
+	ifInvalidArgumentsNumber : {
+		name : "if() : Invalid number of arguments",
+		message : "if() function must have three argument exactly"
+	},
+	chooseInvalidArgumentsNumber : {
+		name : "choose() : Invalid number of arguments",
+		message : "choose() function must have three argument exactly"
+	},
+	avgInvalidArgumentsNumber : {
+		name : "avg() : Invalid number of arguments",
+		message : "avg() function must have one argument exactly"
+	},
+	avgInvalidArgumentType : {
+		name : "avg() : Invalid type of argument",
+		message : "avg() function must have a nodeset argument"
+	},
+	minInvalidArgumentsNumber : {
+		name : "min() : Invalid number of arguments",
+		message : "min() function must have one argument exactly"
+	},
+	minInvalidArgumentType : {
+		name : "min() : Invalid type of argument",
+		message : "min() function must have a nodeset argument"
+	},
+	maxInvalidArgumentsNumber : {
+		name : "max() : Invalid number of arguments",
+		message : "max() function must have one argument exactly"
+	},
+	maxInvalidArgumentType : {
+		name : "max() : Invalid type of argument",
+		message : "max() function must have a nodeset argument"
+	},
+	serializeInvalidArgumentType : {
+		name : "serialize() : Invalid type of argument",
+		message : "serialize() function must have a nodeset argument"
+	},
+	countNonEmptyInvalidArgumentsNumber : {
+		name : "count-non-empty() : Invalid number of arguments",
+		message : "count-non-empty() function must have one argument exactly"
+	},
+	countNonEmptyInvalidArgumentType : {
+		name : "count-non-empty() : Invalid type of argument",
+		message : "count-non-empty() function must have a nodeset argument"
+	},
+	indexInvalidArgumentsNumber : {
+		name : "index() : Invalid number of arguments",
+		message : "index() function must have one argument exactly"
+	},
+	nodeIndexInvalidArgumentsNumber : {
+		name : "nodeIndex() : Invalid number of arguments",
+		message : "nodeIndex() function must have one argument exactly"
+	},
+	propertyInvalidArgumentsNumber : {
+		name : "property() : Invalid number of arguments",
+		message : "property() function must have one argument exactly"
+	},
+	propertyInvalidArgument : {
+		name : "property() : Invalid argument",
+		message : "Invalid property name"
+	},
+	secondsInvalidArgumentsNumber : {
+		name : "seconds() : Invalid number of arguments",
+		message : "seconds() function must have one argument exactly"
+	},
+	monthsInvalidArgumentsNumber : {
+		name : "months() : Invalid number of arguments",
+		message : "months() function must have one argument exactly"
+	},
+	instanceInvalidArgumentsNumber : {
+		name : "instance() : Invalid number of arguments",
+		message : "instance() function must have zero or one argument"
+	},
+	subformInstanceInvalidArgumentsNumber : {
+		name : "subform-instance() : Invalid number of arguments",
+		message : "subform-instance() function must have no argument"
+	},
+	subformContextInvalidArgumentsNumber : {
+		name : "subform-context() : Invalid number of arguments",
+		message : "subform-context() function must have no argument"
+	},
+	nowInvalidArgumentsNumber : {
+		name : "now() : Invalid number of arguments",
+		message : "now() function must have no argument"
+	},
+	localDateInvalidArgumentsNumber : {
+		name : "local-date() : Invalid number of arguments",
+		message : "local-date() function must have no argument"
+	},
+	localDateTimeInvalidArgumentsNumber : {
+		name : "local-dateTime() : Invalid number of arguments",
+		message : "local-dateTime() function must have no argument"
+	},
+	adjustDateTimeToTimezoneInvalidArgumentsNumber: {
+		name : "adjust-dateTime-to-timezone() : Invalid number of arguments",
+		message : "adjust-dateTime-to-timezone() function must have zero or one argument"
+	},
+	daysFromDateInvalidArgumentsNumber : {
+		name : "days-from-date() : Invalid number of arguments",
+		message : "days-from-date() function must have one argument exactly"
+	},
+	daysToDateInvalidArgumentsNumber : {
+		name : "days-to-date() : Invalid number of arguments",
+		message : "days-to-date() function must have one argument exactly"
+	},
+	secondsToDateTimeInvalidArgumentsNumber : {
+		name : "seconds-to-dateTime() : Invalid number of arguments",
+		message : "seconds-to-dateTime() function must have one argument exactly"
+	},
+	secondsFromDateTimeInvalidArgumentsNumber : {
+		name : "seconds-from-dateTime() : Invalid number of arguments",
+		message : "seconds-from-dateTime() function must have one argument exactly"
+	},
+	currentInvalidArgumentsNumber : {
+		name : "current() : Invalid number of arguments",
+		message : "current() function must have no argument"
+	},
+	isValidInvalidArgumentsNumber : {
+		name : "is-valid() : Invalid number of arguments",
+		message : "is-valid() function must have one argument exactly"
+	},
+	isValidInvalidArgumentType : {
+		name : "is-valid() : Invalid type of argument",
+		message : "is-valid() function must have a nodeset argument"
+	},
+	isNonEmptyArrayArgumentsNumber : {
+		name : "is-non-empty-array() : Invalid number of arguments",
+		message : "is-non-empty-array() function must have zero or one argument"
+	},
+	isNonEmptyArrayInvalidArgumentType : {
+		name : "is-non-empty-array() : Invalid type of argument",
+		message : "is-non-empty-array() function must have a node argument"
+	},
+	isCardNumberInvalidArgumentsNumber : {
+		name : "is-card-number() : Invalid number of arguments",
+		message : "is-card-number() function must have one argument exactly"
+	},
+	upperCaseInvalidArgumentsNumber : {
+		name : "upper-case() : Invalid number of arguments",
+		message : "upper-case() function must have one argument exactly"
+	},
+	lowerCaseInvalidArgumentsNumber : {
+		name : "lower-case() : Invalid number of arguments",
+		message : "lower-case() function must have one argument exactly"
+	},
+	distinctValuesInvalidArgumentsNumber : {
+		name : "distinct-values() : Invalid number of arguments",
+		message : "distinct-values() function must have one argument exactly"
+	},
+	transformInvalidArgumentsNumber : {
+		name : "transform() : Invalid number of arguments",
+		message : "transform() function must have two arguments exactly"
+	},
+	serializeNoContext : {
+		name : "serialize() : no context node",
+		message : "serialize() function must have a node argument"
+	},
+	serializeInvalidArgumentsNumber : {
+		name : "serialize() : Invalid number of arguments",
+		message : "serialize() function must have one argument exactly"
+	},
+	eventInvalidArgumentsNumber : {
+		name : "event() : Invalid number of arguments",
+		message : "event() function must have one argument exactly"
+	},
+	alertInvalidArgumentsNumber : {
+		name : "alert() : Invalid number of arguments",
+		message : "alert() function must have one argument exactly"
+	},
+	jsevalInvalidArgumentsNumber : {
+		name : "js-eval() : Invalid number of arguments",
+		message : "js-eval() function must have one argument exactly"
+	},
+	stringJoinInvalidArgumentsNumber : {
+		name : "string-join() : Invalid number of arguments",
+		message : "string-join() function must have one or two arguments"
+	},
+	stringJoinInvalidArgumentType : {
+		name : "string-join() : Invalid type of argument",
+		message : "string-join() function must have a nodeset argument"
+	},
+	itextInvalidArgumentsNumber : {
+		name : "itext() : Invalid number of arguments",
+		message : "itext() function must have one argument"
+	}
+};
 		
 var XsltForms_xpathCoreFunctions = {
+
+		
+
+	"http://www.w3.org/2005/xpath-functions node" : new XsltForms_xpathFunction(true, XsltForms_xpathFunction.DEFAULT_NONE, false,
+		function(ctx) {
+			if (arguments.length !== 1) {
+				throw XsltForms_xpathFunctionExceptions.nodeInvalidArgumentsNumber;
+			}
+			return ctx.current.childNodes;
+		} ),
+
+		
+
+	"http://www.w3.org/2005/xpath-functions comment" : new XsltForms_xpathFunction(true, XsltForms_xpathFunction.DEFAULT_NONE, false,
+		function(ctx) {
+			if (arguments.length !== 1) {
+				throw XsltForms_xpathFunctionExceptions.commentInvalidArgumentsNumber;
+			}
+			var result = [];
+			if (ctx.current.childNodes) {
+				for (var i = 0, len = ctx.current.childNodes.length; i < len; i++) {
+					if (ctx.current.childNodes[i].nodeType === XsltForms_nodeType.COMMENT) {
+						result.push(ctx.current.childNodes[i]);
+					}
+				}
+			}
+			return result;
+		} ),
+
+		
+
+	"http://www.w3.org/2005/xpath-functions text" : new XsltForms_xpathFunction(true, XsltForms_xpathFunction.DEFAULT_NONE, false,
+		function(ctx) {
+			if (arguments.length !== 1) {
+				throw XsltForms_xpathFunctionExceptions.textInvalidArgumentsNumber;
+			}
+			var result = [];
+			if (ctx.current.childNodes) {
+				for (var i = 0, len = ctx.current.childNodes.length; i < len; i++) {
+					if (ctx.current.childNodes[i].nodeType === XsltForms_nodeType.TEXT) {
+						result.push(ctx.current.childNodes[i]);
+					}
+				}
+			}
+			return result;
+		} ),
 
 		
 
@@ -10841,6 +5001,10 @@ var XsltForms_xpathCoreFunctions = {
 				var idattr = XsltForms_globals.IDstr ? XsltForms_globals.IDstr : "@xml:id";
 				for (var k = 0, len2 = ids.length; k < len2; k++) {
 					var n = XsltForms_browser.selectSingleNode("descendant-or-self::*[" + idattr + "='" + ids[k] + "']", ref[0]);
+					if (n) {
+						result.push(n);
+					}
+					n = XsltForms_browser.selectSingleNode("descendant-or-self::*[@*[local-name() = 'type'] = 'xsd:ID' and . = '" + ids[k] + "']", ref[0]);
 					if (n) {
 						result.push(n);
 					}
@@ -10923,6 +5087,18 @@ var XsltForms_xpathCoreFunctions = {
 				throw XsltForms_xpathFunctionExceptions.startsWithInvalidArgumentsNumber;
 			}
 			return XsltForms_globals.stringValue(string).indexOf(XsltForms_globals.stringValue(prefix)) === 0;
+		} ),
+
+		
+
+	"http://www.w3.org/2005/xpath-functions ends-with" : new XsltForms_xpathFunction(false, XsltForms_xpathFunction.DEFAULT_NONE, false,
+		function(string, postfix) {   
+			if (arguments.length !== 2) {
+				throw XsltForms_xpathFunctionExceptions.endsWithInvalidArgumentsNumber;
+			}
+			var s = XsltForms_globals.stringValue(string);
+			var p = XsltForms_globals.stringValue(postfix);
+			return s.substr(s.length - p.length, p.length) === p;
 		} ),
 
 		
@@ -11030,6 +5206,17 @@ var XsltForms_xpathCoreFunctions = {
 				result += index === -1? string.charAt(i) : to.charAt(index);
 			}
 			return result;
+		} ),
+
+		
+
+	"http://www.w3.org/2005/xpath-functions replace" : new XsltForms_xpathFunction(false, XsltForms_xpathFunction.DEFAULT_NONE, false,
+		function(string, pattern, replacement) {
+			if (arguments.length !== 3) {
+				throw XsltForms_xpathFunctionExceptions.replaceInvalidArgumentsNumber;
+			}
+			string = XsltForms_globals.stringValue(string);
+			return string.replace(new RegExp(XsltForms_globals.stringValue(pattern), "g"), XsltForms_globals.stringValue(replacement));
 		} ),
 
 		
@@ -11299,7 +5486,11 @@ var XsltForms_xpathCoreFunctions = {
 			if (arguments.length !== 2) {
 				throw XsltForms_xpathFunctionExceptions.indexInvalidArgumentsNumber;
 			}
-			var xf = XsltForms_idManager.find(XsltForms_globals.stringValue(id)).xfElement;
+			var elt = XsltForms_idManager.find(XsltForms_globals.stringValue(id));
+			if (!elt) {
+				return NaN;
+			}
+			var xf = elt.xfElement;
 			ctx.addDepElement(xf);
 			return xf.index;
 		} ),
@@ -11358,8 +5549,41 @@ var XsltForms_xpathCoreFunctions = {
 							}
 						}
 					}
+					if (name.match("^[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*$")) {
+						XsltForms_globals.error(XsltForms_globals.defaultModel, "xforms-binding-exception", "Invalid NCNAME");
+					}
 			}
 			return "";
+		} ),
+
+		
+
+	"http://www.w3.org/2002/xforms seconds" : new XsltForms_xpathFunction(false, XsltForms_xpathFunction.DEFAULT_NONE, false,
+		function(duration) {
+			if (arguments.length !== 1) {
+				throw XsltForms_xpathFunctionExceptions.secondsInvalidArgumentsNumber;
+			}
+			duration = XsltForms_globals.stringValue(duration);
+			var durarr = duration.match("^-?P(?!$)([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T(?!$)([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?$");
+			if (durarr) {
+				return (duration.charAt(0) === '-'? -1: 1)*(((parseFloat(durarr[3] || 0)*24 + parseFloat(durarr[5] || 0))*60 + parseFloat(durarr[6] || 0))*60 + parseFloat(durarr[7] || 0));
+			}
+			return NaN;
+		} ),
+
+		
+
+	"http://www.w3.org/2002/xforms months" : new XsltForms_xpathFunction(false, XsltForms_xpathFunction.DEFAULT_NONE, false,
+		function(duration) {
+			if (arguments.length !== 1) {
+				throw XsltForms_xpathFunctionExceptions.monthsInvalidArgumentsNumber;
+			}
+			duration = XsltForms_globals.stringValue(duration);
+			var durarr = duration.match("^-?P(?!$)([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T(?!$)([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?$");
+			if (durarr) {
+				return (duration.charAt(0) === '-'? -1: 1)*(parseFloat(durarr[1] || 0)*12 + parseFloat(durarr[2] || 0));
+			}
+			return NaN;
 		} ),
 
 		
@@ -11370,6 +5594,7 @@ var XsltForms_xpathCoreFunctions = {
 				throw XsltForms_xpathFunctionExceptions.instanceInvalidArgumentsNumber;
 			}
 			var name = idRef ? XsltForms_globals.stringValue(idRef) : "";
+			var res;
 			if (name !== "") {
 				var instance = document.getElementById(name);
 				if (!instance) {
@@ -11388,12 +5613,35 @@ var XsltForms_xpathCoreFunctions = {
 						XsltForms_browser.setMeta(f.doc.documentElement, "instance", idRef);
 						XsltForms_browser.setMeta(f.doc.documentElement, "model", modid);
 					}
-					return [f.doc.documentElement];
+					res = f.doc.documentElement;
 				}
-				return [instance.xfElement.doc.documentElement];
+				res = instance.xfElement.doc.documentElement;
 			} else {
-				return [ctx.node.ownerDocument.documentElement];
+				res = ctx.node.ownerDocument.documentElement;
 			}
+			ctx.addDepNode(res);
+			return [res];
+		} ),
+
+		
+
+	"http://www.w3.org/2005/xpath-functions subform-instance" : new XsltForms_xpathFunction(true, XsltForms_xpathFunction.DEFAULT_NONE, true,
+		function(ctx) {
+			if (arguments.length > 1) {
+				throw XsltForms_xpathFunctionExceptions.subformInstanceInvalidArgumentsNumber;
+			}
+			return [ctx.subform.instances[0].doc.documentElement];
+		} ),
+
+		
+
+	"http://www.w3.org/2005/xpath-functions subform-context" : new XsltForms_xpathFunction(true, XsltForms_xpathFunction.DEFAULT_NONE, true,
+		function(ctx) {
+			if (arguments.length > 1) {
+				throw XsltForms_xpathFunctionExceptions.subformContextInvalidArgumentsNumber;
+			}
+			var b = document.getElementById(ctx.subform.eltid).xfElement.boundnodes;
+			return b ? [b[0]] : [];
 		} ),
 
 		
@@ -11430,6 +5678,9 @@ var XsltForms_xpathCoreFunctions = {
 
 	"http://www.w3.org/2002/xforms adjust-dateTime-to-timezone" : new XsltForms_xpathFunction(false, XsltForms_xpathFunction.DEFAULT_NONE, false,
 		function(string) {
+			if (arguments.length === 0) {
+				return "";
+			}
 			if (arguments.length !== 1) {
 				throw XsltForms_xpathFunctionExceptions.adjustDateTimeToTimezoneInvalidArgumentsNumber;
 			}
@@ -11590,6 +5841,7 @@ var XsltForms_xpathCoreFunctions = {
 			enco = enco ? XsltForms_globals.stringValue(enco) : "base64";
 			var i;
 			var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+			var add32, hex32, t, str2;
 			switch (algo) {
 				case "SHA-1":
 					var l = str.length;
@@ -11611,7 +5863,7 @@ var XsltForms_xpathCoreFunctions = {
 					var rotl = function(x,n) {
 						return(x <<  n)|(x >>>(32-n));
 					};
-					var add32 = function(x,y) {
+					add32 = function(x,y) {
 						var lsw = (x & 0xFFFF)+(y & 0xFFFF);
 						return ((((x >>> 16)+(y >>> 16)+(lsw >>> 16)) & 0xFFFF)<< 16)|(lsw & 0xFFFF);
 					};
@@ -11621,7 +5873,6 @@ var XsltForms_xpathCoreFunctions = {
 						c = H2;
 						d = H3;
 						e = H4;
-						var t;
 						for(t = 0; t<20; t++){
 							T = add32(add32(add32(add32(rotl(a,5),(b & c)^(~b & d)),e),0x5a827999),W[t] = t<16 ? msg[t+i] : rotl(W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16],1));
 							e = d;
@@ -11662,7 +5913,7 @@ var XsltForms_xpathCoreFunctions = {
 					}
 					switch (enco) {
 						case "hex" :
-							var hex32 = function(v) {
+							hex32 = function(v) {
 								var h = v >>> 16;
 								var l = v & 0xFFFF;
 								return (h >= 0x1000 ? "" : h >= 0x100 ? "0" : h >= 0x10 ? "00" : "000")+h.toString(16)+(l >= 0x1000 ? "" : l >= 0x100 ? "0" : l >= 0x10 ? "00" : "000")+l.toString(16);
@@ -11680,7 +5931,7 @@ var XsltForms_xpathCoreFunctions = {
 					break;
 				case "MD5":
 					var n = str.length;
-					var add32 = function (a, b) {
+					add32 = function (a, b) {
 						return (a + b) & 0xFFFFFFFF;
 					};
 					var cmn = function(q, a, b, x, s, t) {
@@ -11771,14 +6022,13 @@ var XsltForms_xpathCoreFunctions = {
 						w[3] = add32(d, w[3]);
 					};
 					var w = [1732584193, -271733879, -1732584194, 271733878];
-					var t;
 					i = 0;
 					while (i <= n-64) {
 						t = [];
 						do {
 							t.push(str.charCodeAt(i) + (str.charCodeAt(i+1) << 8) + (str.charCodeAt(i+2) << 16) + (str.charCodeAt(i+3) << 24));
 							i += 4;
-						} while ( i%64 != 0 );
+						} while ( i%64 !== 0 );
 						cycle(w, t);
 					}
 					t = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
@@ -11801,19 +6051,19 @@ var XsltForms_xpathCoreFunctions = {
 					}
 					switch (enco) {
 						case "hex" :
-							var hex32 = function(v) {
+							hex32 = function(v) {
 								var h = v >>> 16;
 								var l = v & 0xFFFF;
 								return (h >= 0x1000 ? "" : h >= 0x100 ? "0" : h >= 0x10 ? "00" : "000")+h.toString(16)+(l >= 0x1000 ? "" : l >= 0x100 ? "0" : l >= 0x10 ? "00" : "000")+l.toString(16);
 							};
-							var str2 = "";
+							str2 = "";
 							for (k = 0, l = w.length; k < l; k++) {
 								str2 += hex32(w[k]);
 							}
 							return str2;
 						case "base64" :
 							var l2 = w.length*4;
-							var str2 = "";
+							str2 = "";
 							for (i = 0; i < l2; i += 3) {
 								var c1 = (w[i >> 2] >> (24 - (i%4)*8))& 0xFF;
 								var c2 = i + 1 < l2 ? (w[(i + 1) >> 2] >> (24 - ((i+1)%4)*8))& 0xFF : 0;
@@ -11825,22 +6075,23 @@ var XsltForms_xpathCoreFunctions = {
 					break;
 				case "BASE64":
 					str = str.replace(/\r\n/g,"\n");
-					var l2 = str.length;
-					var str2 = "";
-					for (i = 0; i < l2; i++) {
+					var l2b = str.length;
+					str2 = "";
+					for (i = 0; i < l2b; i++) {
 						var c0 = str.charCodeAt(i);
 						str2 += c0 < 128 ? str.charAt(i) : c0 > 127 && c0 < 2048 ? String.fromCharCode(c0 >> 6 | 192, c0 & 63 | 128) : String.fromCharCode(c0 >> 12 | 224, c0 >> 6 & 63 | 128, c0 & 63 | 128);
 					}
-					l2 = str2.length;
+					l2b = str2.length;
 					var res = "";
-					for (i = 0; i < l2; i += 3) {
-						var c1 = str2.charCodeAt(i);
-						var c2 = i + 1 < l2 ? str2.charCodeAt(i + 1) : 0;
-						var c3 = i + 2 < l2 ? str2.charCodeAt(i + 2) : 0;
-						res += b64.charAt(c1 >> 2) + b64.charAt((c1 & 3) << 4 | c2 >> 4) + (i + 1 < l2 ? b64.charAt((c2 & 15) << 2 | c3 >> 6) : "=") + (i + 2 < l2 ? b64.charAt(c3 & 63) : "=");
+					for (i = 0; i < l2b; i += 3) {
+						var c1b = str2.charCodeAt(i);
+						var c2b = i + 1 < l2 ? str2.charCodeAt(i + 1) : 0;
+						var c3b = i + 2 < l2 ? str2.charCodeAt(i + 2) : 0;
+						res += b64.charAt(c1b >> 2) + b64.charAt((c1b & 3) << 4 | c2b >> 4) + (i + 1 < l2b ? b64.charAt((c2b & 15) << 2 | c3b >> 6) : "=") + (i + 2 < l2b ? b64.charAt(c3b & 63) : "=");
 					}
 					return res;
 			}
+			XsltForms_globals.error(XsltForms_globals.defaultModel, "xforms-binding-exception", "Invalid encoding method");
 			return "unsupported";
 		} ),
 /*jshint bitwise:true */
@@ -11890,11 +6141,20 @@ var XsltForms_xpathCoreFunctions = {
 
 	"http://www.w3.org/2002/xforms transform" : new XsltForms_xpathFunction(false, XsltForms_xpathFunction.DEFAULT_NONE, false,
 		function(nodeSet, xslhref, inline) {
-			if (arguments.length >= 4) {
+			if (arguments.length < 3) {
 				throw XsltForms_xpathFunctionExceptions.transformInvalidArgumentsNumber;
 			}
-			xslhref = XsltForms_globals.stringValue(xslhref);
-			return nodeSet.length === 0? "" : XsltForms_browser.transformText(XsltForms_browser.saveXML(nodeSet[0]), xslhref, XsltForms_globals.booleanValue(inline));
+			if (nodeSet.length === 0) {
+				return "";
+			}
+			var args = [];
+			args.push(XsltForms_browser.saveXML(nodeSet[0]));
+			args.push(XsltForms_globals.stringValue(xslhref));
+			args.push(XsltForms_globals.booleanValue(inline));
+			for (var i = 3, len = arguments.length; i < len; i++) {
+				args.push(XsltForms_globals.stringValue(arguments[i]));
+			}
+			return XsltForms_browser.transformText.apply(null, args);
 		} ),
 
 		
@@ -12133,329 +6393,6 @@ var XsltForms_xpathCoreFunctions = {
 		} )
 };
 
-var XsltForms_xpathFunctionExceptions = {
-	lastInvalidArgumentsNumber : {
-		name : "last() : Invalid number of arguments",
-		message : "last() function has no argument"
-	},
-	positionInvalidArgumentsNumber : {
-		name : "position() : Invalid number of arguments",
-		message : "position() function has no argument"
-	},
-	countInvalidArgumentsNumber : {
-		name : "count() : Invalid number of arguments",
-		message : "count() function must have one argument exactly"
-	},
-	countInvalidArgumentType : {
-		name : "count() : Invalid type of argument",
-		message : "count() function must have a nodeset argument"
-	},
-	idInvalidArgumentsNumber : {
-		name : "id() : Invalid number of arguments",
-		message : "id() function must have one argument exactly"
-	},
-	idInvalidArgumentType : {
-		name : "id() : Invalid type of argument",
-		message : "id() function must have a nodeset or string argument"
-	},
-	localNameInvalidArgumentsNumber : {
-		name : "local-name() : Invalid number of arguments",
-		message : "local-name() function must have one argument at most"
-	},
-	localNameInvalidArgumentType : {
-		name : "local-name() : Invalid type of argument",
-		message : "local-name() function must have a nodeset argument"
-	},
-	localNameNoContext : {
-		name : "local-name() : no context node",
-		message : "local-name() function must have a nodeset argument"
-	},
-	namespaceUriInvalidArgumentsNumber : {
-		name : "namespace-uri() : Invalid number of arguments",
-		message : "namespace-uri() function must have one argument at most"
-	},
-	namespaceUriInvalidArgumentType : {
-		name : "namespace-uri() : Invalid type of argument",
-		message : "namespace-uri() function must have a nodeset argument"
-	},
-	nameInvalidArgumentsNumber : {
-		name : "name() : Invalid number of arguments",
-		message : "name() function must have one argument at most"
-	},
-	nameInvalidArgumentType : {
-		name : "name() : Invalid type of argument",
-		message : "name() function must have a nodeset argument"
-	},
-	stringInvalidArgumentsNumber : {
-		name : "string() : Invalid number of arguments",
-		message : "string() function must have one argument at most"
-	},
-	concatInvalidArgumentsNumber : {
-		name : "concat() : Invalid number of arguments",
-		message : "concat() function must have at least two arguments"
-	},
-	startsWithInvalidArgumentsNumber : {
-		name : "starts-with() : Invalid number of arguments",
-		message : "starts-with() function must have two arguments exactly"
-	},
-	containsInvalidArgumentsNumber : {
-		name : "contains() : Invalid number of arguments",
-		message : "contains() function must have two arguments exactly"
-	},
-	substringBeforeInvalidArgumentsNumber : {
-		name : "substring-before() : Invalid number of arguments",
-		message : "substring-before() function must have two arguments exactly"
-	},
-	substringAfterInvalidArgumentsNumber : {
-		name : "substring-after() : Invalid number of arguments",
-		message : "substring-after() function must have two arguments exactly"
-	},
-	substringInvalidArgumentsNumber : {
-		name : "substring() : Invalid number of arguments",
-		message : "substring() function must have two or three arguments"
-	},
-	compareInvalidArgumentsNumber : {
-		name : "compare() : Invalid number of arguments",
-		message : "compare() function must have two arguments exactly"
-	},
-	stringLengthInvalidArgumentsNumber : {
-		name : "string-length() : Invalid number of arguments",
-		message : "string-length() function must have one argument at most"
-	},
-	normalizeSpaceInvalidArgumentsNumber : {
-		name : "normalize-space() : Invalid number of arguments",
-		message : "normalize-space() function must have one argument at most"
-	},
-	translateInvalidArgumentsNumber : {
-		name : "translate() : Invalid number of arguments",
-		message : "translate() function must have three argument exactly"
-	},
-	booleanInvalidArgumentsNumber : {
-		name : "boolean() : Invalid number of arguments",
-		message : "boolean() function must have one argument exactly"
-	},
-	notInvalidArgumentsNumber : {
-		name : "not() : Invalid number of arguments",
-		message : "not() function must have one argument exactly"
-	},
-	trueInvalidArgumentsNumber : {
-		name : "true() : Invalid number of arguments",
-		message : "true() function must have no argument"
-	},
-	falseInvalidArgumentsNumber : {
-		name : "false() : Invalid number of arguments",
-		message : "false() function must have no argument"
-	},
-	langInvalidArgumentsNumber : {
-		name : "lang() : Invalid number of arguments",
-		message : "lang() function must have one argument exactly"
-	},
-	numberInvalidArgumentsNumber : {
-		name : "number() : Invalid number of arguments",
-		message : "number() function must have one argument exactly"
-	},
-	sumInvalidArgumentsNumber : {
-		name : "sum() : Invalid number of arguments",
-		message : "sum() function must have one argument exactly"
-	},
-	sumInvalidArgumentType : {
-		name : "sum() : Invalid type of argument",
-		message : "sum() function must have a nodeset argument"
-	},
-	floorInvalidArgumentsNumber : {
-		name : "floor() : Invalid number of arguments",
-		message : "floor() function must have one argument exactly"
-	},
-	ceilingInvalidArgumentsNumber : {
-		name : "ceiling() : Invalid number of arguments",
-		message : "ceiling() function must have one argument exactly"
-	},
-	roundInvalidArgumentsNumber : {
-		name : "round() : Invalid number of arguments",
-		message : "round() function must have one argument exactly"
-	},
-	powerInvalidArgumentsNumber : {
-		name : "power() : Invalid number of arguments",
-		message : "power() function must have one argument exactly"
-	},
-	randomInvalidArgumentsNumber : {
-		name : "random() : Invalid number of arguments",
-		message : "random() function must have no argument"
-	},
-	booleanFromStringInvalidArgumentsNumber : {
-		name : "boolean-from-string() : Invalid number of arguments",
-		message : "boolean-from-string() function must have one argument exactly"
-	},
-	ifInvalidArgumentsNumber : {
-		name : "if() : Invalid number of arguments",
-		message : "if() function must have three argument exactly"
-	},
-	chooseInvalidArgumentsNumber : {
-		name : "choose() : Invalid number of arguments",
-		message : "choose() function must have three argument exactly"
-	},
-	avgInvalidArgumentsNumber : {
-		name : "avg() : Invalid number of arguments",
-		message : "avg() function must have one argument exactly"
-	},
-	avgInvalidArgumentType : {
-		name : "avg() : Invalid type of argument",
-		message : "avg() function must have a nodeset argument"
-	},
-	minInvalidArgumentsNumber : {
-		name : "min() : Invalid number of arguments",
-		message : "min() function must have one argument exactly"
-	},
-	minInvalidArgumentType : {
-		name : "min() : Invalid type of argument",
-		message : "min() function must have a nodeset argument"
-	},
-	maxInvalidArgumentsNumber : {
-		name : "max() : Invalid number of arguments",
-		message : "max() function must have one argument exactly"
-	},
-	maxInvalidArgumentType : {
-		name : "max() : Invalid type of argument",
-		message : "max() function must have a nodeset argument"
-	},
-	serializeInvalidArgumentType : {
-		name : "serialize() : Invalid type of argument",
-		message : "serialize() function must have a nodeset argument"
-	},
-	countNonEmptyInvalidArgumentsNumber : {
-		name : "count-non-empty() : Invalid number of arguments",
-		message : "count-non-empty() function must have one argument exactly"
-	},
-	countNonEmptyInvalidArgumentType : {
-		name : "count-non-empty() : Invalid type of argument",
-		message : "count-non-empty() function must have a nodeset argument"
-	},
-	indexInvalidArgumentsNumber : {
-		name : "index() : Invalid number of arguments",
-		message : "index() function must have one argument exactly"
-	},
-	nodeIndexInvalidArgumentsNumber : {
-		name : "nodeIndex() : Invalid number of arguments",
-		message : "nodeIndex() function must have one argument exactly"
-	},
-	propertyInvalidArgumentsNumber : {
-		name : "property() : Invalid number of arguments",
-		message : "property() function must have one argument exactly"
-	},
-	propertyInvalidArgument : {
-		name : "property() : Invalid argument",
-		message : "Invalid property name"
-	},
-	instanceInvalidArgumentsNumber : {
-		name : "instance() : Invalid number of arguments",
-		message : "instance() function must have zero or one argument"
-	},
-	nowInvalidArgumentsNumber : {
-		name : "now() : Invalid number of arguments",
-		message : "now() function must have no argument"
-	},
-	localDateInvalidArgumentsNumber : {
-		name : "local-date() : Invalid number of arguments",
-		message : "local-date() function must have no argument"
-	},
-	localDateTimeInvalidArgumentsNumber : {
-		name : "local-dateTime() : Invalid number of arguments",
-		message : "local-dateTime() function must have no argument"
-	},
-	adjustDateTimeToTimezoneInvalidArgumentsNumber: {
-		name : "adjust-dateTime-to-timezone() : Invalid number of arguments",
-		message : "adjust-dateTime-to-timezone() function must have one argument exactly"
-	},
-	daysFromDateInvalidArgumentsNumber : {
-		name : "days-from-date() : Invalid number of arguments",
-		message : "days-from-date() function must have one argument exactly"
-	},
-	daysToDateInvalidArgumentsNumber : {
-		name : "days-to-date() : Invalid number of arguments",
-		message : "days-to-date() function must have one argument exactly"
-	},
-	secondsToDateTimeInvalidArgumentsNumber : {
-		name : "seconds-to-dateTime() : Invalid number of arguments",
-		message : "seconds-to-dateTime() function must have one argument exactly"
-	},
-	secondsFromDateTimeInvalidArgumentsNumber : {
-		name : "seconds-from-dateTime() : Invalid number of arguments",
-		message : "seconds-from-dateTime() function must have one argument exactly"
-	},
-	currentInvalidArgumentsNumber : {
-		name : "current() : Invalid number of arguments",
-		message : "current() function must have no argument"
-	},
-	isValidInvalidArgumentsNumber : {
-		name : "is-valid() : Invalid number of arguments",
-		message : "is-valid() function must have one argument exactly"
-	},
-	isValidInvalidArgumentType : {
-		name : "is-valid() : Invalid type of argument",
-		message : "is-valid() function must have a nodeset argument"
-	},
-	isNonEmptyArrayArgumentsNumber : {
-		name : "is-non-empty-array() : Invalid number of arguments",
-		message : "is-non-empty-array() function must have zero or one argument"
-	},
-	isNonEmptyArrayInvalidArgumentType : {
-		name : "is-non-empty-array() : Invalid type of argument",
-		message : "is-non-empty-array() function must have a node argument"
-	},
-	isCardNumberInvalidArgumentsNumber : {
-		name : "is-card-number() : Invalid number of arguments",
-		message : "is-card-number() function must have one argument exactly"
-	},
-	upperCaseInvalidArgumentsNumber : {
-		name : "upper-case() : Invalid number of arguments",
-		message : "upper-case() function must have one argument exactly"
-	},
-	lowerCaseInvalidArgumentsNumber : {
-		name : "lower-case() : Invalid number of arguments",
-		message : "lower-case() function must have one argument exactly"
-	},
-	distinctValuesInvalidArgumentsNumber : {
-		name : "distinct-values() : Invalid number of arguments",
-		message : "distinct-values() function must have one argument exactly"
-	},
-	transformInvalidArgumentsNumber : {
-		name : "transform() : Invalid number of arguments",
-		message : "transform() function must have two arguments exactly"
-	},
-	serializeNoContext : {
-		name : "serialize() : no context node",
-		message : "serialize() function must have a node argument"
-	},
-	serializeInvalidArgumentsNumber : {
-		name : "serialize() : Invalid number of arguments",
-		message : "serialize() function must have one argument exactly"
-	},
-	eventInvalidArgumentsNumber : {
-		name : "event() : Invalid number of arguments",
-		message : "event() function must have one argument exactly"
-	},
-	alertInvalidArgumentsNumber : {
-		name : "alert() : Invalid number of arguments",
-		message : "alert() function must have one argument exactly"
-	},
-	jsevalInvalidArgumentsNumber : {
-		name : "js-eval() : Invalid number of arguments",
-		message : "js-eval() function must have one argument exactly"
-	},
-	stringJoinInvalidArgumentsNumber : {
-		name : "string-join() : Invalid number of arguments",
-		message : "string-join() function must have one or two arguments"
-	},
-	stringJoinInvalidArgumentType : {
-		name : "string-join() : Invalid type of argument",
-		message : "string-join() function must have a nodeset argument"
-	},
-	itextInvalidArgumentsNumber : {
-		name : "itext() : Invalid number of arguments",
-		message : "itext() function must have one argument"
-	}
-};
-
 XsltForms_globals.validate_ = function (node) {
 	if (XsltForms_browser.getBoolMeta(node, "notvalid")) {
 		return false;
@@ -12474,6 +6411,7014 @@ XsltForms_globals.validate_ = function (node) {
 	}
 	return true;
 };
+
+	
+		
+		
+		
+function XsltForms_functionCallExpr(name) {
+	this.name = name;
+	this.func = XsltForms_xpathCoreFunctions[name];
+	this.xpathfunc = !!this.func;
+	this.args = [];
+	if (!this.xpathfunc) {
+		try {
+			this.func = eval(name.split(" ")[1]);
+		} catch (e) {
+		 alert(e);
+		}
+	}
+	if (!this.func) {
+		XsltForms_globals.error(this, "xforms-compute-exception", "Function " + this.name + "() not found");
+	}
+	for (var i = 1, len = arguments.length; i < len; i++) {
+		this.args.push(arguments[i]);
+	}
+}
+
+
+		
+
+XsltForms_functionCallExpr.prototype.evaluate = function(ctx) {
+	var arguments_ = [];
+	if (this.xpathfunc) {
+		for (var i = 0, len = this.args.length; i < len; i++) {
+			arguments_[i] = this.args[i].evaluate(ctx);
+		}
+		return this.func.call(ctx, arguments_);
+	} else {
+		for (var i2 = 0, len2 = this.args.length; i2 < len2; i2++) {
+			arguments_[i2] = XsltForms_globals.stringValue(this.args[i2].evaluate(ctx));
+		}
+		return this.func.apply(null,arguments_);
+	}
+};
+
+	
+	
+		
+		
+		
+		
+		
+function XsltForms_coreElement() {
+}
+
+
+		
+
+XsltForms_coreElement.prototype.init = function(subform, id, parent, className) {
+	this.subforms = [];
+	this.subforms[subform] = true;
+	this.nbsubforms = 1;
+	this.subform = subform;
+	parent = parent? parent.element : XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "head")[0]: document.getElementsByTagName("head")[0];
+	this.element = XsltForms_browser.createElement("span", parent, null, className);
+	this.element.id = id;
+	this.element.xfElement = this;
+};
+
+
+		
+
+XsltForms_coreElement.prototype.dispose = function() {
+	this.element.xfElement = null;
+	this.element.parentNode.removeChild(this.element);
+	this.element = null;
+	this.model = null;
+};
+
+	
+		
+		
+		
+function XsltForms_model(subform, id, schemas, functions, version) {
+	var found;
+	if (subform.id !== "xsltforms-mainform") {
+		XsltForms_globals.addChange(this);
+	}
+	this.init(subform, id, null, "xforms-model");
+	this.instances = {};
+	this.binds = [];
+	this.nodesChanged = [];
+	this.newNodesChanged = [];
+	this.schemas = [];
+	this.defaultInstance = null;
+	this.defaultSubmission = null;
+	XsltForms_globals.models.push(this);
+	subform.models.push(this);
+	var elt = document.getElementById(id);
+	XsltForms_globals.defaultModel = XsltForms_globals.defaultModel || this;
+	if (elt) {
+		elt.getInstanceDocument = function(modid) {
+			return this.xfElement.getInstanceDocument(modid);
+		};
+		elt.rebuild = function() {
+			return this.xfElement.rebuild();
+		};
+		elt.recalculate = function() {
+			return this.xfElement.recalculate();
+		};
+		elt.revalidate = function() {
+			return this.xfElement.revalidate();
+		};
+		elt.refresh = function() {
+			return this.xfElement.refresh();
+		};
+		elt.reset = function() {
+			return this.xfElement.reset();
+		};
+	}
+	if (schemas) {
+		schemas = schemas.split(" ");
+		for (var i = 0, len = schemas.length; i < len; i++) {
+			found = false;
+			for (var sid in XsltForms_schema.all) {
+				if (XsltForms_schema.all.hasOwnProperty(sid)) {
+					var schema = XsltForms_schema.all[sid];
+					if (schema.name === schemas[i]) {
+						this.schemas.push(schema);
+						found = true;
+						break;
+					}
+				}
+			}
+			if (!found) {
+				XsltForms_globals.error(this, "xforms-link-exception", "Schema " + schemas[i] + " not found");
+			}
+		}
+	}
+	if (functions) {
+		var fs = functions.split(" ");
+		for (var j = 0, len2 = fs.length; j < len2; j++) {
+			found = false;
+			for (var k = 0, len3 = XsltForms_xpathCoreFunctions.length; k < len3; k++) {
+				if (XsltForms_xpathCoreFunctions[k].split(" ")[1] === fs[j]) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				try {
+					var func = eval(fs[j]);
+				} catch (e) {
+					XsltForms_globals.error(this, "xforms-compute-exception", "Function " + fs[j] + "() not found");
+				}
+			}
+		}
+	}
+	if (version) {
+		var vs = version.split(" ");
+		for (var l = 0, len4 = vs.length; l < len4; l++) {
+			if (vs[l] !== "1.0" && vs[l] !== "1.1") {
+				XsltForms_globals.error(XsltForms_globals.defaultModel, "xforms-version-exception", "Version " + vs[l] + " not supported");
+				break;
+			}
+		}
+	}
+}
+
+XsltForms_model.prototype = new XsltForms_coreElement();
+
+
+		
+
+XsltForms_model.create = function(subform, id, schemas, functions, version) {
+	var elt = document.getElementById(id);
+	if (elt) {
+		elt.xfElement.subforms[subform] = true;
+		elt.xfElement.nbsubforms++;
+		subform.models.push(elt.xfElement);
+		XsltForms_globals.addChange(elt.xfElement);
+		return elt.xfElement;
+	} else {
+		return new XsltForms_model(subform, id, schemas, functions, version);
+	}
+};
+
+
+		
+
+XsltForms_model.prototype.addInstance = function(instance) {
+	this.instances[instance.element.id] = instance;
+	this.defaultInstance = this.defaultInstance || instance;
+};
+
+		
+
+XsltForms_model.prototype.addBind = function(bind) {
+	this.binds.push(bind);
+};
+
+		
+
+XsltForms_model.prototype.dispose = function(subform) {
+	if (subform && this.nbsubforms !== 1) {
+		this.subforms[subform] = null;
+		this.nbsubforms--;
+		return;
+	}
+	this.instances = null;
+	this.binds = null;
+	this.itext = null;
+	this.defaultInstance = null;
+	for (var i = 0, l = XsltForms_globals.models.length; i < l; i++) {
+		if (XsltForms_globals.models[i] === this) {
+			XsltForms_globals.models.splice(i, 1);
+			break;
+		}
+	}
+	XsltForms_coreElement.prototype.dispose.call(this);
+};
+
+		
+
+XsltForms_model.prototype.getInstance = function(id) {
+	return id ? this.instances[id] : this.defaultInstance;
+};
+
+		
+
+XsltForms_model.prototype.getInstanceDocument = function(id) {
+	var instance = this.getInstance(id);
+	return instance? instance.doc : null;
+};
+
+		
+
+XsltForms_model.prototype.findInstance = function(node) {
+	var doc = node.nodeType === XsltForms_nodeType.DOCUMENT ? node : node.ownerDocument;
+	for (var id in this.instances) {
+		if (this.instances.hasOwnProperty(id)) {
+			var inst = this.instances[id];
+			if (doc === inst.doc) {
+				return inst;
+			}
+			for (var fn in inst.archive) {
+				if (inst.archive.hasOwnProperty(fn)) {
+					if (doc === inst.archive[fn].doc) {
+						return inst;
+					}
+				}
+			}
+		}
+	}
+	return null;
+};
+
+
+		
+
+XsltForms_model.prototype.construct = function() {
+	if (!XsltForms_globals.ready) {
+		XsltForms_browser.forEach(this.instances, "construct");
+	}
+	if (XsltForms_globals.ready) {
+		XsltForms_xmlevents.dispatch(this, "xforms-rebuild");
+	} else {
+		this.rebuild();
+	}
+	XsltForms_xmlevents.dispatch(this, "xforms-model-construct-done");
+	if (this === XsltForms_globals.models[XsltForms_globals.models.length - 1]) {
+		window.setTimeout("XsltForms_xmlevents.dispatchList(XsltForms_globals.models, \"xforms-ready\")", 1);
+	}
+};
+
+
+		
+
+XsltForms_model.prototype.reset = function() {
+	XsltForms_browser.forEach(this.instances, "reset");
+	this.setRebuilded(true);
+	XsltForms_globals.addChange(this);
+};
+
+
+		
+
+XsltForms_model.prototype.rebuild = function() {
+	if (XsltForms_globals.ready) {
+		this.setRebuilded(true);
+	}
+	XsltForms_browser.forEach(this.binds, "refresh");
+	if (XsltForms_globals.ready) {
+		XsltForms_xmlevents.dispatch(this, "xforms-recalculate");
+	} else {
+		this.recalculate();
+	}
+};
+
+
+		
+
+XsltForms_model.prototype.recalculate = function() { 
+	XsltForms_browser.forEach(this.binds, "recalculate");
+	if (XsltForms_globals.ready) {
+		XsltForms_xmlevents.dispatch(this, "xforms-revalidate");
+	} else {
+		this.revalidate();
+	}
+};
+
+
+		
+
+XsltForms_model.prototype.revalidate = function() {
+	XsltForms_browser.forEach(this.instances, "revalidate");
+	if (XsltForms_globals.ready) {
+		XsltForms_xmlevents.dispatch(this, "xforms-refresh");
+	}
+};
+
+
+		
+
+XsltForms_model.prototype.refresh = function() {
+	// Nada?
+};
+
+
+		
+
+XsltForms_model.prototype.addChange = function(node) {
+	var list = XsltForms_globals.building? this.newNodesChanged : this.nodesChanged;
+	if (!XsltForms_browser.inArray(node, list)) {
+		XsltForms_globals.addChange(this);
+	}
+	if (node.nodeType === XsltForms_nodeType.ATTRIBUTE && !XsltForms_browser.inArray(node, list)) {
+		list.push(node);
+		node = node.ownerElement ? node.ownerElement : node.selectSingleNode("..");
+	}
+	while (node.nodeType === XsltForms_nodeType.ELEMENT && !XsltForms_browser.inArray(node, list)) {
+		list.push(node);
+		node = node.parentNode;
+	}
+};
+
+
+		
+
+XsltForms_model.prototype.setRebuilded = function(value) {
+	if (XsltForms_globals.building) {
+		this.newRebuilded = value;
+	} else {
+		this.rebuilded = value;
+	}
+};
+
+		
+
+XsltForms_model.prototype.additext = function(itext) {
+	this.itext = itext;
+	return this;
+};
+
+	
+		
+		
+		
+function XsltForms_instance(subform, id, model, readonly, mediatype, src, srcXML) {
+	this.init(subform, id, model, "xforms-instance");
+	this.readonly = readonly;
+	var lines = mediatype.split(";");
+	this.mediatype = lines[0];
+	for (var i = 1, len = lines.length; i < len; i++) {
+		var vals = lines[i].split("=");
+		switch (vals[0].replace(/^\s+/g,'').replace(/\s+$/g,'')) {
+			case "header":
+				this.header = vals[1].replace(/^\s+/g,'').replace(/\s+$/g,'') === "present";
+				break;
+			case "separator":
+				this.separator = (decodeURI ? decodeURI : unescape)(vals[1].replace(/^\s+/g,'').replace(/\s+$/g,''));
+				break;
+			case "charset":
+				this.charset = vals[1].replace(/^\s+/g,'').replace(/\s+$/g,'');
+				break;
+		}
+	}
+	this.src = XsltForms_browser.unescape(src);
+	switch(this.mediatype) {
+		case "application/xml":
+			this.srcXML = XsltForms_browser.unescape(srcXML);
+			if (this.srcXML.substring(0, 1) === "&") {
+				this.srcXML = XsltForms_browser.unescape(this.srcXML);
+			}
+			break;
+		case "text/json":
+		case "application/json":
+			var json;
+			eval("json = " + XsltForms_browser.unescape(srcXML));
+			this.srcXML = XsltForms_browser.json2xml("", json, true, false);
+			break;
+		case "text/csv":
+			this.srcXML = XsltForms_browser.csv2xml(XsltForms_browser.unescape(srcXML), this.separator, this.header);
+			break;
+		case "text/vcard":
+			this.srcXML = XsltForms_browser.vcard2xcard(XsltForms_browser.unescape(srcXML));
+			break;
+		case "application/zip":
+		case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+		case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+			this.srcXML = "<dummy/>";
+			break;
+		default:
+			alert("Unsupported mediatype '" + mediatype + "' for instance #" + id);
+			return;
+	}
+	this.model = model;
+	this.doc = XsltForms_browser.createXMLDocument("<dummy/>");
+	XsltForms_browser.setMeta(this.doc.documentElement, "instance", id);
+	XsltForms_browser.setMeta(this.doc.documentElement, "model", model.element.id);
+	model.addInstance(this);
+	subform.instances.push(this);
+}
+
+XsltForms_instance.prototype = new XsltForms_coreElement();
+ 
+
+		
+
+XsltForms_instance.create = function(subform, id, model, readonly, mediatype, src, srcXML) {
+	var instelt = document.getElementById(id);
+	if (instelt && instelt.xfElement) {
+		instelt.xfElement.subforms[subform] = true;
+		instelt.xfElement.nbsubforms++;
+		subform.instances.push(instelt.xfElement);
+		return instelt.xfElement;
+	} else {
+		return new XsltForms_instance(subform, id, model, readonly, mediatype, src, srcXML);
+	}
+};
+
+		
+
+XsltForms_instance.prototype.dispose = function(subform) {
+	if (subform && this.nbsubforms !== 1) {
+		this.subforms[subform] = null;
+		this.nbsubforms--;
+		return;
+	}
+	XsltForms_coreElement.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_instance.prototype.construct = function(subform) {
+	var ser;
+	if (!XsltForms_globals.ready || (subform && !subform.ready && this.nbsubforms === 1)) {
+		if (this.src) {
+			if (this.src.substring(0, 8) === "local://") {
+				try {
+					if (typeof(localStorage) === 'undefined') {
+						throw { message: "local:// not supported" };
+					}
+					this.setDoc(window.localStorage.getItem(this.src.substr(8)));
+				} catch(e) {
+					XsltForms_globals.error(this.element, "xforms-link-exception", "Fatal error loading " + this.src, e.toString());
+				}
+			} else if (this.src.substr(0, 9) === "opener://") {
+				try {
+					ser = window.opener.XsltForms_globals.xmlrequest('get', this.src.substr(9));
+					this.setDoc(ser);
+				} catch (e) {
+					XsltForms_globals.error(this.element, "xforms-link-exception", "Fatal error loading " + this.src, e.toString());
+				} 
+			} else {
+				if (this.src.substr(0, 11) === "javascript:") {
+					try {
+						eval("ser = (" + this.src.substr(11) + ");");
+						this.setDoc(ser);
+					} catch (e) {
+						XsltForms_globals.error(this.element, "xforms-link-exception", "Error evaluating the following Javascript expression: "+this.src.substr(11));
+					}
+				} else {
+					var cross = false;
+					if (this.src.match(/^[a-zA-Z0-9+\.\-]+:\/\//)) {
+						var domain = /^([a-zA-Z0-9+\.\-]+:\/\/[^\/]*)/;
+						var sdom = domain.exec(this.src);
+						var ldom = domain.exec(document.location.href);
+						cross = sdom[0] !== ldom[0];
+					}
+					if (cross) {
+						this.setDoc('<dummy xmlns=""/>');
+						XsltForms_browser.jsoninstobj = this;
+						var scriptelt = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "script") : document.createElement("script");
+						scriptelt.setAttribute("src", this.src+((this.src.indexOf("?") === -1) ? "?" : "&")+"callback=XsltForms_browser.jsoninst");
+						scriptelt.setAttribute("id", "jsoninst");
+						scriptelt.setAttribute("type", "text/javascript");
+						var body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+						body.insertBefore(scriptelt, body.firstChild);
+					} else {
+						try {
+							var req = XsltForms_browser.openRequest("GET", this.src, false);
+							XsltForms_browser.debugConsole.write("Loading " + this.src);
+							if ((this.mediatype === "application/zip" || this.mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" )&& req.overrideMimeType) {
+								req.overrideMimeType('text/plain; charset=x-user-defined');
+							}
+							req.send(null);
+							if (req.status !== 0 && (req.status < 200 || req.status >= 300)) {
+								throw { message: "Request error: " + req.status };
+							}
+							this.setDocFromReq(req);
+						} catch(e) {
+							XsltForms_globals.error(this.element, "xforms-link-exception", "Fatal error loading " + this.src, e.toString());
+						}
+					}
+				}
+			}
+		} else {
+			this.setDoc(this.srcXML);
+		}
+	}
+};
+
+
+		
+
+XsltForms_instance.prototype.reset = function() {
+	this.setDoc(this.oldXML, true);
+};
+ 
+
+		
+
+XsltForms_instance.prototype.store = function(isReset) {
+	if (this.oldXML && !isReset) {
+		this.oldXML = null;
+	}
+	this.oldXML = XsltForms_browser.saveXML(this.doc.documentElement);
+};
+
+
+		
+
+XsltForms_instance.prototype.setDoc = function(xml, isReset, preserveOld) {
+	var instid = XsltForms_browser.getMeta(this.doc.documentElement, "instance");
+	var modid = XsltForms_browser.getMeta(this.doc.documentElement, "model");
+	XsltForms_browser.loadXML(this.doc.documentElement, xml);
+	XsltForms_browser.setMeta(this.doc.documentElement, "instance", instid);
+	XsltForms_browser.setMeta(this.doc.documentElement, "model", modid);
+	if (!preserveOld) {
+		this.store(isReset);
+	}
+	if (instid === XsltForms_browser.idPf + "instance-config") {
+		XsltForms_browser.config = this.doc.documentElement;
+	}
+};
+        
+
+		
+
+XsltForms_instance.prototype.setDocFromReq = function(req, isReset, preserveOld) {
+	var srcXML = req.responseText;
+	var mediatype = req.getResponseHeader('Content-Type') ? req.getResponseHeader('Content-Type') : "application/xml";
+	var lines = mediatype.split(";");
+	this.mediatype = lines[0];
+	for (var i = 1, len = lines.length; i < len; i++) {
+		var vals = lines[i].split("=");
+		switch (vals[0].replace(/^\s+/g,'').replace(/\s+$/g,'')) {
+			case "header":
+				this.header = vals[1].replace(/^\s+/g,'').replace(/\s+$/g,'') === "present";
+				break;
+			case "separator":
+				this.separator = (decodeURI ? decodeURI : unescape)(vals[1].replace(/^\s+/g,'').replace(/\s+$/g,''));
+				break;
+			case "charset":
+				this.charset = vals[1].replace(/^\s+/g,'').replace(/\s+$/g,'');
+				break;
+		}
+	}
+	if (XsltForms_browser.isChrome && this.mediatype === "text/plain") {
+		switch(this.src.substr(this.src.indexOf("."))) {
+			case ".xlsx":
+				this.mediatype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+				break;
+			case ".docx":
+				this.mediatype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+				break;
+			case ".csv":
+				this.mediatype = "text/csv";
+				break;
+		}
+	}
+	switch(this.mediatype) {
+		case "text/json":
+		case "application/json":
+			var json;
+			eval("json = " + srcXML);
+			srcXML = XsltForms_browser.json2xml("", json, true, false);
+			break;
+		case "text/csv":
+			if (XsltForms_browser.isIE) {
+				var convertResponseBodyToText = function (binary) {
+					if (!XsltForms_browser.byteMapping) {
+						var byteMapping = {};
+						for (var i = 0; i < 256; i++) {
+							for (var j = 0; j < 256; j++) {
+								byteMapping[String.fromCharCode(i + j * 256)] = String.fromCharCode(i) + String.fromCharCode(j);
+							}
+						}
+						XsltForms_browser.byteMapping = byteMapping;
+					}
+					var rawBytes = XsltForms_browser_BinaryToArray_ByteStr(binary);
+					var lastChr = XsltForms_browser_BinaryToArray_ByteStr_Last(binary);
+					return rawBytes.replace(/[\s\S]/g, function (match) { return XsltForms_browser.byteMapping[match]; }) + lastChr;
+				};
+				srcXML = XsltForms_browser.csv2xml(convertResponseBodyToText(req.responseBody), this.separator, this.header);
+			} else {
+				srcXML = XsltForms_browser.csv2xml(srcXML, this.separator, this.header);
+			}
+			break;
+		case "text/vcard":
+			srcXML = XsltForms_browser.vcard2xcard(srcXML);
+			break;
+		case "application/x-zip-compressed":
+		case "application/zip":
+		case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+		case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+			var arch;
+			if (XsltForms_browser.isIE) {
+				var convertResponseBodyToTextb = function (binary) {
+					if (!XsltForms_browser.byteMapping) {
+						var byteMapping = {};
+						for (var i = 0; i < 256; i++) {
+							for (var j = 0; j < 256; j++) {
+								byteMapping[String.fromCharCode(i + j * 256)] = String.fromCharCode(i) + String.fromCharCode(j);
+							}
+						}
+						XsltForms_browser.byteMapping = byteMapping;
+					}
+					var rawBytes = XsltForms_browser_BinaryToArray_ByteStr(binary);
+					var lastChr = XsltForms_browser_BinaryToArray_ByteStr_Last(binary);
+					return rawBytes.replace(/[\s\S]/g, function (match) { return XsltForms_browser.byteMapping[match]; }) + lastChr;
+				};
+				arch = XsltForms_browser.zip2xml(convertResponseBodyToTextb(req.responseBody), this.mediatype, this.element.id, this.model.element.id);
+			} else {
+				arch = XsltForms_browser.zip2xml(srcXML, this.mediatype, this.element.id, this.model.element.id);
+			}
+			srcXML = arch.srcXML;
+			delete arch.srcXML;
+			this.archive = arch;
+			break;
+		case "text/xml":
+		case "application/xml":
+			break;
+		default:
+			alert("Unsupported mediatype '" + this.mediatype + "' for instance #" + this.element.id);
+			return;
+	}
+	this.setDoc(srcXML, isReset, preserveOld);
+};
+        
+
+		
+
+XsltForms_instance.prototype.revalidate = function() {
+	if (!this.readonly) {
+		this.validation_(this.doc.documentElement);
+	}
+};
+
+XsltForms_instance.prototype.validation_ = function(node, readonly, notrelevant) {
+	if (!readonly) {
+		readonly = false;
+	}
+	if (!notrelevant) {
+		notrelevant = false;
+	}
+	this.validate_(node, readonly, notrelevant);
+	readonly = XsltForms_browser.getBoolMeta(node, "readonly");
+	notrelevant = XsltForms_browser.getBoolMeta(node, "notrelevant");
+	var atts = node.attributes || [];
+	if (atts) {
+		var atts2 = [];
+		for (var i = 0, len = atts.length; i < len; i++) {
+			if (atts[i].nodeName.substr(0,10) !== "xsltforms_") {
+				atts2[atts2.length] = atts[i];
+			}
+		}
+		for (var i2 = 0, len2 = atts2.length; i2 < len2; i2++) {
+			this.validation_(atts2[i2], readonly, notrelevant);
+		}
+	}
+	for (var j = 0, len1 = node.childNodes.length; j < len1; j++) {
+		var child = node.childNodes[j];
+		if (child.nodeType === XsltForms_nodeType.ELEMENT) {
+			this.validation_(child, readonly, notrelevant);
+		}
+	}
+};
+
+XsltForms_instance.prototype.validate_ = function(node, readonly, notrelevant) {
+	var bindids = XsltForms_browser.getMeta(node, "bind");
+	var value = XsltForms_globals.xmlValue(node);
+	var schtyp = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string");
+	if (bindids) {
+		var binds = bindids.split(" ");
+		var relevantfound = false;
+		var readonlyfound = false;
+		for (var i = 0, len = binds.length; i < len; i++) {
+			var bind = document.getElementById(binds[i]).xfElement;
+			var nodes = bind.nodes;
+			var i2 = 0;
+			for (var len2 = nodes.length; i2 < len2; i2++) {
+				if (nodes[i2] === node) {
+					break;
+				}
+			}
+			for (var j = 0, len3 = bind.depsNodes.length; j < len3; j++) {
+				XsltForms_browser.rmValueMeta(bind.depsNodes[j], "depfor", bind.depsId);
+			}
+			bind.depsNodes.length = 0;
+			var ctx = new XsltForms_exprContext(this.subform, node, i2, nodes, null, null, null, [], bind.depsId);
+			if (bind.required) {
+				this.setProperty_(node, "required", bind.required.evaluate(ctx, node));
+			}
+			if (notrelevant || !relevantfound || bind.relevant) {
+				this.setProperty_(node, "notrelevant", notrelevant || !(bind.relevant? bind.relevant.evaluate(ctx, node) : true));
+				relevantfound = relevantfound || bind.relevant;
+			}
+			if (readonly || !readonlyfound || bind.readonly) {
+				this.setProperty_(node, "readonly", readonly || (bind.readonly? bind.readonly.evaluate(ctx, node) : bind.calculate ? true : false));
+				readonlyfound = readonlyfound || bind.readonly;
+			}
+			this.setProperty_(node, "notvalid",
+				!XsltForms_browser.getBoolMeta(node, "notrelevant") && !(!(XsltForms_browser.getBoolMeta(node, "required") && (!value || value === "")) &&
+				(XsltForms_browser.getNil(node) ? value === "" : !schtyp || schtyp.validate(value)) &&
+				(!bind.constraint || bind.constraint.evaluate(ctx, node))));
+			XsltForms_browser.copyArray(ctx.depsNodes, bind.depsNodes);
+		}
+	} else {
+		this.setProperty_(node, "notrelevant", notrelevant);
+		this.setProperty_(node, "readonly", readonly);
+		this.setProperty_(node, "notvalid", schtyp && !schtyp.validate(value));
+	}
+};
+
+XsltForms_instance.prototype.setProperty_ = function (node, property, value) {
+	if (XsltForms_browser.getBoolMeta(node, property) !== value) {
+		XsltForms_browser.setBoolMeta(node, property, value);
+		this.model.addChange(node);   
+	}
+};
+
+		
+
+XsltForms_browser.json2xml = function(name, json, root, inarray) {
+	var fullname = "";
+	if (name === "________") {
+		fullname = " exml:fullname=\"" + XsltForms_browser.escape(name) + "\"";
+		name = "________";
+	}
+	var ret = root ? "<exml:anonymous xmlns:exml=\"http://www.agencexml.com/exml\" xmlns:xsi=\"http://www.w3.org/1999/XMLSchema-instance\" xmlns:exsi=\"http://www.agencexml.com/exi\" xmlns=\"\">" : "";
+	if (json instanceof Array) {
+		if (inarray) {
+			ret += "<exml:anonymous exsi:maxOccurs=\"unbounded\">";
+		}
+		if (json.length === 0) {
+			ret += "<" + (name === "" ? "exml:anonymous" : name) + fullname + " exsi:maxOccurs=\"unbounded\" xsi:nil=\"true\"/>";
+		} else {
+			for (var i = 0, len = json.length; i < len; i++) {
+				ret += XsltForms_browser.json2xml(name === "" ? "exml:anonymous" : name, json[i], false, true);
+			}
+		}
+		if (inarray) {
+			ret += "</exml:anonymous>";
+		}
+	} else {
+		var xsdtype = "";
+		switch(typeof(json)) {
+			case "number":
+				xsdtype = " xsi:type=\"xsd:double\"";
+				break;
+			case "boolean":
+				xsdtype = " xsi:type=\"xsd:boolean\"";
+				break;
+			case "object":
+				if (json instanceof Date) {
+					xsdtype = " xsi:type=\"xsd:dateTime\"";
+				}
+				break;
+		}
+		ret += name === "" ? "" : "<"+name+fullname+(inarray?" exsi:maxOccurs=\"unbounded\"":"")+xsdtype+">";
+		if (typeof(json) === "object" && !(json instanceof Date)) {
+			for (var m in json) {
+				if (json.hasOwnProperty(m)) {
+					ret += XsltForms_browser.json2xml(m, json[m], false, false);
+				}
+			}
+		} else {
+			if (json instanceof Date) {
+				ret += json.getFullYear() + "-";
+				ret += (json.getMonth() < 9 ? "0" : "") + (json.getMonth()+1) + "-";
+				ret += (json.getDate() < 10 ? "0" : "") + json.getDate() + "T";
+				ret += (json.getHours() < 10 ? "0" : "") + json.getHours() + ":";
+				ret += (json.getMinutes() < 10 ? "0" : "") + json.getMinutes() + ":";
+				ret += (json.getSeconds() < 10 ? "0" : "") + json.getSeconds() + "Z";
+			} else {
+				ret += XsltForms_browser.escape(json);
+			}
+		}
+		ret += name === "" ? "" : "</"+name+">";
+	}
+	ret += root ? "</exml:anonymous>" : "";
+	return ret;
+};
+
+		
+
+var jsoninst = function(json) {
+	XsltForms_browser.dialog.hide("statusPanel", false);
+	XsltForms_browser.jsoninstobj.setDoc(XsltForms_browser.json2xml("", json, true, false));
+	XsltForms_globals.addChange(XsltForms_browser.jsoninstobj.model);
+	XsltForms_xmlevents.dispatch(XsltForms_browser.jsoninstobj.model, "xforms-rebuild");
+	XsltForms_globals.refresh();
+	document.body.removeChild(document.getElementById("jsoninst"));
+};
+    
+		
+
+XsltForms_browser.vcard2xcard_data = {
+	state: 0,
+	version: "4.0",
+	reg_date: /^(\d{8}|\d{4}-\d\d|--\d\d(\d\d)?|---\d\d)$/,
+	reg_time: /^(\d\d(\d\d(\d\d)?)?|-\d\d(\d\d?)|--\d\d)(Z|[+\-]\d\d(\d\d)?)?$/,
+	reg_date_time: /^(\d{8}|--\d{4}|---\d\d)T\d\d(\d\d(\d\d)?)?(Z|[+\-]\d\d(\d\d)?)?$/,
+	reg_uri: /^(([^:\/?#]+):)?(\/\/([^\/\?#]*))?([^\?#]*)(\?([^#]*))?(#([^\:#\[\]\@\!\$\&\\'\(\)\*\+\,\;\=]*))?$/,
+	reg_utc_offset: /^[+\-]\d\d(\d\d)?$/
+};
+
+XsltForms_browser.vcard2xcard_escape = function(s) {
+	return s.replace(/&/gm,"&amp;").replace(/</gm,"&lt;").replace(/>/gm,"&gt;").replace(/\\;/gm,";");
+};
+
+XsltForms_browser.vcard2xcard_param = {
+	"PREF":        {fparam: function(value) {return "<integer>" + value + "</integer>";}},
+	"TYPE":        {fparam: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}}
+};
+
+XsltForms_browser.vcard2xcard_prop = {
+	"BEGIN":       {state: 0, fvalue: function(value) {XsltForms_browser.vcard2xcard_data.state = 1; return value.toUpperCase() === "VCARD" ? "<vcard>" : "<'Invalid directive: BEGIN:" + value + "'>";}},
+	"END":         {state: 1, fvalue: function(value) {XsltForms_browser.vcard2xcard_data.state = 0; return value.toUpperCase() === "VCARD" ? "</vcard>" : "<'Invalid directive: END:" + value + "'>";}},
+	"SOURCE":      {state: 1, tag: "source", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"KIND":        {state: 1, tag: "kind", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"XML":         {state: 1, fvalue: function(value) {return value;}},
+	"FN":          {state: 1, tag: "fn", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"N":           {state: 1, tag: "n", fvalue: function(value) {var n = value.split(";"); return "<surname>" + XsltForms_browser.vcard2xcard_escape(n[0]) + "</surname><given>" + XsltForms_browser.vcard2xcard_escape(n[1]) + "</given><additional>" + XsltForms_browser.vcard2xcard_escape(n[2]) + "</additional><prefix>" + XsltForms_browser.vcard2xcard_escape(n[3]) + "</prefix><suffix>" + XsltForms_browser.vcard2xcard_escape(n[4]) + "</suffix>";}},
+	"NICKNAME":    {state: 1, tag: "nickname", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"PHOTO":       {state: 1, tag: "photo", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"BDAY":        {state: 1, tag: "bday", fvalue: function(value) {return (XsltForms_browser.vcard2xcard_data.reg_date_time.test(value) ? "<date-time>" + value + "</date-time>" : XsltForms_browser.vcard2xcard_data.reg_date.test(value) ? "<date>" + value + "</date>" : XsltForms_browser.vcard2xcard_data.reg_time.test(value) ? "<time>" + value + "</time>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>");}},
+	"ANNIVERSARY": {state: 1, tag: "anniversary", fvalue: function(value) {return (XsltForms_browser.vcard2xcard_data.reg_date_time.test(value) ? "<date-time>" + value + "</date-time>" : XsltForms_browser.vcard2xcard_data.reg_date.test(value) ? "<date>" + value + "</date>" : XsltForms_browser.vcard2xcard_data.reg_time.test(value) ? "<time>" + value + "</time>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>");}},
+	"GENDER":      {state: 1, tag: "gender", fvalue: function(value) {var gender = value.split(";"); return "<sex>" + gender[0] + "</sex>" + (value.indexOf(";") !== -1 ? "<identity>" + XsltForms_browser.vcard2xcard_escape(gender[1]) + "</identity>": "");}},
+	"ADR":         {state: 1, tag: "adr", fvalue: function(value) {var adr = value.split(";"); return "<pobox>" + XsltForms_browser.vcard2xcard_escape(adr[0]) + "</pobox><ext>" + XsltForms_browser.vcard2xcard_escape(adr[1]) + "</ext><street>" + XsltForms_browser.vcard2xcard_escape(adr[2]) + "</street><locality>" + XsltForms_browser.vcard2xcard_escape(adr[3]) + "</locality><region>" + XsltForms_browser.vcard2xcard_escape(adr[4]) + "</region><code>" + XsltForms_browser.vcard2xcard_escape(adr[5]) + "</code><country>" + XsltForms_browser.vcard2xcard_escape(adr[6]) + "</country>";}},
+	"TEL":         {state: 1, tag: "tel", fvalue: function(value) {return (XsltForms_browser.vcard2xcard_data.reg_uri.test(value) ? "<uri>" + value + "</uri>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>");}},
+	"EMAIL":       {state: 1, tag: "email", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"IMPP":        {state: 1, tag: "impp", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"LANG":        {state: 1, tag: "lang", fvalue: function(value) {return "<language-tag>" + value + "</language-tag>";}},
+	"TZ":          {state: 1, tag: "tz", fvalue: function(value) {return XsltForms_browser.vcard2xcard_data.reg_uri.test(value) ? "<uri>" + value + "</uri>" : XsltForms_browser.vcard2xcard_data.reg_utc_offset.test(value) ? "<utc-offset>" + value + "</utc-offset>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"GEO":         {state: 1, tag: "geo", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"TITLE":       {state: 1, tag: "title", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"ROLE":        {state: 1, tag: "role", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"LOGO":        {state: 1, tag: "logo", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"ORG":         {state: 1, tag: "org", fvalue: function(value) {var orgs = value.split(";"); var s = ""; for (var i = 0, len = orgs.length; i < len; i++) { s += "<text>" + XsltForms_browser.vcard2xcard_escape(orgs[i]) + "</text>";} return s;}},
+	"MEMBER":      {state: 1, tag: "member", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"RELATED":     {state: 1, tag: "related", fvalue: function(value) {return XsltForms_browser.vcard2xcard_data.reg_uri.test(value) ? "<uri>" + value + "</uri>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"CATEGORIES":  {state: 1, tag: "categories", fvalue: function(value) {var cats = value.split(";"); var s = ""; for (var i = 0, len = cats.length; i < len; i++) { s += "<text>" + XsltForms_browser.vcard2xcard_escape(cats[i]) + "</text>";} return s;}},
+	"NOTE":        {state: 1, tag: "note", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"X-LOTUS-BRIEFCASE":        {state: 1, tag: "x-lotus-briefcase", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"PRODID":      {state: 1, tag: "prodid", fvalue: function(value) {return "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"REV":         {state: 1, tag: "rev", fvalue: function(value) {return "<timestamp>" + value + "</timestamp>";}},
+	"SOUND":       {state: 1, tag: "sound", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"UID":         {state: 1, tag: "uid", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"CLIENTPIDMAP":{state: 1, tag: "clientpidmap", fvalue: function(value) {var cmap = value.split(";"); return "<sourceid>" + cmap[0] + "</sourceid><value-uri>" + cmap[1] + "</value-uri>";}},
+	"URL":         {state: 1, tag: "url", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"VERSION":     {state: 1, fvalue: function(value) {XsltForms_browser.vcard2xcard_data.version = value; return "";}},
+	"KEY":         {state: 1, tag: "key", fvalue: function(value) {return XsltForms_browser.vcard2xcard_data.reg_uri.test(value) ? "<uri>" + value + "</uri>" : "<text>" + XsltForms_browser.vcard2xcard_escape(value) + "</text>";}},
+	"FBURL":       {state: 1, tag: "fburl", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"CALADRURI":   {state: 1, tag: "caladruri", fvalue: function(value) {return "<uri>" + value + "</uri>";}},
+	"CALURI":      {state: 1, tag: "caluri", fvalue: function(value) {return "<uri>" + value + "</uri>";}}
+};
+
+XsltForms_browser.vcard2xcard = function(v) {
+	var s = '<vcards xmlns="urn:ietf:params:xml:ns:vcard-4.0">';
+	var vcards = v.replace(/(\r\n|\n|\r) /gm,"").replace(/^\s+/,"").replace(/\s+$/,"").split("\n");
+	for (var i = 0, len = vcards.length; i < len; i++) {
+		var sep = vcards[i].indexOf(":");
+		var before = vcards[i].substring(0, sep);
+		var after = vcards[i].substring(sep + 1);
+		var name = before.split(";");
+		var p = XsltForms_browser.vcard2xcard_prop[name[0]];
+		if (p && p.state === XsltForms_browser.vcard2xcard_data.state) {
+			var val = after.replace(/\\n/gm,"\n").replace(/\\,/gm,",");
+			if (p.tag) {
+				s += "<" + p.tag + ">";
+			}
+			if (name.length > 1) {
+				s += "<parameters>";
+				name.shift();
+				for (var j = 0, len2 = name.length; j < len2;) {
+					var par = name[j].split("=");
+					var parname = par[0];
+					var parobj = XsltForms_browser.vcard2xcard_param[parname];
+					if (parobj) {
+						s += "<" + parname.toLowerCase() + ">";
+						while (par[0] === parname) {
+							s += parobj.fparam(par[1]);
+							j++;
+							if (j < len2) {
+								par = name[j].split("=");
+							} else {
+								break;
+							}
+						}
+						s += "</" + parname.toLowerCase() + ">";
+					} else {
+						j++;
+					}
+				}
+				s += "</parameters>";
+			}
+			s += p.fvalue(val);
+			if (p.tag) {
+				s += "</" + p.tag + ">";
+			}
+		}
+	}
+	return s + "</vcards>";
+};
+
+XsltForms_browser.xml2csv = function(s, sep) {
+	var d = XsltForms_browser.createXMLDocument(s);
+	var n0 = d.documentElement.firstChild;
+	while (n0 && n0.nodeType !== XsltForms_nodeType.ELEMENT) {
+		n0 = n0.nextSibling;
+	}
+	var h = n0.cloneNode(true);
+	d.documentElement.insertBefore(h, n0);
+	var n = h;
+	var r = "";
+	sep = sep || ",";
+	var seps = sep.split(" ");
+	var fsep = seps[0];
+	var decsep = seps[1];
+	while (n) {
+		if (n.nodeType === XsltForms_nodeType.ELEMENT) {
+			var m = n.firstChild;
+			var l = "";
+			while (m) {
+				if (m.nodeType === XsltForms_nodeType.ELEMENT) {
+					var v = n === h ? m.getAttribute("fullname") || m.localName : m.text !== undefined ? m.text : m.textContent;
+					if (v.indexOf("\n") !== -1 || v.indexOf(fsep) !== -1) {
+						v = '"' + v.replace(/"/gm, '""') + '"';
+					} else if (decsep && v.match(/^[\-+]?([0-9]+(\.[0-9]*)?|\.[0-9]+)$/)) {
+						v = v.replace(/\./, decsep);
+					}
+					l += fsep + v;
+				}
+				m = m.nextSibling;
+			}
+			r += l.substr(1) + "\n";
+		}
+		n = n.nextSibling;
+	}
+	return r;
+};
+
+XsltForms_browser.csv2xml = function(s, sep, head) {
+	var r = "<exml:anonymous xmlns:exml=\"http://www.agencexml.com/exml\" xmlns:xsi=\"http://www.w3.org/1999/XMLSchema-instance\" xmlns:exsi=\"http://www.agencexml.com/exi\" xmlns=\"\">";
+	s = s.replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+	if (s.substr(s.length - 1, 1) !== "\n") {
+		s += "\n";
+	}
+	var headers = [];
+	var first = head;
+	var col = 0;
+	var rowcat = "";
+	var row = "";
+	for (var i = 0, l = s.length; i < l; ) {
+		var v = "";
+		if (s.substr(i, 1) === '"') {
+			i++;
+			do {
+				if (s.substr(i, 1) !== '"') {
+					v += s.substr(i, 1);
+					i++;
+				} else {
+					if (s.substr(i, 2) === '""') {
+						v += '"';
+						i += 2;
+					} else {
+						i++;
+						break;
+					}
+				}
+			} while (i < l);
+		} else {
+			while (s.substr(i, sep.length) !== sep && s.substr(i, 1) !== "\n") {
+				v += s.substr(i, 1);
+				i++;
+			}
+		}
+		if (first) {
+			headers.push(v);
+		} else {
+			rowcat += v;
+			row += "<" + (head ? headers[col] : "exml:anonymous") + ">" + XsltForms_browser.escape(v) + "</" + (head ? headers[col] : "exml:anonymous") + ">";
+		}
+		if (s.substr(i, 1) === "\n") {
+			if (!first && rowcat !== "") {
+				r += "<exml:anonymous>" + row + "</exml:anonymous>";
+			}
+			first = false;
+			col = 0;
+			row = "";
+			rowcat = "";
+		} else {
+			col++;
+		}
+		i++;
+	}
+	return r + "</exml:anonymous>";
+};
+
+XsltForms_browser.xsltsharedsrc = '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ss="http://schemas.openxmlformats.org/spreadsheetml/2006/main" version="1.0">';
+XsltForms_browser.xsltsharedsrc += '	<xsl:output method="text"/>';
+XsltForms_browser.xsltsharedsrc += '	<xsl:template match="ss:si">';
+XsltForms_browser.xsltsharedsrc += '		<xsl:value-of select="concat(\'|\',position() - 1,\':\',ss:t)"/>';
+XsltForms_browser.xsltsharedsrc += '	</xsl:template>';
+XsltForms_browser.xsltsharedsrc += '</xsl:stylesheet>';
+
+XsltForms_browser.xsltinlinesrc = '<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ss="http://schemas.openxmlformats.org/spreadsheetml/2006/main" version="1.0">';
+XsltForms_browser.xsltinlinesrc += '	<xsl:output method="xml" omit-xml-declaration="yes"/>';
+XsltForms_browser.xsltinlinesrc += '	<xsl:param name="shared"/>';
+XsltForms_browser.xsltinlinesrc += '	<xsl:template match="ss:c[@t=\'s\']" priority="1">';
+XsltForms_browser.xsltinlinesrc += '		<xsl:copy>';
+XsltForms_browser.xsltinlinesrc += '			<xsl:attribute name="t">inlineStr</xsl:attribute>';
+XsltForms_browser.xsltinlinesrc += '			<xsl:apply-templates select="@*|node()"/>';
+XsltForms_browser.xsltinlinesrc += '			<ss:is><ss:t><xsl:value-of select="substring-before(substring-after($shared,concat(\'|\',ss:v,\':\')),\'|\')"/></ss:t></ss:is>';
+XsltForms_browser.xsltinlinesrc += '		</xsl:copy>';
+XsltForms_browser.xsltinlinesrc += '	</xsl:template>';
+XsltForms_browser.xsltinlinesrc += '	<xsl:template match="@t[parent::ss:c and . = \'s\']" priority="1"/>';
+XsltForms_browser.xsltinlinesrc += '	<xsl:template match="ss:v[parent::ss:c/@t = \'s\']" priority="1"/>';
+XsltForms_browser.xsltinlinesrc += '	<xsl:template match="@*|node()" priority="0">';
+XsltForms_browser.xsltinlinesrc += '		<xsl:copy>';
+XsltForms_browser.xsltinlinesrc += '			<xsl:apply-templates select="@*|node()"/>';
+XsltForms_browser.xsltinlinesrc += '		</xsl:copy>';
+XsltForms_browser.xsltinlinesrc += '	</xsl:template>';
+XsltForms_browser.xsltinlinesrc += '</xsl:stylesheet>';
+
+XsltForms_browser.zip2xml = function(z, mediatype, instid, modid) {
+	var arch = {};
+	var f;
+	var r = "<exml:archive xmlns:exml=\"http://www.agencexml.com/exml\">";
+	var offset = z.lastIndexOf("PK\x05\x06")+16;
+	var r2 = function(z, offset) {
+		return ((z.charCodeAt(offset+1) & 0xFF)<< 8) | z.charCodeAt(offset) & 0xFF;
+	};
+	var r4 = function(z, offset) {
+		return ((((((z.charCodeAt(offset+3) & 0xFF)<< 8) | z.charCodeAt(offset+2) & 0xFF)<< 8) | z.charCodeAt(offset+1) & 0xFF)<< 8) | z.charCodeAt(offset) & 0xFF;
+	};
+	offset = r4(z, offset);
+	while (z.charCodeAt(offset) === 80 && z.charCodeAt(offset+1) === 75 && z.charCodeAt(offset+2) === 1 && z.charCodeAt(offset+3) === 2) {
+		f = {};
+		offset += 4;
+		f.versionMadeBy = r2(z, offset);
+		offset += 2;
+		f.versionNeeded = r2(z, offset);
+		offset += 2;
+		f.bitFlag = r2(z, offset);
+		offset += 2;
+		f.compressionMethod = r2(z, offset);
+		offset += 2;
+		f.date = r4(z, offset);
+		offset += 4;
+		f.crc32 = r4(z, offset);
+		offset += 4;
+		f.compressedSize = r4(z, offset);
+		offset += 4;
+		f.uncompressedSize = r4(z, offset);
+		offset += 4;
+		f.fileNameLength = r2(z, offset);
+		offset += 2;
+		f.extraFieldsLength = r2(z, offset);
+		offset += 2;
+		f.fileCommentLength = r2(z, offset);
+		offset += 2;
+		f.diskNumber = r2(z, offset);
+		offset += 2;
+		f.internalFileAttributes = r2(z, offset);
+		offset += 2;
+		f.externalFileAttributes = r4(z, offset);
+		offset += 4;
+		f.localHeaderOffset = r4(z, offset);
+		offset += 4;
+		var fileName = z.substr(offset, f.fileNameLength);
+		offset += f.fileNameLength;
+		f.extraFields = z.substr(offset, f.extraFieldsLength);
+		offset += f.extraFieldsLength;
+		f.fileComment = z.substr(offset, f.fileCommentLength);
+		offset += f.fileCommentLength;
+		//f.dir = f.externalFileAttributes & 0x00000010 ? true : false;
+		var loffset = f.localHeaderOffset + 28;
+		f.lextraFieldsLength = r2(z, loffset);
+		loffset += 2 + f.fileNameLength;
+		f.lextraFields = z.substr(loffset, f.lextraFieldsLength);
+		loffset += f.lextraFieldsLength;
+		f.compressedFileData = z.substr(loffset, f.compressedSize);
+		if (mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" && (fileName.substr(fileName.length - 4) === ".xml" || fileName.substr(fileName.length - 5) === ".rels")) {
+			f.doc = XsltForms_browser.createXMLDocument("<dummy/>");
+			XsltForms_browser.loadXML(f.doc.documentElement, XsltForms_browser.utf8decode(zip_inflate(f.compressedFileData)));
+			XsltForms_browser.setMeta(f.doc.documentElement, "instance", instid);
+			XsltForms_browser.setMeta(f.doc.documentElement, "model", modid);
+		}
+		r += '<exml:file name="' + fileName + '"/>';
+		arch[fileName] = f;
+	}
+	r += "</exml:archive>";
+	if (mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" && arch.hasOwnProperty("xl/sharedStrings.xml")) {
+		var shared = XsltForms_browser.transformText(XsltForms_browser.saveXML(arch["xl/sharedStrings.xml"].doc), XsltForms_browser.xsltsharedsrc, true) + "|";
+		for (var fn in arch) {
+			if (arch.hasOwnProperty(fn)) {
+				f = arch[fn];
+				if (f.doc && (f.doc.documentElement.localName ? f.doc.documentElement.localName : f.doc.documentElement.baseName) === "worksheet") {
+					var inlineStr = XsltForms_browser.transformText(XsltForms_browser.saveXML(f.doc), XsltForms_browser.xsltinlinesrc, true, "shared", shared);
+					XsltForms_browser.loadXML(f.doc.documentElement, inlineStr);
+					XsltForms_browser.setMeta(f.doc.documentElement, "instance", instid);
+					XsltForms_browser.setMeta(f.doc.documentElement, "model", modid);
+				}
+			}
+		}
+	}
+	arch.srcXML = r;
+	return arch;
+};
+
+XsltForms_browser.xml2zip = function(arch, mediatype) {
+	var z = "";
+	var fn, f;
+	var fcount = 0;
+	var w2 = function(v) {
+		return String.fromCharCode(v & 0xFF) + String.fromCharCode((v >>> 8) & 0xFF);
+	};
+	var w4 = function(v) {
+		return String.fromCharCode(v & 0xFF) + String.fromCharCode((v >>> 8) & 0xFF) + String.fromCharCode((v >>> 16) & 0xFF) + String.fromCharCode((v >>> 24) & 0xFF);
+	};
+	for (fn in arch) {
+		if (arch.hasOwnProperty(fn)) {
+			f = arch[fn];
+			f.localHeaderOffset = z.length;
+			if (f.doc) {
+				var ser = XsltForms_browser.utf8encode(XsltForms_browser.saveXML(f.doc));
+				if (mediatype.indexOf("application/vnd.openxmlformats-officedocument.") === 0) {
+					var x14ac = ser.indexOf(' xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"');
+					var rattr = f.doc.documentElement.attributes;
+					for (var ri = 0, li = rattr.length; ri < li; ri++) {
+						if (rattr[ri].localName === "Ignorable" && rattr[ri].namespaceURI === "http://schemas.openxmlformats.org/markup-compatibility/2006") {
+							if (x14ac === -1 || x14ac > ser.indexOf("Ignorable")) {
+								ser = ser.substr(0, ser.indexOf(" ")) + ' xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac"' + ser.substr(ser.indexOf(" "));
+								break;
+							}
+						}
+					}
+				}
+				ser = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' + ser;
+				f.crc32 = XsltForms_browser.crc32(ser);
+				f.uncompressedSize = ser.length;
+				f.compressedFileData = zip_deflate(ser);
+				f.compressedSize = f.compressedFileData.length;
+			}
+			z += "PK\x03\x04";
+			z += w2(f.versionNeeded);
+			z += w2(f.bitFlag);
+			z += w2(f.compressionMethod);
+			z += w4(f.date);
+			z += w4(f.crc32);
+			z += w4(f.compressedSize);
+			z += w4(f.uncompressedSize);
+			z += w2(f.fileNameLength);
+			z += w2(f.lextraFieldsLength);
+			z += fn;
+			z += f.lextraFields;
+			z += f.compressedFileData;
+			fcount++;
+		}
+	}
+	var diroffset = z.length;
+	for (fn in arch) {
+		if (arch.hasOwnProperty(fn)) {
+			f = arch[fn];
+			z += "PK\x01\x02";
+			z += w2(f.versionMadeBy);
+			z += w2(f.versionNeeded);
+			z += w2(f.bitFlag);
+			z += w2(f.compressionMethod);
+			z += w4(f.date);
+			z += w4(f.crc32);
+			z += w4(f.compressedSize);
+			z += w4(f.uncompressedSize);
+			z += w2(f.fileNameLength);
+			z += w2(f.extraFieldsLength);
+			z += w2(f.fileCommentLength);
+			z += w2(f.diskNumber);
+			z += w2(f.internalFileAttributes);
+			z += w4(f.externalFileAttributes);
+			z += w4(f.localHeaderOffset);
+			z += fn;
+			z += f.extraFields;
+			z += f.fileComment;
+		}
+	}
+	var endoffset = z.length;
+	z += "PK\x05\x06";
+	z += w2(0);
+	z += w2(0);
+	z += w2(fcount);
+	z += w2(fcount);
+	z += w4(endoffset - diroffset);
+	z += w4(diroffset);
+	var comment = "generated by XSLTForms - http://www.agencexml.com";
+	z += w2(comment.length);
+	z += comment;
+	var data = [];
+	for( var di = 0, dl = z.length; di < dl; di++) {
+		data.push(z.charCodeAt(di) & 0xff);
+	}
+	try {
+		var z2 = new Uint8Array(data);
+		return z2.buffer;
+	} catch (e) {
+		return XsltForms_browser.StringToBinary(z);
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_bind(subform, id, parent, nodeset, type, readonly, required, relevant, calculate, constraint, changed) {
+	if (document.getElementById(id)) {
+		return;
+	}
+	var model = parent.model || parent;
+	if (type === "xsd:ID") {
+		XsltForms_globals.IDstr = nodeset.split('/').pop();
+	}
+	this.init(subform, id, parent, "xforms-bind");
+	this.model = model;
+	this.type = type ? XsltForms_schema.getType(type) : null;
+	this.nodeset = nodeset;
+	this.readonly = readonly;
+	this.required = required;
+	this.relevant = relevant;
+	this.calculate = calculate;
+	this.constraint = constraint;
+	this.changed = changed;
+	this.depsNodes = [];
+	this.depsElements = [];
+	this.nodes = [];
+	this.binds = [];
+	this.binding = new XsltForms_binding(null, this.nodeset);
+	parent.addBind(this);
+	subform.binds.push(this);
+	this.depsId = XsltForms_element.depsId++;
+}
+
+XsltForms_bind.prototype = new XsltForms_coreElement();
+
+XsltForms_bind.prototype.addBind = function(bind) {
+	this.binds.push(bind);
+};
+
+XsltForms_bind.prototype.clear = function(bind) {
+	this.depsNodes.length = 0;
+	this.depsElements.length = 0;
+	this.nodes.length = 0;
+	XsltForms_browser.forEach(this.binds, "clear");
+};
+
+		
+
+XsltForms_bind.prototype.refresh = function(ctx, index) {
+	if (!index) {
+		for (var i = 0, len = this.depsNodes.length; i < len; i++) {
+			XsltForms_browser.rmValueMeta(this.depsNodes[i], "depfor", this.depsId);
+		}
+		this.clear();
+	}
+	ctx = ctx || (this.model ? this.model.getInstanceDocument() ? this.model.getInstanceDocument().documentElement : null : null);
+	XsltForms_browser.copyArray(this.binding.bind_evaluate(this.subform, ctx, this.depsNodes, this.depsId, this.depsElements), this.nodes);
+	var el = this.element;
+	for (var i2 = 0, len2 = this.nodes.length; i2 < len2; i2++) {
+		var node = this.nodes[i2];
+		var bindids = XsltForms_browser.getMeta(node, "bind");
+		if (!bindids) {
+			XsltForms_browser.setMeta(node, "bind", this.element.id);
+		} else {
+			var bindids2 = " "+bindids+" ";
+			if (bindids2.indexOf(" "+this.element.id+" ") === -1) {
+				XsltForms_browser.setMeta(node, "bind", bindids+" "+this.element.id);
+			}
+		}
+		if (this.type) {
+			if (XsltForms_browser.getMeta(node, "schemaType")) {
+				XsltForms_globals.error(el, "xforms-binding-exception", "Type especified in xsi:type attribute");
+			} else {
+				var name = this.type.name;
+				var ns = this.type.nsuri;
+				for (var key in XsltForms_schema.prefixes) {
+					if (XsltForms_schema.prefixes.hasOwnProperty(key)) {
+						if (XsltForms_schema.prefixes[key] === ns) {
+							name = key + ":" + name;
+							break;
+						}
+					}
+				}
+				XsltForms_browser.setType(node, name);
+			}
+		}
+		for (var j = 0, len1 = el.childNodes.length; j < len1; j++) {
+			el.childNodes[j].xfElement.refresh(node, i2);
+		}
+	}
+};
+
+
+		
+
+XsltForms_bind.prototype.recalculate = function() {
+	var el = this.element;
+	if (this.calculate) {
+		for (var i = 0, len = this.nodes.length; i < len; i++) {
+			var node = this.nodes[i];
+			var ctx = new XsltForms_exprContext(this.subform, node, i + 1, this.nodes);
+			var value = XsltForms_globals.stringValue(this.calculate.evaluate(ctx, node));
+			value = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").normalize(value);
+			XsltForms_browser.setValue(node, value);
+			this.model.addChange(node);
+			XsltForms_browser.debugConsole.write("Calculate " + node.nodeName + " " + value);
+		}
+	}
+	for (var j = 0, len1 = el.childNodes.length; j < len1; j++) {
+		el.childNodes[j].xfElement.recalculate();
+	}
+};
+
+		
+
+XsltForms_bind.prototype.propagate = function() {
+	var el = this.element;
+	if (this.changed) {
+		for (var i = 0, len = this.nodes.length; i < len; i++) {
+			var node = this.nodes[i];
+			var ctx = new XsltForms_exprContext(this.subform, node, i + 1, this.nodes);
+			var value = XsltForms_globals.stringValue(this.changed.evaluate(ctx, node));
+			value = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").normalize(value);
+			XsltForms_browser.setValue(node, value);
+			//this.model.addChange(node);
+			XsltForms_browser.debugConsole.write("Propagate " + node.nodeName + " " + value);
+		}
+	}
+	for (var j = 0, len1 = el.childNodes.length; j < len1; j++) {
+		el.childNodes[j].xfElement.propagate();
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_submission(subform, id, model, ref, value, bind, action, method, version, indent,
+			mediatype, encoding, omitXmlDeclaration, cdataSectionElements,
+			replace, targetref, instance, separator, includenamespaceprefixes, validate, relevant,
+			synchr, show, serialization) {
+	if (document.getElementById(id)) {
+		return;
+	}
+	this.init(subform, id, model, "xforms-submission");
+	this.model = model;
+	if (!model.defaultSubmission) {
+		model.defaultSubmission = this;
+	}
+	this.action = action;
+	if (action.substr && (action.substr(0, 7) === "file://" || window.location.href.substr(0, 7) === "file://") && !(document.applets.xsltforms || document.getElementById("xsltforms_applet")) ) {
+		XsltForms_browser.loadapplet();
+	}
+	this.method = method;
+	this.replace = replace;
+	this.targetref = targetref;
+	this.version = version;
+	this.indent = indent;
+	this.validate = validate;
+	this.relevant = relevant;
+	this.synchr = synchr;
+	this.show = show;
+	this.serialization = serialization;
+	if (mediatype) {
+		var lines = mediatype.split(";");
+		this.mediatype = lines[0];
+		for (var i = 1, len = lines.length; i < len; i++) {
+			var vals = lines[i].split("=");
+			switch (vals[0].replace(/^\s+/g,'').replace(/\s+$/g,'')) {
+				case "action":
+					this.soapAction = vals[1].replace(/^\s+/g,'').replace(/\s+$/g,'');
+					break;
+				case "charset":
+					this.charset = vals[1].replace(/^\s+/g,'').replace(/\s+$/g,'');
+					break;
+			}
+		}
+		if (this.mediatype === "application/zip" || this.mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+			this.charset = "x-user-defined-binary";
+		}
+	}
+	this.encoding = encoding || "UTF-8";
+	this.omitXmlDeclaration = omitXmlDeclaration;
+	this.cdataSectionElements = cdataSectionElements;
+	this.instance = instance;
+	this.separator = separator === "&amp;"? "&" : separator;
+	this.includenamespaceprefixes = includenamespaceprefixes;
+	this.headers = [];
+	if (ref || bind || value) {
+		this.binding = new XsltForms_binding(value ? "xsd:string" : null, value ? value : ref, model.element, bind);
+		this.eval_ = function() {
+			var res = this.binding.bind_evaluate();
+			return typeof res === "string" ? res : res[0];
+		};
+	} else {
+		this.eval_ = function() {
+			return this.model.getInstanceDocument();
+		};
+	}
+}
+
+XsltForms_submission.prototype = new XsltForms_coreElement();
+
+
+		
+
+XsltForms_submission.prototype.header = function(nodeset, combine, name, values) {
+	this.headers.push({nodeset: nodeset, combine: combine, name: name, values: values});
+	return this;
+};
+
+		
+
+XsltForms_submission.prototype.xml2data = function(node, method) {
+	if (this.mediatype === "application/zip" ||
+	    this.mediatype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+		this.mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+		var instance = document.getElementById(XsltForms_browser.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "instance")).xfElement;
+		if (!instance.archive) {
+			alert("Not an archive!");
+		}
+		return XsltForms_browser.xml2zip(instance.archive, this.mediatype);
+	}
+	var ser = node ? typeof node === "string" ? node : XsltForms_browser.saveXML(node, this.relevant, false, method === "multipart-post") : "";
+	if (this.mediatype === "text/csv" && typeof node !== "string") { 
+		return XsltForms_browser.xml2csv(ser, this.separator);
+	}
+	return ser;
+};
+
+		
+
+XsltForms_submission.prototype.submit = function() {
+	var ctxnode, targetnode, inst, body, scriptelt;
+	XsltForms_globals.openAction("XsltForms_submission.prototype.submit");
+	var node = this.eval_();
+	var action = "error";
+	if(this.action.bind_evaluate) {
+		action = XsltForms_globals.stringValue(this.action.bind_evaluate(this.subform));
+	} else {
+		action = this.action;
+	}
+	var method = "post";
+	var subm = this;
+	if(this.method.bind_evaluate) {
+		method = XsltForms_globals.stringValue(this.method.bind_evaluate(this.subform));
+	} else {
+		method = this.method;
+	}
+	var evcontext = {"method": method, "resource-uri": action};
+	if (action.subst && action.subst(0, 8) === "local://" && (typeof(localStorage) === 'undefined')) {
+		evcontext["error-type"] = "validation-error";
+		this.issueSubmitException_(evcontext, null, {message: "local:// submission not supported"});
+		XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+		return;
+	}
+	if (node) {
+		if (this.validate && !XsltForms_globals.validate_(node)) {
+			XsltForms_globals.validationError = true;
+			XsltForms_globals.addChange(subm.model);
+			XsltForms_xmlevents.dispatch(subm.model, "xforms-rebuild");
+			XsltForms_globals.refresh();
+			evcontext["error-type"] = "validation-error";
+			this.issueSubmitException_(evcontext, null, null);
+			XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+			return;
+		}
+		if ((method === "get" || method === "delete") && this.serialization !== "none" && action.substr(0, 9) !== "opener://" && action.substr(0, 8) !== "local://") {
+			var tourl = XsltForms_submission.toUrl_(node, this.separator);
+			action += (action.indexOf('?') === -1? '?' : this.separator) +
+				tourl.substr(0, tourl.length - this.separator.length);
+		}
+	}
+	var ser = "";
+	if (this.serialization !== "none") {
+		XsltForms_xmlevents.dispatch(this, "xforms-submit-serialize");
+		ser = this.xml2data(node, method);
+	}
+	var instance = this.instance;
+	if ((window.location.href.substr(0, 7) === "file://" && method !== "get") || (action.substr(0, 7) === "file://" && (window.location.href.substr(0, 7) !== "file://" || method !== "get")) || action.substr(0, 9) === "opener://" || action.substr(0, 8) === "local://") {
+		if ((window.location.href.substr(0, 7) === "file://" || action.substr(0, 7) === "file://") && method === "put") {
+			if (!XsltForms_browser.writeFile(window.location.href.substr(0, 7) === "file://" ? action : action.substr(7), subm.encoding, "string", "XSLTForms Java Saver", ser)) {
+				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
+			}
+			XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
+		} else if (window.location.href.substr(0, 7) === "file://" && method === "get") {
+			scriptelt = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "script") : document.createElement("script");
+			scriptelt.setAttribute("src", action);
+			scriptelt.setAttribute("id", "xsltforms-filereader");
+			scriptelt.setAttribute("type", "application/xml");
+			var scriptLoaded = function() {
+				alert(document.getElementById("xsltforms-filereader").textContent);
+			};
+			scriptelt.onreadystatechange = function () {
+				if (this.readyState === 'complete' || this.readyState === 'loaded') {
+					scriptLoaded();
+				}
+			};
+			scriptelt.onload = scriptLoaded;
+			body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+			body.insertBefore(scriptelt, body.firstChild);
+		} else if (action.substr(0, 9) === "opener://" && method === "put") {
+			try {
+				window.opener.XsltForms_globals.xmlrequest('put', action.substr(9), ser);
+			} catch (e) {
+				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
+				XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+				return;
+			}
+			XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
+		} else if (action.substr(0, 8) === "local://" && method === "put") {
+			try {
+				window.localStorage.setItem(action.substr(8), ser);
+			} catch (e) {
+				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
+				XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+				return;
+			}
+			XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
+		} else if (action.substr(0, 8) === "local://" && method === "delete") {
+			try {
+				window.localStorage.removeItem(action.substr(8));
+			} catch (e) {
+				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
+				XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+				return;
+			}
+			XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
+		} else if (method === "get") {
+			if (action.substr(0, 7) === "file://") {
+				ser =  XsltForms_browser.readFile(action.substr(7), subm.encoding, "string", "XSLTForms Java Loader");
+			} else if (action.substr(0, 8) === "local://") {
+				try {
+					ser = window.localStorage.getItem(action.substr(8));
+				} catch (e) {
+					XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
+					XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+					return;
+				} 
+			} else if (action.substr(0, 9) === "opener://") {
+				try {
+					ser = window.opener.XsltForms_globals.xmlrequest('get', action.substr(9));
+				} catch (e) {
+					XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
+					XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+					return;
+				} 
+			} else {
+				eval("ser = (" + action.substr(11) + ");");
+			}
+			if (ser !== "" && (subm.replace === "instance" || (subm.targetref && subm.replace === "text"))) {
+				ctxnode = !instance ? (node ? (node.documentElement ? node.documentElement : node.ownerDocument.documentElement) : subm.model.getInstance().documentElement) : document.getElementById(instance).xfElement.doc.documentElement;
+				if (subm.targetref) {
+					targetnode = subm.targetref.bind_evaluate(subm.subform, ctxnode);
+					if (targetnode && targetnode[0]) {
+						if (subm.replace === "instance") {
+							XsltForms_browser.loadXML(targetnode[0], ser);
+						} else {
+							XsltForms_browser.loadTextNode(targetnode[0], ser);
+						}
+					}
+				} else {
+					inst = !instance ? (node ? document.getElementById(XsltForms_browser.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "instance")).xfElement : subm.model.getInstance()) : document.getElementById(instance).xfElement;
+					inst.setDoc(ser, false, true);
+				}
+				XsltForms_globals.addChange(subm.model);
+				XsltForms_xmlevents.dispatch(subm.model, "xforms-rebuild");
+				XsltForms_globals.refresh();
+				XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
+			} else {
+				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
+			}
+		}
+		XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+		return;
+	}
+	if (action.substr(0,11) === "javascript:") {
+		if (method === "get") {
+			eval("ser = (" + action.substr(11) + ");");
+			if (ser !== "" && (subm.replace === "instance" || (subm.targetref && subm.replace === "text"))) {
+				ctxnode = !instance ? (node ? (node.documentElement ? node.documentElement : node.ownerDocument.documentElement) : subm.model.getInstance().documentElement) : document.getElementById(instance).xfElement.doc.documentElement;
+				if (subm.targetref) {
+					targetnode = subm.targetref.bind_evaluate(subm.subform, ctxnode);
+					if (targetnode && targetnode[0]) {
+						if (subm.replace === "instance") {
+							XsltForms_browser.loadXML(targetnode[0], ser);
+						} else {
+							XsltForms_browser.loadTextNode(targetnode[0], ser);
+						}
+					}
+				} else {
+					inst = !instance ? (node ? document.getElementById(XsltForms_browser.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "instance")).xfElement : subm.model.getInstance()) : document.getElementById(instance).xfElement;
+					inst.setDoc(ser, false, true);
+				}
+				XsltForms_globals.addChange(subm.model);
+				XsltForms_xmlevents.dispatch(subm.model, "xforms-rebuild");
+				XsltForms_globals.refresh();
+				XsltForms_xmlevents.dispatch(subm, "xforms-submit-done");
+			} else {
+				XsltForms_xmlevents.dispatch(subm, "xforms-submit-error");
+			}
+		}
+		XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+		return;
+	}
+	var synchr = this.synchr;
+	if (synchr) {
+		XsltForms_browser.dialog.show("statusPanel", null, false);
+	}
+	if(method === "xml-urlencoded-post") {
+		var outForm = document.getElementById("xsltforms_form");
+		if(outForm) {
+			outForm.firstChild.value = ser;
+		} else {
+			outForm = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "form") : document.createElement("form");
+			outForm.setAttribute("method", "post");
+			outForm.setAttribute("action", action);
+			outForm.setAttribute("id", "xsltforms_form");
+			var txt = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "input") : document.createElement("input");
+			txt.setAttribute("type", "hidden");
+			txt.setAttribute("name", "postdata");
+			txt.setAttribute("value", ser);
+			outForm.appendChild(txt);
+			body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+			body.insertBefore(outForm, body.firstChild);
+		}
+		outForm.submit();
+		XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+	} else {
+		/*
+		var cross = false;
+		if (action.match(/^[a-zA-Z0-9+\.\-]+:\/\//)) {
+			var domain = /^([a-zA-Z0-9+\.\-]+:\/\/[^\/]*)/;
+			var sdom = domain.exec(action);
+			var ldom = domain.exec(document.location.href);
+			cross = sdom[0] !== ldom[0];
+		}
+		*/
+		if (this.mediatype === "text/jsonp") {
+			XsltForms_browser.jsoninstobj = !instance ? (node ? document.getElementById(XsltForms_browser.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "instance")).xfElement : this.model.getInstance()) : document.getElementById(instance).xfElement;
+			scriptelt = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "script") : document.createElement("script");
+			scriptelt.setAttribute("src", action.replace(/&amp;/g, "&")+((action.indexOf("?") === -1) ? "?" : "&")+"callback=jsoninst");
+			scriptelt.setAttribute("id", "jsoninst");
+			scriptelt.setAttribute("type", "text/javascript");
+			body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+			body.insertBefore(scriptelt, body.firstChild);
+			XsltForms_xmlevents.dispatch(this, "xforms-submit-done");
+			XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+		} else {
+			// TODO: Validate binding target is not empty
+			if (!node && (method !== "get" || method !== "delete")) {
+				evcontext["error-type"] = "no-data";
+				this.issueSubmitException_(evcontext, null, null);
+				return;
+			}
+			var req = null;
+			try {
+				evcontext["resource-uri"] = action;
+				req = XsltForms_browser.openRequest(method.split("-").pop(), action, !synchr);
+				var func = function() {
+					if (!synchr && req.readyState !== 4) {
+						return;
+					}
+					try {
+						if (req.status === 1223) {
+							req.status = 204;
+							req.statusText = "No Content";
+						}
+						if (req.status !== 0 && (req.status < 200 || req.status >= 300)) {
+							evcontext["error-type"] = "resource-error";
+							subm.issueSubmitException_(evcontext, req, null);
+							XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+							return;
+						}
+						if (subm.replace === "instance" || (subm.targetref && subm.replace === "text")) {
+							if (subm.targetref) {
+								ctxnode = !instance ? (node ? (node.documentElement ? node.documentElement : node.ownerDocument.documentElement) : subm.model.getInstance().documentElement) : document.getElementById(instance).xfElement.doc.documentElement;
+								targetnode = subm.targetref.bind_evaluate(subm.subform, ctxnode);
+								if (targetnode && targetnode[0]) {
+									if (subm.replace === "instance") {
+										XsltForms_browser.loadXML(targetnode[0], req.responseText);
+									} else {
+										XsltForms_browser.loadTextNode(targetnode[0], req.responseText);
+									}
+								}
+							} else {
+								inst = !instance ? (node ? document.getElementById(XsltForms_browser.getMeta(node.documentElement ? node.documentElement : node.ownerDocument.documentElement, "instance")).xfElement : subm.model.getInstance()) : document.getElementById(instance).xfElement;
+								inst.setDocFromReq(req, false, true);
+							}
+							XsltForms_globals.addChange(subm.model);
+							XsltForms_xmlevents.dispatch(subm.model, "xforms-rebuild");
+							XsltForms_globals.refresh();
+						}
+						XsltForms_submission.requesteventlog(evcontext, req);
+						XsltForms_xmlevents.dispatch(subm, "xforms-submit-done", null, null, null, null, evcontext);
+						XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+						if (subm.replace === "all") {
+							var resp = req.responseText;
+							var piindex = resp.indexOf("<?xml-stylesheet", 0);
+							while ( piindex !== -1) {
+								var xslhref = resp.substr(piindex, resp.substr(piindex).indexOf("?>")).replace(/^.*href=\"([^\"]*)\".*$/, "$1");
+								resp = XsltForms_browser.transformText(resp, xslhref, false);
+								piindex = resp.indexOf("<?xml-stylesheet", 0);
+							}
+							if( subm.show === "new" ) {
+								if (req.getResponseHeader("Content-Type") === "application/octet-stream;base64") {
+									//window.open("data:application/octet-stream;base64," + resp,"_blank");
+									location.href ="data:application/octet-stream;base64," + resp;
+								} else {
+									var w = window.open("about:blank","_blank");
+									w.document.write(resp);
+									w.document.close();
+								}
+							} else {
+								XsltForms_browser.dialog.hide("statusPanel", false);
+								XsltForms_globals.close();
+								if(document.write) {
+									document.write(resp);
+									document.close();
+								} else {
+									//document.documentElement.parentNode.replaceChild(req.responseXML.documentElement,document.documentElement);
+									if (resp.indexOf("<?", 0) === 0) {
+										resp = resp.substr(resp.indexOf("?>")+2);
+									}                       
+									//alert(resp);
+									document.documentElement.innerHTML = resp;
+								}
+							}
+						}
+					} catch(e) {
+						XsltForms_browser.debugConsole.write(e || e.message);
+						evcontext["error-type"] = "parse-error";
+						subm.issueSubmitException_(evcontext, req, e);
+						XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+					}
+				};
+				if (!synchr) {
+					req.onreadystatechange = func;
+				}
+				var media = this.mediatype;
+				var mt;
+				if (method === "multipart-post") {
+					mt = "multipart/related; boundary=xsltformsrev" + XsltForms_globals.fileVersionNumber + '; type="application/xml"; start="<xsltforms_main>"';
+				} else {
+					mt = (media || "application/xml") + (this.charset? ";charset=" + this.charset : "");
+				}
+				XsltForms_browser.debugConsole.write("Submit " + this.method + " - " + mt + " - " + action + " - " + synchr);
+				var len = this.headers.length;
+				if (len !== 0) {
+					var headers = [];
+					for (var i = 0, len0 = this.headers.length; i < len0; i++) {
+						var nodes = [];
+						if (this.headers[i].nodeset) {
+							nodes = this.headers[i].nodeset.bind_evaluate(this.subform);
+						} else {
+							nodes = [subm.model.getInstanceDocument().documentElement];
+						}
+						var hname;
+						for (var n = 0, lenn = nodes.length; n < lenn; n++) {
+							if (this.headers[i].name.evaluate) {
+								hname = XsltForms_globals.stringValue(this.headers[i].name.bind_evaluate(nodes[n]));
+							} else {
+								hname = this.headers[i].name;
+							}
+							if (hname !== "") {
+								var hvalue = "";
+								var j;
+								var len2;
+								for (j = 0, len2 = this.headers[i].values.length; j < len2; j++) {
+									var hv = this.headers[i].values[j];
+									var hv2;
+									if (hv.evaluate) {
+										hv2 = XsltForms_globals.stringValue(hv.bind_evaluate(nodes[n]));
+									} else {
+										hv2 = hv;
+									}
+									hvalue += hv2;
+									if (j < len2 - 1) {
+										hvalue += ",";
+									}
+								}
+								var len3;
+								for (j = 0, len3 = headers.length; j < len3; j++) {
+									if (headers[j].name === hname) {
+										switch (this.headers[i].combine) {
+											case "prepend":
+												headers[j].value = hvalue + "," + headers[j].value;
+												break;
+											case "replace":
+												headers[j].value = hvalue;
+												break;
+											default:
+												headers[j].value += "," + hvalue;
+												break;
+										}
+										break;
+									}
+								}
+								if (j === len3) {
+									headers.push({name: hname, value: hvalue});
+								}
+							}
+						}
+					}
+					for (var k = 0, len4 = headers.length; k < len4; k++) {
+						req.setRequestHeader(headers[k].name, headers[k].value);
+					}
+				}
+				if (method === "get" || method === "delete") {
+					if (media === XsltForms_submission.SOAP_) {
+						req.setRequestHeader("Accept", mt);
+					} else {
+						if (subm.replace === "instance") {
+							req.setRequestHeader("Accept", "application/xml,text/xml");
+						}
+					}
+					if ((subm.mediatype === "application/zip" || subm.mediatype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" )&& req.overrideMimeType) {
+						req.overrideMimeType('text/plain; charset=x-user-defined');
+					};
+					if ((subm.mediatype === "text/csv" )&& req.overrideMimeType) {
+						req.overrideMimeType('text/csv; charset=ISO-8859-1');
+					};
+					//req.setRequestHeader("If-Modified-Since", "Sat, 1 Jan 2005 00:00:00 GMT");
+					req.send(null);
+				} else {
+					req.setRequestHeader("Content-Type", mt);
+					if (media === XsltForms_submission.SOAP_) {
+						req.setRequestHeader("SOAPAction", this.soapAction);
+					} else {
+						if (subm.replace === "instance") {
+							req.setRequestHeader("Accept", "application/xml,text/xml");
+						}
+					}
+					req.send(ser);
+				}
+				if (synchr) {
+					func();
+					XsltForms_browser.dialog.hide("statusPanel", null, false);
+				}
+			} catch(e) {
+				XsltForms_browser.dialog.hide("statusPanel", null, false);
+				XsltForms_browser.debugConsole.write(e.message || e);
+				evcontext["error-type"] = "resource-error";
+				subm.issueSubmitException_(evcontext, req, e);
+				XsltForms_globals.closeAction("XsltForms_submission.prototype.submit");
+			}
+		}
+	}
+};
+
+XsltForms_submission.SOAP_ = "application/soap+xml";
+
+
+		
+
+XsltForms_submission.requesteventlog = function(evcontext, req) {
+	try {
+		evcontext["response-status-code"] = req.status;
+		evcontext["response-reason-phrase"] = req.statusText;
+		evcontext["response-headers"] = [];
+		var rheads = req.getAllResponseHeaders();
+		var rheaderselts = "";
+		if (rheads) {
+			rheads = rheads.replace(/\r/, "").split("\n");
+			for (var i = 0, len = rheads.length; i < len; i++) {
+				var colon = rheads[i].indexOf(":");
+				if (colon !== -1) {
+					var name = rheads[i].substring(0, colon).replace(/^\s+|\s+$/, "");
+					var value = rheads[i].substring(colon+1).replace(/^\s+|\s+$/, "");
+					rheaderselts += "<header><name>"+XsltForms_browser.escape(name)+"</name><value>"+XsltForms_browser.escape(value)+"</value></header>";
+				}
+			}
+		}
+		evcontext.rheadsdoc = XsltForms_browser.createXMLDocument("<data>"+rheaderselts+"</data>");
+		if (evcontext.rheadsdoc.documentElement.firstChild) {
+			var rh = evcontext.rheadsdoc.documentElement.firstChild;
+			evcontext["response-headers"] = [rh];
+			while (rh.nextSibling) {
+				rh = rh.nextSibling;
+				evcontext["response-headers"].push(rh);
+			}
+		}
+		if (req.responseXML) {
+			evcontext["response-body"] = [XsltForms_browser.createXMLDocument(req.responseText).documentElement];
+		} else {
+			evcontext["response-body"] = req.responseText || "";
+		}
+	} catch (e) {
+	}
+};
+
+		
+
+XsltForms_submission.prototype.issueSubmitException_ = function(evcontext, req, ex) {
+	if (ex) {
+		evcontext.message = ex.message || ex;
+		evcontext["stack-trace"] = ex.stack;
+	}
+	if (req) {
+		XsltForms_submission.requesteventlog(evcontext, req);
+	}
+	XsltForms_xmlevents.dispatch(this, "xforms-submit-error", null, null, null, null, evcontext);
+};
+
+		
+
+XsltForms_submission.toUrl_ = function(node, separator) {
+	var url = "";
+	var val = "";
+	var hasChilds = false;
+	for(var i = 0, len = node.childNodes.length; i < len; i++) {
+		var child = node.childNodes[i];
+		switch (child.nodeType) {
+			case XsltForms_nodeType.ELEMENT:
+				hasChilds = true;
+				url += this.toUrl_(child, separator);
+				break;
+			case XsltForms_nodeType.TEXT:
+				val += child.nodeValue;
+				break;
+		}
+	}
+	if (!hasChilds && val.length > 0) {
+		url += node.nodeName + '=' + encodeURIComponent(val) + separator;
+	}
+	return url;
+};
+
+	
+		
+		
+function XsltForms_timer(subform, id, time) {
+	if (document.getElementById(id)) {
+		return;
+	}
+	this.init(subform, id, null, "xforms-timer");
+	this.running = false;
+	this.time = time;
+}
+
+XsltForms_timer.prototype = new XsltForms_coreElement();
+
+XsltForms_timer.prototype.start = function() {
+	this.running = true;
+	var timer = this;
+	setTimeout(function() { timer.run(); }, this.time);
+};
+
+XsltForms_timer.prototype.stop = function() {
+	this.running = false;
+};
+
+XsltForms_timer.prototype.run = function() {
+	if (this.running) {
+		var timer = this;
+		XsltForms_globals.openAction();
+		XsltForms_xmlevents.dispatch(timer.element, "ajx-time");
+		XsltForms_globals.closeAction();
+		setTimeout(function() { timer.run(); }, this.time);
+	}
+};
+    
+	
+	
+		
+		
+		
+		
+function XsltForms_confirm(subform, id, binding, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.id = id;
+	this.binding = binding;
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_confirm.prototype = new XsltForms_abstractAction();
+
+XsltForms_confirm.prototype.run = function(element, ctx, evt) {
+	var text;
+	if (this.binding) {
+		var node = this.binding.bind_evaluate(ctx)[0];
+		if (node) {
+			text = XsltForms_browser.getValue(node);
+		}
+	} else {
+		var e = XsltForms_idManager.find(this.id);
+		XsltForms_globals.build(e, ctx);
+		text = e.textContent || e.innerText;
+	}
+	if (text) {
+		var res = XsltForms_browser.confirm(text.trim());
+		if (!res) {
+			evt.stopPropagation();
+			evt.stopped = true;
+		}
+	}
+};
+
+	
+		
+		
+function XsltForms_setproperty(subform, name, value, literal, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.name = name;
+	this.value = value;
+	this.literal = literal;
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_setproperty.prototype = new XsltForms_abstractAction();
+
+XsltForms_setproperty.prototype.run = function(element, ctx) {
+	var value = this.literal;
+	if (this.value) {
+		//value = this.value.evaluate(node); // ??? What is node?
+		if (typeof(value) !== "string" && typeof(value.length) !== "undefined") {
+			value = value.length > 0? XsltForms_browser.getValue(value[0]) : "";
+		}
+	}
+	if (value) {
+		XsltForms_browser.i18n.lang = value;
+		XsltForms_browser.debugConsole.write("setproperty " + name + " = " + value);
+	}
+};
+    
+	
+		
+		
+		
+function XsltForms_abstractAction() {
+}
+
+
+		
+
+XsltForms_abstractAction.prototype.init = function(ifexpr, whileexpr, iterateexpr) {
+	this.ifexpr = XsltForms_xpath.get(ifexpr);
+	this.whileexpr = XsltForms_xpath.get(whileexpr);
+	this.iterateexpr = XsltForms_xpath.get(iterateexpr);
+};
+
+
+		
+
+XsltForms_abstractAction.prototype.execute = function(element, ctx, evt) {
+	if (evt.stopped) { return; }
+	if (!ctx) {
+		ctx = element.node || (XsltForms_globals.defaultModel.getInstanceDocument() ? XsltForms_globals.defaultModel.getInstanceDocument().documentElement : null);
+	}
+	// for now, iterate overrides while.
+	if (this.iterateexpr) {
+		if (this.whileexpr) {
+			XsltForms_globals.error(this.element, "xforms-compute-exception", "@iterate cannot be used with @while");
+		}
+		var nodes = this.iterateexpr.xpath_evaluate(ctx);
+		for (var i = 0, len = nodes.length; i < len; i++) {
+			this.exec_(element, nodes[i], evt);
+		}
+	} else if (this.whileexpr) {
+		while (XsltForms_globals.booleanValue(this.whileexpr.xpath_evaluate(ctx))) {
+			if (!this.exec_(element, ctx, evt)) {
+				break;
+			}
+		}
+	} else {
+		this.exec_(element, ctx, evt);
+	}
+};
+
+
+		
+
+XsltForms_abstractAction.prototype.exec_ = function(element, ctx, evt) {
+	if (this.ifexpr) {
+		if (XsltForms_globals.booleanValue(this.ifexpr.xpath_evaluate(ctx))) {
+			this.run(element, ctx, evt);
+		} else {
+			return false;
+		}
+	} else {
+		this.run(element, ctx, evt);
+	}
+	return true;
+};
+
+
+		
+
+XsltForms_abstractAction.prototype.run = function(element, ctx, evt) { };
+
+	
+		
+		
+		
+function XsltForms_action(subform, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.init(ifexpr, whileexpr, iterateexpr);
+	this.childs = [];
+}
+
+XsltForms_action.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_action.prototype.add = function(action) {
+	this.childs.push(action);
+	return this;
+};
+
+
+		
+
+XsltForms_action.prototype.run = function(element, ctx, evt) {
+	XsltForms_browser.forEach(this.childs, "execute", element, ctx, evt);
+};
+    
+	
+		
+		
+		
+function XsltForms_delete(subform, nodeset, model, bind, at, context, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.binding = new XsltForms_binding(null, nodeset, model, bind);
+	//this.at = at?XsltForms_xpath.get(at):null;
+	this.at = XsltForms_xpath.get(at);
+	this.context = XsltForms_xpath.get(context);
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_delete.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_delete.prototype.run = function(element, ctx) {
+	if (this.context) {
+		ctx = this.context.xpath_evaluate(this.subform, ctx)[0];
+	}
+	if (!ctx) {
+		return;
+	}
+	var nodes = this.binding.bind_evaluate(this.subform, ctx);
+	if(this.at) {
+		var index = XsltForms_globals.numberValue(this.at.xpath_evaluate(new XsltForms_exprContext(this.subform, ctx, 1, nodes)));
+		if(!nodes[index - 1]) {
+			return;
+		}
+		nodes = [nodes[index - 1]];
+	}
+	var model;
+	var instance;
+	if (nodes.length > 0) {
+		model = document.getElementById(XsltForms_browser.getMeta(nodes[0].documentElement ? nodes[0].documentElement : nodes[0].ownerDocument.documentElement, "model")).xfElement;
+		instance = model.findInstance(nodes[0]);
+	}
+	var deletedNodes = [];
+	for (var i = 0, len = nodes.length; i < len; i++) {
+		var node = nodes[i];
+		XsltForms_mipbinding.nodedispose(node);
+		var repeat = XsltForms_browser.getMeta(node, "repeat");
+		if (repeat) {
+			document.getElementById(repeat).xfElement.deleteNode(node);
+		}
+		if (node.nodeType === XsltForms_nodeType.ATTRIBUTE) {
+			var oldOwnerElement = node.ownerElement? node.ownerElement: node.selectSingleNode("..");
+			//XsltForms_browser.clearMeta(node);
+			if (oldOwnerElement.removeAttributeNS) {
+				oldOwnerElement.removeAttributeNS(node.namespaceURI, node.nodeName);
+			} else {
+				oldOwnerElement.removeAttributeNode(node);
+			}
+			if (!XsltForms_browser.isIE && !XsltForms_browser.isIE11) {
+				node.oldOwnerElement = oldOwnerElement;
+			}
+		} else {
+			node.parentNode.removeChild(node);
+		}
+		deletedNodes.push(node);
+	}
+	if (nodes.length > 0) {
+		XsltForms_globals.addChange(model);
+		model.setRebuilded(true);
+		var evcontext = {"deleted-nodes": deletedNodes, "delete-location": index};
+		XsltForms_xmlevents.dispatch(instance, "xforms-delete", null, null, null, null, evcontext);
+	}
+};
+    
+	
+		
+		
+		
+function XsltForms_dispatch(subform, name, target, properties, ifexpr, whileexpr, iterateexpr, delay) {
+	this.subform = subform;
+	this.name = name;
+	this.target = target;
+	this.properties = properties;
+	this.init(ifexpr, whileexpr, iterateexpr);
+	this.delay = delay;
+}
+
+XsltForms_dispatch.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_dispatch.prototype.run = function(element, ctx, evt) {
+	var name = this.name;
+	if (name.bind_evaluate) {
+		name = XsltForms_globals.stringValue(name.bind_evaluate(this.subform));
+	}
+	var target = this.target;
+	if (target && target.bind_evaluate) {
+		target = XsltForms_globals.stringValue(target.bind_evaluate(this.subform));
+	}
+	if (!target) {
+		switch (name) {
+			case "xforms-submit":
+				target = document.getElementById(XsltForms_browser.getMeta(ctx.ownerDocument.documentElement, "model")).xfElement.defaultSubmission;
+				break;
+			case "xforms-rebuild":
+			case "xforms-recalculate":
+			case "xforms-refresh":
+			case "xforms-reset":
+			case "xforms-revalidate":
+				target = document.getElementById(XsltForms_browser.getMeta(ctx.ownerDocument.documentElement, "model")).xfElement;
+				break;
+		}
+	} else {
+		target = typeof target === "string"? document.getElementById(target) : target;
+	}
+	var evtctx = {};
+	for (var prop in this.properties) {
+		if (prop !== "" && this.properties.hasOwnProperty(prop)) {
+			evtctx[prop] = this.properties[prop].bind_evaluate ? this.properties[prop].bind_evaluate(this.subform) : this.properties[prop];
+		}
+	}
+	var delay = 0;
+	if (this.delay) {
+		if (this.delay.bind_evaluate) {
+			delay = XsltForms_globals.numberValue(this.delay.bind_evaluate(this.subform));
+		} else {
+			delay = XsltForms_globals.numberValue(this.delay);
+		}
+	}
+	if (delay > 0 ) {
+		window.setTimeout("XsltForms_xmlevents.dispatch(document.getElementById('"+target.id+"'),'"+name+"')", delay);
+	} else {
+		XsltForms_xmlevents.dispatch(target, name, null, null, null, null, evtctx);
+	}
+};
+    
+	
+		
+		
+		
+function XsltForms_insert(subform, nodeset, model, bind, at, position, origin, context, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.binding = new XsltForms_binding(null, nodeset, model, bind);
+	this.origin = XsltForms_xpath.get(origin);
+	this.context = XsltForms_xpath.get(context);
+	this.at = XsltForms_xpath.get(at);
+	this.position = position;
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_insert.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_insert.prototype.run = function(element, ctx) {
+	if (this.context) {
+		ctx = this.context.xpath_evaluate(ctx)[0];
+	}
+	if (!ctx) {
+		return;
+	}
+	var nodes = [];
+	if( this.binding.bind || this.binding.xpath ) {
+		nodes = this.binding.bind_evaluate(this.subform, ctx);
+	}
+	var index = 0;
+	var node = null;
+	var originNodes = [];
+	var parent = null;
+	var pos = this.position === "after"? 1 : 0;
+	var res = 0;
+	if (this.origin) {
+		originNodes = this.origin.xpath_evaluate(ctx);
+	}
+	if (originNodes.length === 0) {
+		if (nodes.length === 0) {
+			return;
+		}
+		originNodes.push(nodes[nodes.length - 1]);
+	}
+	for(var i = 0, len = originNodes.length; i < len; i += 1) {
+		node = originNodes[i];
+		if (nodes.length === 0) {
+			parent = ctx;
+		} else {
+			parent = nodes[0].nodeType === XsltForms_nodeType.DOCUMENT? nodes[0] : nodes[0].nodeType === XsltForms_nodeType.ATTRIBUTE? nodes[0].ownerDocument ? nodes[0].ownerDocument : nodes[0].selectSingleNode("..") : nodes[0].parentNode;
+			if (parent.nodeType !== XsltForms_nodeType.DOCUMENT && node.nodeType !== XsltForms_nodeType.ATTRIBUTE) {
+				res = this.at ? Math.round(XsltForms_globals.numberValue(this.at.xpath_evaluate(new XsltForms_exprContext(this.subform, ctx, 1, nodes)))) + i - 1: nodes.length - 1;
+				index = isNaN(res)? nodes.length : res + pos;
+			}
+		}
+		XsltForms_browser.debugConsole.write("insert " + node.nodeName + " in " + parent.nodeName + " at " + index + " - " + ctx.nodeName);
+		var clone = node.cloneNode(true);
+		XsltForms_browser.clearMeta(clone);
+		if (node.nodeType === XsltForms_nodeType.ATTRIBUTE) {
+			XsltForms_browser.setAttributeNS(parent, node.namespaceURI, node.nodeName, node.nodeValue);
+		} else {
+			if (parent.nodeType === XsltForms_nodeType.DOCUMENT) {
+				var first = parent.documentElement;
+				var prevmodel = XsltForms_browser.getMeta(first, "model");
+				var previnst = XsltForms_browser.getMeta(first, "instance");
+				parent.removeChild(first);
+				first = null;
+				XsltForms_browser.setMeta(clone, "instance", previnst);
+				XsltForms_browser.setMeta(clone, "model", prevmodel);
+				parent.appendChild(clone);
+			} else {
+				var nodeAfter;
+				if (index >= nodes.length && nodes.length !== 0) {
+					nodeAfter = nodes[nodes.length - 1].nextSibling;
+				} else {
+					nodeAfter = nodes[index];
+				}
+				if (nodeAfter) {
+					nodeAfter.parentNode.insertBefore(clone, nodeAfter);
+				} else if (nodes.length === 0 && parent.firstChild) {
+					parent.insertBefore(clone, parent.firstChild);
+				} else {
+					parent.appendChild(clone);
+				}
+				var repeat = nodes.length > 0? XsltForms_browser.getMeta(nodes[0], "repeat") : null;
+				nodes.push(clone);
+				if (repeat) {
+					document.getElementById(repeat).xfElement.insertNode(clone, nodeAfter);
+				}
+			}
+		}
+	}
+	var model = document.getElementById(XsltForms_browser.getMeta(parent.documentElement ? parent.documentElement : parent.ownerDocument.documentElement, "model")).xfElement;
+	XsltForms_globals.addChange(model);
+	model.setRebuilded(true);
+	var evcontext = {"inserted-nodes": [clone], "origin-nodes": originNodes, "insert-location-node": index, position: this.position};
+	XsltForms_xmlevents.dispatch(model.findInstance(parent), "xforms-insert", null, null, null, null, evcontext);
+};
+    
+	
+		
+		
+		
+function XsltForms_load(subform, binding, resource, show, targetid, instance, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.binding = binding;
+	this.resource = resource;
+	this.show = show;
+	this.targetid = targetid || "_self";
+	this.instance = instance;
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_load.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_load.prototype.run = function(element, ctx) {
+	var href = this.resource;
+	var node;
+	if (this.binding) {
+		node = this.binding.bind_evaluate(this.subform, ctx)[0];
+		if (node) {
+			var t = XsltForms_schema.getType(XsltForms_browser.getType(node));
+			if (!t.hasBase("xf:HTMLFragment")) {
+				href = XsltForms_browser.getValue(node);
+			}
+		}
+	} else {
+		if (href && typeof href === 'object') {
+			href = XsltForms_globals.stringValue(this.resource.xpath.xpath_evaluate(ctx));
+		} else {
+			if (typeof href === 'string') {
+				href = XsltForms_browser.unescape(href); 
+			}
+		}
+	}
+	if (href) {
+		if(href.substr(0, 11) === "javascript:") {
+			try {
+				eval("{XsltForms_context={elementId:\""+element.getAttribute("id")+"\"};"+href.substr(11)+"}");
+			} catch (e) {
+				alert("XSLTForms Exception\n--------------------------\n\nError evaluating the following Javascript expression :\n\n"+href.substr(11)+"\n\n"+e);
+			}
+		} else if (this.show === "new" || this.targetid === "_blank") {
+			window.open(href);
+		} else if (this.show === "embed" || (this.targetid !== "" && this.targetid !== "_blank" && this.targetid !== "_self")) {
+			XsltForms_globals.openAction("XsltForms_load.prototype.run");
+			var req = null;
+			var method = "get";
+			var evcontext = {"method": method, "resource-uri": href};
+			try {
+				req = XsltForms_browser.openRequest(method, href, false);
+				XsltForms_browser.debugConsole.write("Load " + href);
+				req.send(null);
+				if (req.status !== 0 && (req.status < 200 || req.status >= 300)) {
+					evcontext["error-type"] = "resource-error";
+					this.issueLoadException_(evcontext, req, null);
+					XsltForms_globals.closeAction("XsltForms_load.prototype.run");
+					return;
+				}
+				XsltForms_submission.requesteventlog(evcontext, req);
+				XsltForms_globals.closeAction("XsltForms_load.prototype.run");
+				var resp = req.responseText;
+				var piindex = resp.indexOf("<?xml-stylesheet", 0);
+				while ( piindex !== -1) {
+					var xslhref = resp.substr(piindex, resp.substr(piindex).indexOf("?>")).replace(/^.*href=\"([^\"]*)\".*$/, "$1");
+					resp = XsltForms_browser.transformText(resp, xslhref, false);
+					piindex = resp.indexOf("<?xml-stylesheet", 0);
+				}
+				XsltForms_browser.dialog.hide("statusPanel", false);
+				var sp = XsltForms_globals.stringSplit(resp, "XsltForms_MagicSeparator");
+				var subbody, subjs;
+				var targetelt = XsltForms_idManager.find(this.targetid);
+				if (sp.length === 1) {
+					subbody = resp;
+				} else {
+					subjs = "/* xsltforms-subform-" + XsltForms_globals.nbsubforms + " " + sp[2] + " xsltforms-subform-" + XsltForms_globals.nbsubforms + " */";
+					var imain = subjs.indexOf('"xsltforms-mainform"');
+					var targetsubform = targetelt.xfSubform;
+					if (targetsubform) {
+						targetsubform.dispose();
+					}
+					subjs = '(function(){var xsltforms_subform_eltid = "' + targetelt.id + '";var xsltforms_parentform = XsltForms_subform.subforms["' + this.subform.id + '"];' + subjs.substring(0, imain) + '"xsltforms-subform-' + XsltForms_globals.nbsubforms + '"' + subjs.substring(imain + 20) + "})();";
+					subbody = "<!-- xsltforms-subform-" + XsltForms_globals.nbsubforms + " " + sp[4] + " xsltforms-subform-" + XsltForms_globals.nbsubforms + " -->";
+					imain = subbody.indexOf(' id="xsltforms-mainform');
+					while (imain !== -1) {
+						subbody = subbody.substring(0, imain) + ' id="xsltforms-subform-' + XsltForms_globals.nbsubforms + subbody.substring(imain + 23);
+						imain = subbody.indexOf(' id="xsltforms-mainform');
+					}
+				}
+				var targetxf = targetelt.xfElement;
+				if (targetelt.xfElement) {
+					targetelt = targetelt.children[targetelt.children.length - 1];
+				}
+				targetelt.innerHTML = subbody;
+				targetelt.hasXFElement = null;
+				var parent = targetelt.parentNode;
+				while (parent) {
+					if (parent.hasXFElement !== false) {
+						break;
+					}
+					parent.hasXFElement = null;
+					parent = parent.parentNode;
+				}
+				if (sp.length !== 1) {
+					var scriptelt = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "script") : document.createElement("script");
+					scriptelt.setAttribute("id", "xsltforms-subform-" + XsltForms_globals.nbsubforms + "-script");
+					scriptelt.setAttribute("type", "text/javascript");
+					if (XsltForms_browser.isIE) {
+						scriptelt.text = subjs;
+					} else {
+						scriptelt.appendChild(document.createTextNode(subjs));
+					}
+					var body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+					body.insertBefore(scriptelt, body.firstChild);
+				}
+				XsltForms_browser.setClass(targetelt, "xforms-subform-loaded", true);
+				if (targetxf) {
+					XsltForms_xmlevents.dispatch(targetxf, "xforms-load-done", null, null, null, null, evcontext);
+				}
+				XsltForms_globals.nbsubforms++;
+			} catch(e2) {
+				XsltForms_browser.debugConsole.write(e2.message || e2);
+				evcontext["error-type"] = "resource-error";
+				this.issueLoadException_(evcontext, req, e2);
+				XsltForms_globals.closeAction("XsltForms_load.prototype.run");
+			}
+		} else {
+			location.href = href;
+		}
+	} else {
+		if (node) {
+			var v = XsltForms_browser.getValue(node).replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+			var lw;
+			if (this.show === "new" || this.targetid === "_blank") {
+				lw = window.open("about:blank","_blank");
+				lw.document.write(v);
+				lw.document.close();
+			} else {
+				lw = window.open("about:blank", "_self");
+				lw.document.write(v);
+				lw.document.close();
+			}
+		}
+	}
+};
+
+		
+
+XsltForms_load.prototype.issueLoadException_ = function(evcontext, req, ex) {
+	if (ex) {
+		evcontext.message = ex.message || ex;
+		evcontext["stack-trace"] = ex.stack;
+	}
+	if (req) {
+		XsltForms_submission.requesteventlog(evcontext, req);
+	}
+	XsltForms_xmlevents.dispatch(document.getElementById(this.targetid), "xforms-link-exception", null, null, null, null, evcontext);
+};
+
+		
+
+XsltForms_load.subform = function(resource, targetid, ref) {
+	if (ref) {
+		var parent = ref;
+		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+			if (XsltForms_browser.hasClass(parent, "xforms-repeat-item")) {
+				XsltForms_repeat.selectItem(parent);
+			}
+			parent = parent.parentNode;
+		}
+	}
+	var targetelt = XsltForms_idManager.find(targetid);
+	var subform = null;
+	parent = targetelt;
+	while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+		if (parent.xfSubform) {
+			subform = parent.xfSubform;
+			break;
+		}
+		parent = parent.parentNode;
+	}
+	var a = new XsltForms_load(subform, null, resource, "embed", targetid);
+	a.run();
+};
+
+	
+		
+		
+		
+function XsltForms_message(subform, id, binding, level, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.binding = binding;
+	this.id = id;
+	this.level = level;
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_message.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_message.prototype.run = function(element, ctx) {
+	var text;
+	if (this.binding) {
+		var node = this.binding.bind_evaluate(this.subform, ctx)[0];
+		if (node) {
+			text = XsltForms_browser.getValue(node);
+		}
+	} else {
+		var e = XsltForms_idManager.find(this.id);
+		var building = XsltForms_globals.building;
+		XsltForms_globals.building = true;
+		XsltForms_globals.build(e, ctx);
+		XsltForms_globals.building = building;
+		text = e.textContent || e.innerText;
+	}
+
+	if (text) {
+		alert(text.trim());
+	}
+};
+    
+	
+		
+		
+		
+function XsltForms_script(subform, binding, stype, script, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.binding = binding;
+	this.stype = stype;
+	this.script = script;
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_script.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_script.prototype.run = function(element, ctx) {
+	var script = this.script;
+	switch (this.stype) {
+		case "text/javascript":
+			if (this.binding) {
+				var node = this.binding.bind_evaluate(this.subform, ctx)[0];
+				if (node) {
+					script = XsltForms_browser.getValue(node);
+				}
+			} else {
+				if (typeof script === 'object') {
+					script = XsltForms_globals.stringValue(this.script.xpath.xpath_evaluate(ctx));
+				} else {
+					if (typeof script === 'string') {
+						script = XsltForms_browser.unescape(script); 
+					}
+				}
+			}
+			if (script) {
+				try {
+					eval("{XsltForms_context={elementId:\""+element.getAttribute("id")+"\"};"+script+"}");
+				} catch (e) {
+					alert("XSLTForms Exception\n--------------------------\n\nError evaluating the following Javascript expression :\n\n"+script+"\n\n"+e);
+				}
+			}
+			break;
+		case "application/xquery":
+			this.script.xpath.xpath_evaluate(ctx);
+			break;
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_setindex(subform, repeat, index, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.repeat = repeat;
+	this.index = XsltForms_xpath.get(index);
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_setindex.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_setindex.prototype.run = function(element, ctx) {
+	var repeat = XsltForms_idManager.find(this.repeat);
+	var index = XsltForms_globals.numberValue(this.index.xpath_evaluate(ctx));
+	XsltForms_browser.debugConsole.write("setIndex " + index);
+	if (!isNaN(index)) {
+		if (index < 1) {
+			index = 1;
+			XsltForms_xmlevents.dispatch(repeat.xfElement, "xforms-scroll-first");
+		} else if (index > repeat.xfElement.nodes.length) {
+			index = repeat.xfElement.nodes.length;
+			XsltForms_xmlevents.dispatch(repeat.xfElement, "xforms-scroll-last");
+		}
+		repeat.xfElement.setIndex(index);
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_setnode(subform, binding, value, inout, context, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.binding = binding;
+	this.value = value? XsltForms_xpath.get(value) : null;
+	this.inout = inout;
+	this.context = XsltForms_xpath.get(context);
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_setnode.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_setnode.prototype.run = function(element, ctx) {
+	var node = this.binding.bind_evaluate(this.subform, ctx)[0];
+	if (node) {
+		if (this.context) {
+			ctx = this.context.xpath_evaluate(ctx)[0];
+		}
+		var value = this.value? XsltForms_globals.stringValue(this.context ? this.value.xpath_evaluate(ctx, ctx) : this.value.xpath_evaluate(node, ctx)) : this.literal;
+		var modelid = XsltForms_browser.getMeta(node.ownerDocument.documentElement, "model");
+		var instanceid = XsltForms_browser.getMeta(node.ownerDocument.documentElement, "instance");
+		XsltForms_globals.openAction("XsltForms_setnode.prototype.run");
+		if (this.inout) {
+			while (node.firstChild) {
+				node.removeChild(node.firstChild);
+			}
+			var tempnode = node.ownerDocument.createTextNode("temp");
+			node.appendChild(tempnode);
+			XsltForms_browser.loadXML(tempnode, value || "");
+		} else {
+			XsltForms_browser.loadXML(node, value || "");
+			XsltForms_browser.setMeta(node.ownerDocument.documentElement, "model", modelid);
+			XsltForms_browser.setMeta(node.ownerDocument.documentElement, "instance", instanceid);
+		}
+		var model = document.getElementById(modelid).xfElement;
+		XsltForms_globals.addChange(model);
+		XsltForms_browser.debugConsole.write("Setnode " + node.nodeName + (this.inout ? " inner" : " outer") + " = " + value); 
+		XsltForms_xmlevents.dispatch(model, "xforms-rebuild");
+		XsltForms_globals.refresh();
+		XsltForms_globals.closeAction("XsltForms_setnode.prototype.run");
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_setvalue(subform, binding, value, literal, context, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.binding = binding;
+	this.value = value? XsltForms_xpath.get(value) : null;
+	this.literal = literal;
+	this.context = XsltForms_xpath.get(context);
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_setvalue.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_setvalue.prototype.run = function(element, ctx) {
+	var node = this.binding.bind_evaluate(element.xfElement.subform, ctx)[0];
+	if (node) {
+		if (this.context) {
+			ctx = this.context.xpath_evaluate(element.xfElement.subform, ctx)[0];
+		}
+		var value = this.value? XsltForms_globals.stringValue(this.context ? this.value.xpath_evaluate(ctx, ctx, element.xfElement.subform) : this.value.xpath_evaluate(node, ctx, element.xfElement.subform)) : this.literal;
+		XsltForms_globals.openAction("XsltForms_setvalue.prototype.run");
+		XsltForms_browser.setValue(node, value || "");
+		document.getElementById(XsltForms_browser.getMeta(node.ownerDocument.documentElement, "model")).xfElement.addChange(node);
+		XsltForms_browser.debugConsole.write("Setvalue " + node.nodeName + " = " + value); 
+		XsltForms_globals.closeAction("XsltForms_setvalue.prototype.run");
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_toggle(subform, caseId, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.caseId = caseId;
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_toggle.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_toggle.prototype.run = function(element, ctx) {
+	XsltForms_toggle.toggle(this.caseId, ctx);
+};
+
+
+		
+
+XsltForms_toggle.toggle = function(caseId, ctx) {
+	XsltForms_globals.openAction("XsltForms_toggle.toggle");
+	if (typeof caseId === 'object') {
+		if (!ctx) {
+			ctx = XsltForms_globals.defaultModel.getInstanceDocument() ? XsltForms_globals.defaultModel.getInstanceDocument().documentElement : null;
+		}
+		caseId = XsltForms_globals.stringValue(caseId.xpath.xpath_evaluate(ctx));
+	}
+	var element = XsltForms_idManager.find(caseId);
+	var childs = element ? element.parentNode.childNodes : [];
+	var ul;
+	var index = -1;
+	if (childs.length > 0 && childs[0].nodeName.toLowerCase() === "ul") {
+		ul = childs[0];
+	}
+	for (var i = ul ? 1 : 0, len = childs.length; i < len; i++) {
+		var child = childs[i];
+		if (child === element) {
+			index = i - 1;
+		} else {
+			if (child.style && child.style.display !== "none") {
+				child.style.display = "none";
+				if (ul) {
+					XsltForms_browser.setClass(ul.childNodes[i - 1], "ajx-tab-selected", false);
+				}
+			}
+			XsltForms_xmlevents.dispatch(child, "xforms-deselect");
+		}
+	}
+	if (element && element.style.display === "none") {
+		element.style.display = "block";
+		if (ul) {
+			XsltForms_browser.setClass(ul.childNodes[index], "ajx-tab-selected", true);
+		}
+	}
+	if (element) {
+		XsltForms_xmlevents.dispatch(element, "xforms-select");
+	}
+	XsltForms_globals.closeAction("XsltForms_toggle.toggle");
+};
+
+	
+		
+		
+		
+function XsltForms_unload(subform, targetid, ifexpr, whileexpr, iterateexpr) {
+	this.subform = subform;
+	this.targetid = targetid;
+	this.init(ifexpr, whileexpr, iterateexpr);
+}
+
+XsltForms_unload.prototype = new XsltForms_abstractAction();
+
+
+		
+
+XsltForms_unload.prototype.run = function(element, ctx) {
+	var targetid = this.targetid || this.subform.eltid;
+	var targetelt = XsltForms_idManager.find(targetid);
+	if (targetelt.xfSubform) {
+		targetelt.xfSubform.dispose();
+	}
+	targetelt.xfSubform = null;
+	var targetxf = targetelt.xfElement;
+	if (targetxf) {
+		targetelt = targetelt.children[targetelt.children.length - 1];
+	}
+	targetelt.innerHTML = "";
+	targetelt.hasXFElement = null;
+	XsltForms_browser.setClass(targetelt, "xforms-subform-loaded", false);
+	if (targetxf) {
+		XsltForms_xmlevents.dispatch(targetxf, "xforms-unload-done");
+	}
+	XsltForms_browser.debugConsole.write("unload-done");
+};
+
+		
+
+XsltForms_unload.subform = function(targetid, ref) {
+	if (ref) {
+		var parent = ref;
+		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+			if (XsltForms_browser.hasClass(parent, "xforms-repeat-item")) {
+				XsltForms_repeat.selectItem(parent);
+			}
+			parent = parent.parentNode;
+		}
+	}
+	var targetelt = XsltForms_idManager.find(targetid);
+	var subform = null;
+	parent = targetelt;
+	while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+		if (parent.xfSubform) {
+			subform = parent.xfSubform;
+			break;
+		}
+		parent = parent.parentNode;
+	}
+	var a = new XsltForms_unload(subform, targetid);
+	a.run();
+};
+
+	
+	
+		
+		
+		
+		
+function XsltForms_tree(subform, id, binding) {
+	this.init(subform, id);
+	this.binding = binding;
+	this.hasBinding = true;
+	this.root = XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "ul")[0] : this.element.getElementsByTagName("ul")[0];
+	this.label = this.root.firstChild.cloneNode(true);
+}
+
+XsltForms_tree.prototype = new XsltForms_element();
+
+XsltForms_tree.prototype.dispose = function() {
+	this.root = null;
+	this.selected = null;
+	XsltForms_element.prototype.dispose.call(this);
+};
+
+XsltForms_tree.prototype.build_ = function(ctx) {
+	var node = this.evaluateBinding(this.binding, ctx)[0];
+	if (node) {
+		var nodes = [];
+		this.buildTree(this.root, 0, node, nodes);
+		if (!this.selected || !XsltForms_browser.inArray(this.selected, nodes)) {
+			this.select(this.root.firstChild);
+		}
+	}
+};
+
+XsltForms_tree.prototype.select = function(item) {
+	var changed = true;
+	var init = !!this.selected;
+	if (init) {
+		if (this.selected === item) {
+			changed = false;
+		} else {
+			XsltForms_browser.setClass(this.selected, "xforms-tree-item-selected", false);
+			XsltForms_browser.setClass(this.selected.childNodes[1], "xforms-tree-item-label-selected", false);
+		}
+	}
+	if (changed) {
+		this.element.node = item.node;
+		this.selected = item;
+		XsltForms_browser.setClass(item, "xforms-tree-item-selected", true);
+		XsltForms_browser.setClass(item.childNodes[1], "xforms-tree-item-label-selected", true);
+		XsltForms_globals.openAction();
+		XsltForms_globals.addChange(this);
+		XsltForms_globals.addChange(document.getElementById(XsltForms_browser.getMeta(item.node.ownerDocument.documentElement, "model")).xfElement);
+		XsltForms_globals.closeAction();
+	}
+};
+
+XsltForms_tree.prototype.click = function(target) {
+	if (target.className === "xforms-tree-item-button") {
+		var ul = target.nextSibling.nextSibling;
+		if (ul) {
+			ul.style.display = ul.style.display !== "none"? "none" : "block";
+		}
+	} else if (XsltForms_browser.hasClass(target, "xforms-tree-item-label")) {
+		this.select(target.parentNode);
+	}
+};
+
+XsltForms_tree.prototype.buildTree = function(parent, index, node, nodes) {
+	var li = null;
+	var ul = null;
+	var childs = node.childNodes;
+	var nochild = childs.length === 0;
+	nodes.push(node);
+	if (parent.childNodes.length < index + 1) {
+		li = this.label.cloneNode(true);
+		parent.appendChild(li);
+		XsltForms_repeat.initClone(li);
+	} else {
+		li = parent.childNodes[index];
+		var last = li.lastChild;
+		if (last.nodeName.toLowerCase() === "ul") {
+			ul = last;
+			if (nochild) {
+				XsltForms_globals.dispose(ul);
+				li.removeChild(ul);
+			}
+		}
+	}
+	li.node = node;
+	XsltForms_browser.setClass(li, "xforms-tree-item-fork", !nochild);
+	XsltForms_browser.setClass(li, "xforms-tree-item-leaf", nochild);
+	for (var i = 0, len = childs.length; i < len; i++) {
+		var child = childs[i];
+		if (child.nodeType === XsltForms_nodeType.ELEMENT) {
+			if (!ul) {
+				ul = XsltForms_browser.createElement("ul", li);
+			}
+			this.buildTree(ul, i, child, nodes);
+		}
+	}
+	if (ul) {
+		for (var j = ul.childNodes.length, len1 = childs.length; j > len1; j--) {
+			XsltForms_globals.dispose(ul.lastChild);
+			ul.removeChild(ul.lastChild);
+		}
+	}
+};
+
+XsltForms_tree.prototype.refresh = function() {
+};
+    
+	
+		
+		
+		
+function XsltForms_element() {
+}
+
+
+		
+
+XsltForms_element.depsId = 0;
+
+XsltForms_element.prototype.init = function(subform, id) {
+	this.subform = subform;
+	this.element = document.getElementById(id);
+	if (this.element.xfElement) {
+		if (!(this.element.xfElement instanceof Array)) {
+			this.element.xfElement = [this.element.xfElement];
+		}
+		this.element.xfElement.push(this);
+	} else {
+		this.element.xfElement = this;
+	}
+	this.depsElements = [];
+	this.depsNodesBuild = [];
+	this.depsNodesRefresh = [];
+	this.depsIdB = XsltForms_element.depsId++;
+	this.depsIdR = XsltForms_element.depsId++;
+};
+
+
+		
+
+XsltForms_element.prototype.dispose = function() {
+	if(this.element) {
+		this.element.xfElement = null;
+		this.element.hasXFElement = null;
+		this.element = null;
+	}
+	this.depsElements = null;
+	if (this.depsNodesBuild) {
+		for (var i = 0, len = this.depsNodesBuild.length; i < len; i++) {
+			XsltForms_browser.rmValueMeta(this.depsNodesBuild[i], "depfor", this.depsIdB);
+		}
+	}
+	this.depsNodesBuild = null;
+	if (this.depsNodesRefresh) {
+		for (var i2 = 0, len2 = this.depsNodesRefresh.length; i2 < len2; i2++) {
+			XsltForms_browser.rmValueMeta(this.depsNodesRefresh[i2], "depfor", this.depsIdR);
+		}
+	}
+	this.depsNodesRefresh = null;
+};
+
+
+		
+
+XsltForms_element.prototype.build = function(ctx) {
+	if (this.hasBinding) {
+		var deps = this.depsElements;
+		var depsN = this.depsNodesBuild;
+		var depsR = this.depsNodesRefresh;
+		var build = !XsltForms_globals.ready || (deps.length === 0) || ctx !== this.ctx;
+		var refresh = false;
+		var changes = XsltForms_globals.changes;
+		for (var i0 = 0, len0 = depsN.length; !build && i0 < len0; i0++) {
+			build = depsN[i0].nodeName === "";
+		}
+		for (var i = 0, len = deps.length; !build && i < len; i++) {
+			var el = deps[i];
+			for (var j = 0, len1 = changes.length; !build && j < len1; j++) {
+				if (el === changes[j]) {
+					if (el.instances) { //model
+						if (el.rebuilded || el.newRebuilded) {
+							build = true;
+						} else {
+							for (var k = 0, len2 = depsN.length; !build && k < len2; k++) {
+								build = XsltForms_browser.inArray(depsN[k], el.nodesChanged);
+							}
+							if (!build) {
+								for (var n = 0, len3 = depsR.length; n < len3; n++) {
+									refresh = XsltForms_browser.inArray(depsR[n], el.nodesChanged);
+								}
+							}
+						}
+					} else {
+						build = true;
+					}
+				}
+			}
+		}
+		this.changed = build || refresh;
+		if (build) {
+			for (var i4 = 0, len4 = depsN.length; i4 < len4; i4++) {
+				XsltForms_browser.rmValueMeta(depsN[i4], "depfor", this.depsIdB);
+			}
+			depsN.length = 0;
+			for (var i5 = 0, len5 = depsR.length; i5 < len5; i5++) {
+				XsltForms_browser.rmValueMeta(depsR[i5], "depfor", this.depsIdR);
+			}
+			depsR.length = 0;
+			deps.length = 0;
+			this.ctx = ctx;
+			this.build_(ctx);
+		}
+	} else {
+		this.element.node = ctx;
+	}
+};
+
+		
+
+XsltForms_element.prototype.evaluateBinding = function(binding, ctx) {
+	this.boundnodes = null;
+	var errmsg = null;
+	if (binding) {
+		this.boundnodes = binding.bind_evaluate(this.subform, ctx, this.depsNodesBuild, this.depsIdB, this.depsElements);
+		if (this.boundnodes || this.boundnodes === "") {
+			return this.boundnodes;
+		}
+		// A 'null' binding means bind-ID was not found.
+		errmsg = "non-existent bind-ID("+ binding.bind + ") on element(" + this.element.id + ")!";
+	} else {
+		errmsg = "no binding defined for element("+ this.element.id + ")!";
+	}
+	XsltForms_browser.assert(errmsg);
+	if (XsltForms_globals.building && XsltForms_globals.debugMode) {
+		//
+		// Do not fail here, to keep on searching for more errors.
+		XsltForms_globals.bindErrMsgs.push(errmsg);
+		XsltForms_xmlevents.dispatch(this.element, "xforms-binding-exception");
+		this.nodes = [];
+	} else {
+		XsltForms_globals.error(this.element, "xforms-binding-exception", errmsg);
+	}
+	return this.boundnodes;
+};
+
+	
+		
+		
+		
+function XsltForms_control() {
+	this.isControl = true;
+}
+
+XsltForms_control.prototype = new XsltForms_element();
+
+
+		
+
+XsltForms_control.prototype.initFocus = function(element, principal) {
+	if (principal) {
+		this.focusControl = element;
+	}
+	XsltForms_browser.events.attach(element, "focus", XsltForms_control.focusHandler);
+	XsltForms_browser.events.attach(element, "blur", XsltForms_control.blurHandler);
+};
+
+
+		
+
+XsltForms_control.prototype.dispose = function() {
+	this.focusControl = null;
+	XsltForms_element.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_control.prototype.focus = function(focusEvent, evcontext) {
+	if (this.isOutput) {
+		return;
+	}
+	if (XsltForms_globals.focus !== this) {
+		XsltForms_globals.openAction("XsltForms_control.prototype.focus");
+		XsltForms_globals.blur(true);
+		XsltForms_globals.focus = this;
+		XsltForms_browser.setClass(this.element, "xforms-focus", true);
+		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
+		var parent = this.element.parentNode;
+		while (parent.nodeType === XsltForms_nodeType.ELEMENT) {
+			if (typeof parent.node !== "undefined" && XsltForms_browser.hasClass(parent, "xforms-repeat-item")) {
+				XsltForms_repeat.selectItem(parent);
+			}
+			parent = parent.parentNode;
+		}
+		XsltForms_xmlevents.dispatch(XsltForms_globals.focus, "DOMFocusIn", null, null, null, null, evcontext);
+		XsltForms_globals.closeAction("XsltForms_control.prototype.focus");
+		if (this.full && !focusEvent) { // select full
+			this.focusFirst();
+		}
+	}
+	var fcontrol = this.focusControl;
+	XsltForms_globals.posibleBlur = false;
+	if (fcontrol && !focusEvent) {
+		var control = this.focusControl;
+		var name = control.nodeName.toLowerCase();
+		control.focus();
+		control.focus();
+		if (name === "input" || name === "textarea") {
+			try {
+				control.select();
+			} catch (e) {
+			}
+		}
+	}
+};
+
+
+		
+
+XsltForms_control.prototype.build_ = function(ctx) {
+	var result = this.evaluateBinding(this.binding, ctx);
+	if (typeof result === "object") {
+		var node = result[0];
+		var element = this.element;
+		var old = element.node;
+		if (old !== node || !XsltForms_globals.ready) {
+			element.node = node;
+			this.nodeChanged = true;
+		}
+		if (node) {
+			this.depsNodesRefresh.push(node);
+		}
+	} else {
+		this.outputValue = result;
+	}
+};
+
+
+		
+
+XsltForms_control.prototype.refresh = function() {
+	var element = this.element;
+	var node = element.node;
+	if (node) {
+		var value = XsltForms_browser.getValue(node, true, this.complex);
+		XsltForms_globals.openAction("XsltForms_control.prototype.refresh");
+		var changed = value !== this.currentValue || this.nodeChanged;
+		if (this.relevant) {
+			XsltForms_browser.setClass(element, "xforms-disabled", false);
+		}
+		this.changeProp(node, "required", "xforms-required", "xforms-optional", changed, value);
+		this.changeProp(node, "notrelevant", "xforms-disabled", "xforms-enabled", changed, value);
+		this.changeProp(node, "readonly", "xforms-readonly", "xforms-readwrite", changed, value);
+		this.changeProp(node, "notvalid", "xforms-invalid", "xforms-valid", changed, value);
+		this.currentValue = value;
+		if (changed) {
+			this.setValue(value);
+			if (!this.nodeChanged && !this.isTrigger) {
+				XsltForms_xmlevents.dispatch(element, "xforms-value-changed");
+			}
+		}
+		XsltForms_globals.closeAction("XsltForms_control.prototype.refresh");
+	} else if (this.outputValue !== undefined) {
+		this.setValue(this.outputValue);
+		this.eventDispatch("xforms-disabled", "xforms-enabled", false);
+	} else {
+		this.eventDispatch("xforms-disabled", "xforms-enabled", !this.hasValue);
+	}
+	this.nodeChanged = false;
+};
+
+
+		
+
+XsltForms_control.prototype.eventDispatch = function(onTrue, onFalse, value) {
+	if ((!this.nodeChanged || XsltForms_globals.ready) && !this.isTrigger) {
+		XsltForms_xmlevents.dispatch(this.element, (value? onTrue : onFalse));
+	}
+	XsltForms_browser.setClass(this.element, onTrue, value);
+	XsltForms_browser.setClass(this.element, onFalse, !value);
+};
+
+
+		
+
+XsltForms_control.prototype.changeProp = function(node, prop, onTrue, onFalse, changed, nvalue) {
+	var value = (prop === "notvalid" && nvalue === "" && !XsltForms_globals.validationError) ? false : XsltForms_browser.getBoolMeta(node, prop);
+	if (changed || value !== this[prop]) {
+		this.eventDispatch(onTrue, onFalse, value);
+		this[prop] = value;
+		if(prop === "readonly" && this.changeReadonly) {
+			this.changeReadonly();
+		}
+	}
+};
+
+
+		
+
+XsltForms_control.prototype.valueChanged = function(value) {
+	var node = this.element.node;
+	var model = document.getElementById(XsltForms_browser.getMeta(node.ownerDocument.documentElement, "model")).xfElement;
+	var schtyp = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string");
+	if (value && value.length > 0 && schtyp.parse) {
+		try { value = schtyp.parse(value); } catch(e) { }
+	}
+	if (value !== XsltForms_browser.getValue(node)) {
+		XsltForms_globals.openAction("XsltForms_control.prototype.valueChanged");
+		XsltForms_browser.setValue(node, value);
+		model.addChange(node);
+		XsltForms_xmlevents.dispatch(model, "xforms-recalculate");
+		XsltForms_globals.refresh();
+		XsltForms_globals.closeAction("XsltForms_control.prototype.valueChanged");
+	}
+};
+
+
+		
+
+XsltForms_control.getXFElement = function(element) {
+	var xf = null;
+	while (!xf && element) {
+		xf = element.xfElement;
+		if (xf && !xf.isControl) {
+			xf = null;
+		}
+		element = element.parentNode;
+	}
+	return xf;
+};
+
+
+		
+
+XsltForms_control.focusHandler = function() {
+	var xf = XsltForms_control.getXFElement(this);
+	if (XsltForms_globals.focus !== xf) {
+		xf.focus(true);
+	} else {
+		XsltForms_globals.posibleBlur = false;
+	}
+};
+
+
+		
+
+XsltForms_control.blurHandler = function() {
+	if (XsltForms_control.getXFElement(this) === XsltForms_globals.focus) {
+		XsltForms_globals.posibleBlur = true;
+		setTimeout(function(){XsltForms_globals.blur();}, 200);
+	}
+};
+    
+	
+		
+		
+		
+function XsltForms_avt(subform, id, attrname, binding) {
+	this.init(subform, id);
+	this.attrname = attrname;
+	this.binding = binding;
+	this.hasBinding = true;
+	this.isOutput = true;
+	if (this.binding && this.binding.type) {
+		this.element.setAttribute(this.attrname, "");
+	}
+}
+
+XsltForms_avt.prototype = new XsltForms_control();
+
+
+		
+
+XsltForms_avt.prototype.clone = function(id) { 
+	return new XsltForms_avt(this.subform, id, this.attrname, this.binding);
+};
+
+
+		
+
+XsltForms_avt.prototype.dispose = function() {
+	XsltForms_control.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_avt.prototype.setValue = function(value) {
+	this.element.setAttribute(this.attrname, value);
+};
+
+		
+
+XsltForms_avt.prototype.getValue = function(value) {
+	return this.element.getAttribute(this.attrname);
+};
+
+	
+		
+		
+		
+function XsltForms_component(subform, id, valoff, binding, href) {
+	XsltForms_globals.counters.component++;
+	this.init(subform, id);
+	this.valoff = valoff;
+	var children = this.element.children || this.element.childNodes;
+	if (children.length !== 0) {
+		var cells = children;
+		this.valueElement = cells[valoff];
+	} else {
+		this.valueElement = this.element;
+	}
+	this.hasBinding = true;
+	this.binding = binding;
+	this.resource = href;
+	this.isComponent = true;
+	if (this.binding && this.binding.type) {
+		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
+	}
+	//this.subformid = "xsltforms-subform-" + XsltForms_globals.nbsubforms;
+	var req = null;
+	var method = "get";
+	// var evcontext = {"method": method, "resource-uri": href};
+	try {
+		req = XsltForms_browser.openRequest(method, href, false);
+		XsltForms_browser.debugConsole.write("Load Component " + href);
+		req.send(null);
+		if (req.status !== 0 && (req.status < 200 || req.status >= 300)) {
+			return;
+		}
+		var resp = req.responseText;
+		var piindex = resp.indexOf("<?xml-stylesheet", 0);
+		while ( piindex !== -1) {
+			var xslhref = resp.substr(piindex, resp.substr(piindex).indexOf("?>")).replace(/^.*href=\"([^\"]*)\".*$/, "$1");
+			resp = XsltForms_browser.transformText(resp, xslhref, false);
+			piindex = resp.indexOf("<?xml-stylesheet", 0);
+		}
+		var sp = XsltForms_globals.stringSplit(resp, "XsltForms_MagicSeparator");
+		var subbody, subjs;
+		var targetelt = this.valueElement;
+		if (sp.length === 1) {
+			subbody = resp;
+		} else {
+			subjs = "/* xsltforms-subform-" + XsltForms_globals.nbsubforms + " " + sp[2] + " xsltforms-subform-" + XsltForms_globals.nbsubforms + " */";
+			var imain = subjs.indexOf('"xsltforms-mainform"');
+			var targetsubform = targetelt.xfSubform;
+			if (targetsubform) {
+				targetsubform.dispose();
+			}
+			subjs = '(function(){var xsltforms_subform_eltid = "' + id + '";var xsltforms_parentform = XsltForms_subform.subforms["' + this.subform.id + '"];' + subjs.substring(0, imain) + '"xsltforms-subform-' + XsltForms_globals.nbsubforms + '"' + subjs.substring(imain + 20) + "})();";
+			imain = subjs.indexOf('"xsltforms-mainform-instance-default"');
+			while (imain !== -1) {
+				subjs = subjs.substring(0, imain) + '"xsltforms-subform-' + XsltForms_globals.nbsubforms + '-instance-default"' + subjs.substring(imain + 37);
+				imain = subjs.indexOf('"xsltforms-mainform-instance-default"');
+			}
+			subbody = "<!-- xsltforms-subform-" + XsltForms_globals.nbsubforms + " " + sp[4] + " xsltforms-subform-" + XsltForms_globals.nbsubforms + " -->";
+			imain = subbody.indexOf(' id="xsltforms-mainform');
+			while (imain !== -1) {
+				subbody = subbody.substring(0, imain) + ' id="xsltforms-subform-' + XsltForms_globals.nbsubforms + subbody.substring(imain + 23);
+				imain = subbody.indexOf(' id="xsltforms-mainform');
+			}
+		}
+		targetelt.innerHTML = subbody;
+		targetelt.hasXFElement = null;
+		var parent = targetelt.parentNode;
+		while (parent) {
+			if (parent.hasXFElement !== false) {
+				break;
+			}
+			parent.hasXFElement = null;
+			parent = parent.parentNode;
+		}
+		if (sp.length !== 1) {
+			XsltForms_globals.componentLoads.push(subjs);
+			this.subjs = subjs;
+			this.evaljs = true;
+		}
+		XsltForms_browser.setClass(targetelt, "xforms-subform-loaded", true);
+		XsltForms_globals.nbsubforms++;
+	} catch(e2) {
+		XsltForms_browser.debugConsole.write(e2.message || e2);
+	}
+}
+
+XsltForms_component.prototype = new XsltForms_control();
+
+
+		
+
+XsltForms_component.prototype.clone = function(id) { 
+	return new XsltForms_component(this.subform, id, this.valoff, this.binding, this.resource);
+};
+
+
+		
+
+XsltForms_component.prototype.dispose = function() {
+	this.valueElement = null;
+	XsltForms_globals.counters.component--;
+	XsltForms_control.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_component.prototype.blur = function () { };
+
+
+		
+
+XsltForms_component.prototype.setValue = function(value) {
+	XsltForms_browser.forEach(this.valueElement.children[0].xfElement.subform.binds, "propagate");
+};
+
+	
+		
+		
+		
+function XsltForms_group(subform, id, binding, casebinding) {
+	XsltForms_globals.counters.group++;
+	this.init(subform, id);
+	this.controlName = "group";
+	if (binding) {
+		this.hasBinding = true;
+		this.binding = binding;
+	} else {
+		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
+	}
+	this.casebinding = casebinding;
+}
+
+XsltForms_group.prototype = new XsltForms_element();
+
+
+		
+
+XsltForms_group.prototype.dispose = function() {
+	XsltForms_globals.counters.group--;
+	XsltForms_element.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_group.prototype.clone = function(id) { 
+	return new XsltForms_group(this.subform, id, this.binding, this.casebinding);
+};
+
+
+		
+
+XsltForms_group.prototype.build_ = function(ctx) {
+	var nodes = this.evaluateBinding(this.binding, ctx);
+	this.element.node = nodes[0];
+	this.depsNodesRefresh.push(nodes[0]);
+	if (this.casebinding) {
+		var caseref = this.evaluateBinding(this.casebinding, nodes[0]);
+		if (caseref) {
+			XsltForms_toggle.toggle(XsltForms_globals.stringValue(caseref));
+		}
+	}
+};
+
+
+		
+
+XsltForms_group.prototype.refresh = function() {
+	var element = this.element;
+	var disabled = !element.node || XsltForms_browser.getBoolMeta(element.node, "notrelevant");
+	XsltForms_browser.setClass(element, "xforms-disabled", disabled);
+	var ul = element.parentNode.children ? element.parentNode.children[0] : element.parentNode.childNodes[0];
+	if (ul.nodeName.toLowerCase() === "ul") {
+		var childs = element.parentNode.children || element.parentNode.childNodes;
+		var tab;
+		for (var i = 1, len = childs.length; i < len; i++) {
+			if (childs[i] === element) {
+				tab = ul.childNodes[i - 1];
+			}
+		}
+		XsltForms_browser.setClass(tab, "xforms-disabled", disabled);
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_input(subform, id, valoff, itype, binding, inputmode, incremental, delay, mediatype, aidButton, clone) {
+	XsltForms_globals.counters.input++;
+	this.init(subform, id);
+	this.controlName = "input";
+	this.binding = binding;
+	this.inputmode = typeof inputmode === "string"? XsltForms_input.InputMode[inputmode] : inputmode;
+	this.incremental = incremental;
+	this.delay = delay;
+	this.timer = null;
+	var cells = this.element.children;
+	this.valoff = valoff;
+	this.cell = cells[valoff];
+	this.isClone = clone;
+	this.hasBinding = true;
+	this.itype = itype;
+	this.bolAidButton = aidButton;
+	this.mediatype = mediatype;
+	this.initFocus(this.cell.children[0], true);
+	if (aidButton) {
+		this.aidButton = cells[valoff + 1].children[0];
+		this.initFocus(this.aidButton);
+	}
+}
+
+XsltForms_input.prototype = new XsltForms_control();
+
+
+		
+
+XsltForms_input.prototype.clone = function(id) { 
+	return new XsltForms_input(this.subform, id, this.valoff, this.itype, this.binding, this.inputmode, this.incremental, this.delay, this.mediatype, this.bolAidButton, true);
+};
+
+
+		
+
+XsltForms_input.prototype.dispose = function() {
+	if (this.mediatype === "application/xhtml+xml" && this.type.rte && this.type.rte.toLowerCase() === "tinymce") {
+		try {
+			tinyMCE.execCommand("mceFocus", false, this.cell.children[0].id);
+			tinyMCE.execCommand("mceRemoveControl", false, this.cell.children[0].id);
+		} catch(e) {
+			alert(e);
+		}
+	}
+	this.cell = null;
+	this.calendarButton = null;
+	XsltForms_globals.counters.input--;
+	XsltForms_control.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_input.prototype.initInput = function(type) {
+	var cell = this.cell;
+	var input = cell.children[0];
+	var tclass = type["class"];
+	if (input.type === "password") {
+		this.type = XsltForms_schema.getType("xsd_:string");
+		this.initEvents(input, true);
+	} else if (input.nodeName.toLowerCase() === "textarea") {
+		this.type = type;
+		if (this.mediatype === "application/xhtml+xml" && type.rte && type.rte.toLowerCase() === "tinymce") {
+			input.id = this.element.id + "_textarea";
+			XsltForms_browser.debugConsole.write(input.id+": init="+XsltForms_globals.tinyMCEinit);
+			if (!XsltForms_globals.tinyMCEinit) {
+				var initinfo;
+				eval("initinfo = " + (type.appinfo ? type.appinfo : "{}"));
+				initinfo.mode = "none";
+				initinfo.setup = function(ed) {
+					ed.onKeyUp.add(function(ed) {
+						XsltForms_control.getXFElement(document.getElementById(ed.id)).valueChanged(ed.getContent() || "");
+					});
+					ed.onChange.add(function(ed) {
+						XsltForms_control.getXFElement(document.getElementById(ed.id)).valueChanged(ed.getContent() || "");
+					});
+					ed.onUndo.add(function(ed) {
+						XsltForms_control.getXFElement(document.getElementById(ed.id)).valueChanged(ed.getContent() || "");
+					});
+					ed.onRedo.add(function(ed) {
+						XsltForms_control.getXFElement(document.getElementById(ed.id)).valueChanged(ed.getContent() || "");
+					});
+				};
+				XsltForms_browser.debugConsole.write(input.id+": initinfo="+initinfo);
+				tinyMCE.init(initinfo);
+				XsltForms_globals.tinyMCEinit = true;
+			}
+			tinyMCE.execCommand("mceAddControl", true, input.id);
+		}
+		this.initEvents(input, false);
+	} else if (type !== this.type) {
+		this.type = type;
+		if (tclass === "boolean" || this.itype !== input.type) {
+			while (cell.firstChild) {
+				cell.removeChild(cell.firstChild);
+			}
+		} else {
+			while (cell.firstChild.nodeType === XsltForms_nodeType.TEXT) {
+				cell.removeChild(cell.firstChild);
+			}
+			for (var i = cell.childNodes.length - 1; i >= 1; i--) {
+				cell.removeChild(cell.childNodes[i]);
+			}
+		}
+		if (tclass === "boolean") {
+			input = XsltForms_browser.createElement("input");
+			input.type = "checkbox";
+			cell.appendChild(input);
+		} else {
+			if(this.itype !== input.type) {
+				input = XsltForms_browser.createElement("input", cell, null, "xforms-value");
+			}
+			this.initEvents(input, (this.itype === "text"));
+			if (tclass === "date" || tclass === "datetime") {
+				this.calendarButton = XsltForms_browser.createElement("button", cell, "...", "aid-button");
+				this.calendarButton.setAttribute("type", "button");
+				this.initFocus(this.calendarButton);
+			} else if (tclass === "number") {
+				input.style.textAlign = "right";
+			}
+			var max = type.getMaxLength();
+			if (max) {
+				input.maxLength = max;
+			} else {
+				input.removeAttribute("maxLength");
+			}
+			var length = type.getDisplayLength();
+			if (length) { 
+				input.size = length;
+			} else { 
+				input.removeAttribute("size");
+			}
+		}
+	}
+	this.initFocus(input, true);
+	this.input = input;
+};
+
+
+		
+
+XsltForms_input.prototype.setValue = function(value) {
+	var node = this.element.node;
+	var type = node ? XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string") : XsltForms_schema.getType("xsd_:string");
+	if (!this.input || type !== this.type) {
+		this.initInput(type);
+		this.changeReadonly();
+	}
+//	XsltForms_browser.debugConsole.write(this.input.id+": setValue("+value+")");
+//	if (this.type.rte && this.type.rte.toLowerCase() === "tinymce" && tinymce.get(this.input.id) === undefined) {
+//		XsltForms_browser.debugConsole.write(this.input.id+" is undefined");
+//	}
+	if (type["class"] === "boolean") {
+		this.input.checked = value === "true";
+	} else if (this.type.rte && this.type.rte.toLowerCase() === "tinymce" && tinymce.get(this.input.id) && tinymce.get(this.input.id).getContent() !== value) {
+		this.input.value = value || "";
+		if (tinymce.get(this.input.id)) {
+			tinymce.get(this.input.id).setContent(value);
+			this.input.value = tinymce.get(this.input.id).getContent() || "";
+			XsltForms_browser.debugConsole.write(this.input.id+": getContent() ="+tinymce.get(this.input.id).getContent());
+		}
+		XsltForms_browser.debugConsole.write(this.input.id+".value ="+this.input.value);
+	} else if (this.input.value !== value) { // && this !== XsltForms_globals.focus) {
+		this.input.value = value || "";
+	}
+};
+
+
+		
+
+XsltForms_input.prototype.changeReadonly = function() {
+	var node = this.element.node;
+	var type = node ? XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string") : XsltForms_schema.getType("xsd_:string");
+	if (this.input) {
+		if (type["class"] === "boolean") {
+			this.input.disabled = this.readonly;
+		}
+		this.input.readOnly = this.readonly;
+		if (this.calendarButton) {
+			this.calendarButton.style.display = this.readonly ? "none" : "";
+		}
+	}
+};
+
+
+		
+
+XsltForms_input.prototype.initEvents = function(input, canActivate) {
+	if (this.inputmode) {
+		XsltForms_browser.events.attach(input, "keyup", XsltForms_input.keyUpInputMode);
+	}
+	if (canActivate) {
+		XsltForms_browser.events.attach(input, "keydown", XsltForms_input.keyDownActivate);
+		XsltForms_browser.events.attach(input, "keypress", XsltForms_input.keyPressActivate);
+		if (this.incremental) {
+			XsltForms_browser.events.attach(input, "keyup", XsltForms_input.keyUpIncrementalActivate);
+		} else {
+			XsltForms_browser.events.attach(input, "keyup", XsltForms_input.keyUpActivate);
+		}
+	} else {
+		if (this.incremental) {
+			XsltForms_browser.events.attach(input, "keyup", XsltForms_input.keyUpIncremental);
+		}
+	}
+};
+
+
+		
+
+XsltForms_input.prototype.blur = function(target) {
+	XsltForms_globals.focus = null;
+	var input = this.input;
+	var value;
+	if (!this.incremental) {
+		XsltForms_browser.assert(input, this.element.id);
+		value = input.type === "checkbox"? (input.checked? "true" : "false") : input.nodeName.toLowerCase() !== "textarea" ? input.value : (this.type.rte && this.type.rte.toLowerCase() === "tinymce") ? tinyMCE.get(input.id).getContent() : input.value;
+		this.valueChanged(value);
+	} else {
+		var node = this.element.node;
+		value = input.value;
+		if (value && value.length > 0 && XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").format) {
+			try { input.value = XsltForms_browser.getValue(node, true); } catch(e) { }
+		}
+		if (this.timer) {
+			window.clearTimeout(this.timer);
+			this.timer = null;
+		}
+	}
+};
+
+
+		
+
+XsltForms_input.prototype.click = function(target) {
+	if (target === this.aidButton) {
+		XsltForms_globals.openAction("XsltForms_input.prototype.click#1");
+		XsltForms_xmlevents.dispatch(this, "ajx-aid");
+		XsltForms_globals.closeAction("XsltForms_input.prototype.click#1");
+	} else if (target === this.input && this.type["class"] === "boolean") {
+		XsltForms_globals.openAction("XsltForms_input.prototype.click#2");
+		this.valueChanged(target.checked? "true" : "false");
+		XsltForms_xmlevents.dispatch(this, "DOMActivate");
+		XsltForms_globals.closeAction("XsltForms_input.prototype.click#2");
+	} else if (target === this.calendarButton) {
+		XsltForms_calendar.show(target.previousSibling, this.type["class"] === "datetime"? XsltForms_calendar.SECONDS : XsltForms_calendar.ONLY_DATE);
+	}
+};
+
+
+		
+
+XsltForms_input.keyUpInputMode = function() {
+	var xf = XsltForms_control.getXFElement(this);
+	this.value = xf.inputmode(this.value);
+};
+
+
+		
+
+XsltForms_input.keyDownActivate = function(a) {
+	this.keyDownCode = a.keyCode;
+};
+
+
+		
+
+XsltForms_input.keyPressActivate = function(a) {
+	this.keyPressCode = a.keyCode;
+	if (a.keyCode === 13) {
+		if (a.stopPropagation) {
+			a.stopPropagation();
+			a.preventDefault();
+		} else {
+			a.cancelBubble = true;
+		}
+	}
+};
+
+
+		
+
+XsltForms_input.keyUpActivate = function(a) {
+	var xf = XsltForms_control.getXFElement(this);
+	if (a.keyCode === 13 && (this.keyDownCode === 13 || this.keyPressCode === 13)) {
+		XsltForms_globals.openAction("XsltForms_input.keyUpActivate");
+		xf.valueChanged(this.value || "");
+		XsltForms_xmlevents.dispatch(xf, "DOMActivate");
+		XsltForms_globals.closeAction("XsltForms_input.keyUpActivate");
+	}
+	this.keyDownCode = this.keyPressCode = null;
+};
+
+
+		
+
+XsltForms_input.keyUpIncrementalActivate = function(a) {
+	var xf = XsltForms_control.getXFElement(this);
+	if (a.keyCode === 13 && (this.keyDownCode === 13 || this.keyPressCode === 13)) {
+		XsltForms_globals.openAction("XsltForms_input.keyUpIncrementalActivate#1");
+		xf.valueChanged(this.value || "");
+		XsltForms_xmlevents.dispatch(xf, "DOMActivate");
+		XsltForms_globals.closeAction("XsltForms_input.keyUpIncrementalActivate#1");
+	} else {
+		if (xf.delay && xf.delay > 0) {
+			if (xf.timer) {
+				window.clearTimeout(xf.timer);
+			}
+			xf.timer = window.setTimeout("XsltForms_globals.openAction('XsltForms_input.keyUpIncrementalActivate#2');document.getElementById('" + xf.element.id + "').xfElement.valueChanged('" + (this.value.addslashes() || "") + "');XsltForms_globals.closeAction('XsltForms_input.keyUpIncrementalActivate#2');", xf.delay);
+		} else {
+			XsltForms_globals.openAction("XsltForms_input.keyUpIncrementalActivate#3");
+			xf.valueChanged(this.value || "");
+			XsltForms_globals.closeAction("XsltForms_input.keyUpIncrementalActivate#3");
+		}
+	}
+	this.keyDownCode = this.keyPressCode = null;
+};
+
+
+		
+
+XsltForms_input.keyUpIncremental = function() {
+	var xf = XsltForms_control.getXFElement(this);
+	if (xf.delay && xf.delay > 0) {
+		if (xf.timer) {
+			window.clearTimeout(xf.timer);
+		}
+		xf.timer = window.setTimeout("XsltForms_globals.openAction('XsltForms_input.keyUpIncremental#1');document.getElementById('" + xf.element.id + "').xfElement.valueChanged('" + (this.value.addslashes() || "") + "');XsltForms_globals.closeAction('XsltForms_input.keyUpIncremental#1');", xf.delay);
+	} else {
+		XsltForms_globals.openAction("XsltForms_input.keyUpIncremental#2");
+		xf.valueChanged(this.value || "");
+		XsltForms_globals.closeAction("XsltForms_input.keyUpIncremental#2");
+	}
+};
+
+
+		
+
+XsltForms_input.InputMode = {
+	lowerCase : function(value) { return value.toLowerCase(); },
+	upperCase : function(value) { return value.toUpperCase(); },
+	titleCase : function(value) { return value.charAt(0).toUpperCase() + value.substring(1).toLowerCase(); },
+	digits : function(value) {
+		if (/^[0-9]*$/.exec(value)) {
+			return value;
+		} else {
+			alert("Character not valid");
+			var digits = "1234567890";
+			var newValue = "";
+			for (var i = 0, len = value.length; i < len; i++) {
+				if (digits.indexOf(value.charAt(i)) !== -1) {
+					newValue += value.charAt(i);
+				}
+			}
+			return newValue;
+		}
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_item(subform, id, bindingL, bindingV) {
+	XsltForms_globals.counters.item++;
+	this.init(subform, id);
+	this.controlName = "item";
+	if (bindingL || bindingV) {
+		this.hasBinding = true;
+		this.bindingL = bindingL;
+		this.bindingV = bindingV;
+	} else {
+		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
+	}
+	var element = this.element;
+	if (element.nodeName.toLowerCase() !== "option") {
+		this.input = XsltForms_browser.isXhtml ? element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input")[0] : element.getElementsByTagName("input")[0];
+		this.input.name = XsltForms_control.getXFElement(this.element).element.id;
+		XsltForms_browser.events.attach(this.input, "focus", XsltForms_control.focusHandler);
+		XsltForms_browser.events.attach(this.input, "blur", XsltForms_control.blurHandler);
+		this.label = XsltForms_browser.isXhtml ? element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "span")[0] : element.getElementsByTagName("span")[0];
+	}
+}
+
+XsltForms_item.prototype = new XsltForms_element();
+
+
+		
+
+XsltForms_item.prototype.clone = function(id) { 
+	return new XsltForms_item(this.subform, id, this.bindingL, this.bindingV);
+};
+
+
+		
+
+XsltForms_item.prototype.dispose = function() {
+	this.input = null;
+	this.label = null;
+	XsltForms_globals.counters.item--;
+	XsltForms_element.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_item.prototype.build_ = function(ctx) {
+	var element = this.element;
+	var xf = element.parentNode.xfElement;
+	if (xf && xf.isRepeat) {
+		ctx = element.node;
+	} else {
+		element.node = ctx;
+	}
+	if (this.bindingL) {
+		element.nodeL = this.evaluateBinding(this.bindingL, ctx)[0];
+		this.depsNodesRefresh.push(element.nodeL);
+	}
+	if (this.bindingV) {
+		element.nodeV = this.evaluateBinding(this.bindingV, ctx)[0];
+		this.depsNodesRefresh.push(element.nodeV);
+	}
+};
+
+
+		
+
+XsltForms_item.prototype.refresh = function() {
+	var element = this.element;
+	if (element.nodeName.toLowerCase() === "option") {
+		if (element.nodeL) {
+			try { 
+				element.text = XsltForms_browser.getValue(element.nodeL, true);
+			} catch(e) {
+			}
+		}
+		if (element.nodeV) {
+			try {
+				element.value = XsltForms_browser.getValue(element.nodeV);
+			} catch(e2) {
+			}
+		}
+	} else {
+		if (element.nodeL) {
+			XsltForms_browser.setValue(this.label, XsltForms_browser.getValue(element.nodeL, true));
+		}
+		if (element.nodeV) {
+			this.input.value = XsltForms_browser.getValue(element.nodeV);
+		}
+	}
+};
+
+
+		
+
+XsltForms_item.prototype.click = function (target) {
+	var input = this.input;
+	if (input) {
+		var xf = XsltForms_control.getXFElement(this.element);
+		if (!xf.element.node.readonly && target === input) {
+			xf.itemClick(input.value);
+		}
+	}
+};
+    
+	
+		
+		
+		
+function XsltForms_itemset(subform, id, nodesetBinding, labelBinding, valueBinding) {
+	XsltForms_globals.counters.itemset++;
+	this.init(subform, id);
+	this.controlName = "itemset";
+	this.nodesetBinding = nodesetBinding;
+	this.labelBinding = labelBinding;
+	this.valueBinding = valueBinding;
+	this.hasBinding = true;
+}
+
+XsltForms_itemset.prototype = new XsltForms_element();
+
+
+		
+
+XsltForms_itemset.prototype.build_ = function(ctx) {
+	if (this.element.getAttribute("cloned")) {
+		return;
+	}
+	this.nodes = this.evaluateBinding(this.nodesetBinding, ctx);
+	var next = this.element;
+	var parentNode = next.parentNode;
+	var length = this.nodes.length;
+	var oldNode = next;
+	var listeners = next.listeners;
+	for (var cont = 1; true;) {
+		next = next.nextSibling;
+		if (next) {
+			if (next.nodeType === XsltForms_nodeType.ELEMENT) {
+				if (next.getAttribute("cloned")) {
+					if (cont >= length) {
+						next.listeners = null;
+						parentNode.removeChild(next);
+						next = oldNode;
+					} else {
+						next.node = this.nodes[cont];
+						this.refresh_(next, cont++);
+						oldNode = next;
+					}
+				}
+			} else {
+				var n = next.previousSibling;
+				next.parentNode.removeChild(next);
+				next = n;
+			}
+		} else {
+			for (var i = cont; i < length; i++) {
+				var node = this.element.cloneNode(true);
+				node.setAttribute("cloned", "true");
+				XsltForms_idManager.cloneId(node);
+				node.node = this.nodes[i];
+				parentNode.appendChild(node);
+				this.refresh_(node, i);
+				if (listeners && !XsltForms_browser.isIE) {
+					for (var j = 0, len = listeners.length; j < len; j++) {
+						listeners[j].clone(node);
+					}
+				}
+			}
+			break;
+		}
+	}
+	if (length > 0) {
+		this.element.node = this.nodes[0];
+		this.refresh_(this.element, 0);
+	} else {
+		this.element.value = "\xA0";
+		this.element.text = "\xA0";
+	}
+};
+
+
+		
+
+XsltForms_itemset.prototype.refresh = function() {
+	var parent = this.element.parentNode;
+	var i = 0;
+	while (parent.childNodes[i] !== this.element) {
+		i++;
+	}
+	for (var j = 0, len = this.nodes.length; j < len || j === 0; j++) {
+		XsltForms_browser.setClass(parent.childNodes[i+j], "xforms-disabled", this.nodes.length === 0);
+	}
+};
+
+
+		
+
+XsltForms_itemset.prototype.clone = function(id) {
+	return new XsltForms_itemset(this.subform, id, this.nodesetBinding, this.labelBinding, this.valueBinding);
+};
+
+
+		
+
+XsltForms_itemset.prototype.dispose = function() {
+	XsltForms_globals.counters.itemset--;
+	XsltForms_element.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_itemset.prototype.refresh_ = function(element, cont) {
+	var ctx = this.nodes[cont];
+	var nodeLabel = this.evaluateBinding(this.labelBinding, ctx)[0];
+	var nodeValue = this.evaluateBinding(this.valueBinding, ctx)[0];
+	if (nodeLabel) {
+		this.depsNodesRefresh.push(nodeLabel);
+		try {
+			element.text = XsltForms_browser.getValue(nodeLabel, true);
+		} catch(e) {
+		}
+	}
+	if (nodeValue) {
+		this.depsNodesRefresh.push(nodeValue);
+		try {
+			element.value = XsltForms_browser.getValue(nodeValue);
+		} catch(e2) {
+		}
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_label(subform, id, binding) {
+	XsltForms_globals.counters.label++;
+	this.init(subform, id);
+	this.controlName = "label";
+	if (binding) {
+		this.hasBinding = true;
+		this.binding = binding;
+	}
+}
+
+XsltForms_label.prototype = new XsltForms_element();
+
+
+		
+
+XsltForms_label.prototype.clone = function(id) { 
+	return new XsltForms_label(this.subform, id, this.binding);
+};
+
+
+		
+
+XsltForms_label.prototype.dispose = function() {
+	XsltForms_globals.counters.label--;
+	XsltForms_element.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_label.prototype.build_ = function(ctx) {
+	var nodes = this.evaluateBinding(this.binding, ctx);
+	this.element.node = nodes[0];
+	this.depsNodesRefresh.push(nodes[0]);
+};
+
+
+		
+
+XsltForms_label.prototype.refresh = function() {
+	var node = this.element.node;
+	var value = node? XsltForms_browser.getValue(node, true) : "";
+	XsltForms_browser.setValue(this.element.getAttributeNode("label") ? this.element.getAttributeNode("label") : this.element, value);
+};
+    
+	
+		
+		
+		
+function XsltForms_output(subform, id, valoff, binding, mediatype) {
+	XsltForms_globals.counters.output++;
+	this.init(subform, id);
+	this.controlName = "output";
+	this.valoff = valoff;
+	var children = this.element.children || this.element.childNodes;
+	if (children.length !== 0) {
+		var cells = children;
+		this.valueElement = cells[valoff];
+	} else {
+		this.valueElement = this.element;
+	}
+	var valuechildren = this.valueElement.children || this.valueElement.childNodes;
+	if (valuechildren.length !== 0) {
+		this.valueElement = valuechildren[0];
+	}
+	this.hasBinding = true;
+	this.binding = binding;
+	this.mediatype = mediatype;
+	this.complex = mediatype === "application/xhtml+xml";
+	this.isOutput = true;
+	if (this.binding && this.binding.type) {
+		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
+	}
+}
+
+XsltForms_output.prototype = new XsltForms_control();
+
+
+		
+
+XsltForms_output.prototype.clone = function(id) { 
+	return new XsltForms_output(this.subform, id, this.valoff, this.binding, this.mediatype);
+};
+
+
+		
+
+XsltForms_output.prototype.dispose = function() {
+	this.valueElement = null;
+	XsltForms_globals.counters.output--;
+	XsltForms_control.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_output.prototype.setValue = function(value) {
+	var element = this.valueElement;
+	if (element.nodeName.toLowerCase() === "span" || element.nodeName.toLowerCase() === "tspan" || element.nodeName.toLowerCase() === "label") {
+		if (this.mediatype === "application/xhtml+xml") {
+			while (element.firstChild) {
+				element.removeChild(element.firstChild);
+			}
+			if (value) {
+				element.innerHTML = value;
+			}
+		} else if (this.mediatype === "image/svg+xml") {
+			while (element.firstChild) {
+				element.removeChild(element.firstChild);
+			}
+			if (XsltForms_browser.isIE && !XsltForms_browser.isIE9) {
+				var xamlScript = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "script") : document.createElement("script");
+				xamlScript.setAttribute("type", "text/xaml");
+				xamlScript.setAttribute("id", this.element.id+"-xaml");
+				xamlScript.text = XsltForms_browser.transformText(value, XsltForms_browser.ROOT + "svg2xaml.xsl", false, "width", element.currentStyle.width, "height", element.currentStyle.height);
+				element.appendChild(xamlScript);
+				var xamlObject = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "object") : document.createElement("object");
+				xamlObject.setAttribute("width", element.currentStyle.width+"px");
+				xamlObject.setAttribute("height", element.currentStyle.height+"px");
+				xamlObject.setAttribute("type", "application/x-silverlight");
+				xamlObject.setAttribute("style", "min-width: " + element.currentStyle.width+"px");
+				//xamlObject.setAttribute("style", "min-width: " + xamlScript.text.substring(xamlScript.text.indexOf('<Canvas Width="')+15,xamlScript.text.indexOf('" Height="')) + "px");
+				var xamlParamSource = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "param") : document.createElement("param");
+				xamlParamSource.setAttribute("name", "source");
+				xamlParamSource.setAttribute("value", "#"+this.element.id+"-xaml");
+				xamlObject.appendChild(xamlParamSource);
+				var xamlParamOnload = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "param") : document.createElement("param");
+				xamlParamOnload.setAttribute("name", "onload");
+				xamlParamOnload.setAttribute("value", "onLoaded");
+				xamlObject.appendChild(xamlParamOnload);
+				var xamlParamIswindowless = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "param") : document.createElement("param");
+				xamlParamIswindowless.setAttribute("name", "iswindowless");
+				xamlParamIswindowless.setAttribute("value", "true");
+				xamlObject.appendChild(xamlParamIswindowless);
+				element.appendChild(xamlObject);
+			} else if (XsltForms_browser.isXhtml) {
+				var cs = window.getComputedStyle(element, null);
+				XDocument.parse(value, element);
+				element.firstChild.setAttribute("width", cs.getPropertyValue("min-width"));
+				element.firstChild.setAttribute("height", cs.getPropertyValue("min-height"));
+			} else {
+				var svgObject = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "object") : document.createElement("object");
+				svgObject.setAttribute("type", "image/svg+xml");
+				svgObject.setAttribute("data", "data:image/svg+xml,"+ value);
+				//svgObject.setAttribute("height", "400px");
+				element.appendChild(svgObject);
+			}
+		} else {
+			XsltForms_browser.setValue(element, value);
+		}
+	} else {
+		element.src = value;
+	}
+};
+
+		
+
+XsltForms_output.prototype.getValue = function(format) {
+	var element = this.valueElement;
+	if (element.nodeName.toLowerCase() === "span") {
+		return XsltForms_browser.getValue(element, format);
+	} else {
+		var value = element.src;
+		if (value && format && element.type.format) {
+			try { 
+				value = element.type.format(value);
+			} catch(e) { 
+			}
+		}
+		return value;
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_range(subform, id, valoff, binding, incremental, start, end, step, aidButton, clone) {
+	XsltForms_globals.counters.upload++;
+	this.init(subform, id);
+	this.controlName = "range";
+	this.binding = binding;
+	this.incremental = incremental;
+	var cells = this.element.children;
+	this.valoff = valoff;
+	this.cell = cells[valoff];
+	this.rail = this.cell.children[0].children[0];
+	this.cursor = this.rail.children[0];
+	this.outputvalue = this.cell.children[0].children[1];
+	this.isClone = clone;
+	this.hasBinding = true;
+	this.bolAidButton = aidButton;
+	this.start = parseFloat(start);
+	this.end = parseFloat(end);
+	this.step = parseFloat(step);
+	this.value = "";
+	this.initFocus(this.cell.children[0], true);
+	XsltForms_browser.events.attach(this.rail, "focus", function(evt) {
+		var target = XsltForms_browser.events.getTarget(evt);
+		var parent = target;
+		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+			var xf = parent.xfElement;
+			if (xf) {
+				alert("rail_focus "+xf.element.id);
+				break;
+			}
+			parent = parent.parentNode;
+		}
+	} );
+	XsltForms_browser.events.attach(this.rail, "mousedown", function(evt) {
+		var target = XsltForms_browser.events.getTarget(evt);
+		var parent = target;
+		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+			var xf = parent.xfElement;
+			if (xf) {
+				var newPos = evt.clientX + (window.pageLeft !== undefined ? window.pageLeft : (document.documentElement && document.documentElement.scrollLeft !== undefined) ? document.documentElement.scrollLeft : document.body.scrollLeft);
+				parent = xf.rail;
+				while (parent) {
+					newPos -= parent.offsetLeft;
+					parent = parent.offsetParent;
+				}
+				var node = xf.element.node;
+				var value = Math.round(newPos / xf.rail.clientWidth * (xf.end - xf.start) / xf.step) * xf.step + xf.start;
+				var f = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").format;
+				if (f) {
+					value = f(value);
+				}
+				xf.setValue(value);
+				if (xf.incremental) {
+					XsltForms_globals.openAction("XsltForms_range#1");
+					xf.valueChanged(xf.value + "");
+					XsltForms_globals.closeAction("XsltForms_range#1");
+				}
+				if (!document.activeElement || !document.activeElement !== xf.cursor) {
+					xf.cursor.focus();
+				}
+				break;
+			}
+			parent = parent.parentNode;
+		}
+	} );
+	XsltForms_browser.events.attach(this.cursor, "mousedown", function(evt) {
+		var target = XsltForms_browser.events.getTarget(evt);
+		var parent = target;
+		while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+			var xf = parent.xfElement;
+			if (xf) {
+				xf.offset = evt.clientX + (window.pageLeft !== undefined ? window.pageLeft : (document.documentElement && document.documentElement.scrollLeft !== undefined) ? document.documentElement.scrollLeft : document.body.scrollLeft);
+				parent = xf.cursor;
+				while (parent) {
+					xf.offset -= parent.offsetLeft;
+					parent = parent.offsetParent;
+				}
+				document.onmousemove = function(evt) {
+					var target = XsltForms_browser.isIE ? document.activeElement : XsltForms_browser.events.getTarget(evt);
+					var parent = target;
+					while (parent && parent.nodeType === XsltForms_nodeType.ELEMENT) {
+						var xf = parent.xfElement;
+						if (xf) {
+							var newPos = evt.clientX - xf.offset + (window.pageLeft !== undefined ? window.pageLeft : (document.documentElement && document.documentElement.scrollLeft !== undefined) ? document.documentElement.scrollLeft : document.body.scrollLeft);
+							parent = xf.rail;
+							while (parent) {
+								newPos -= parent.offsetLeft;
+								parent = parent.offsetParent;
+							}
+							var node = xf.element.node;
+							var value = Math.round(newPos / xf.rail.clientWidth * (xf.end - xf.start) / xf.step) * xf.step + xf.start;
+							value = Math.min(Math.max(value, xf.start), xf.end);
+							var f = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").format;
+							if (f) {
+								value = f(value);
+							}
+							xf.setValue(value);
+							if (xf.incremental) {
+								XsltForms_globals.openAction("XsltForms_range#2");
+								xf.valueChanged(xf.value + "");
+								XsltForms_globals.closeAction("XsltForms_range#2");
+							}
+							if (!document.activeElement || !document.activeElement !== xf.cursor) {
+								xf.cursor.focus();
+							}
+							break;
+						}
+						parent = parent.parentNode;
+					}
+				};
+				document.onmouseup = function() {
+					document.onmousemove = null;
+					document.onmouseup = null;
+				};
+				if (!document.activeElement || !document.activeElement !== xf.cursor) {
+					xf.cursor.focus();
+				}
+				break;
+			}
+			parent = parent.parentNode;
+		}
+		if (typeof evt.stopPropagation === "function") {
+			evt.stopPropagation();
+		}
+		else if (typeof evt.cancelBubble !== "undefined") {
+			evt.cancelBubble = true;	
+		}
+		if (evt.preventDefault) {
+			evt.preventDefault();
+		}
+	} );
+	if (aidButton) {
+		this.aidButton = cells[valoff + 1].children[0];
+		this.initFocus(this.aidButton);
+	}
+}
+
+XsltForms_range.prototype = new XsltForms_control();
+
+
+		
+
+XsltForms_range.prototype.clone = function(id) { 
+	return new XsltForms_range(this.subform, id, this.valoff, this.binding, this.incremental, this.start, this.end, this.step, this.bolAidButton, true);
+};
+
+
+		
+
+XsltForms_range.prototype.dispose = function() {
+	this.cell = null;
+	XsltForms_globals.counters.range--;
+	XsltForms_control.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_range.prototype.setValue = function(value) {
+	this.outputvalue.innerHTML = value;
+	var node = this.element.node;
+	var f = XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string").parse;
+	if (f) {
+		value = f(value);
+	}
+	if (this.value !== value) {
+		this.value = value;
+		this.cursor.style.left = Math.round(this.rail.clientWidth * (this.value - this.start) / (this.end - this.start)) + "px";
+	}
+};
+
+
+		
+
+XsltForms_range.prototype.blur = function(target) {
+	XsltForms_globals.focus = null;
+	if (!this.incremental) {
+		XsltForms_browser.assert(this.input, this.element.id);
+		this.valueChanged(this.value);
+	}
+};
+
+
+	
+		
+		
+		
+function XsltForms_repeat(subform, id, nbsiblings, binding, clone) {
+	XsltForms_globals.counters.repeat++;
+	this.init(subform, id);
+	this.controlName = "repeat";
+	this.nbsiblings = nbsiblings;
+	this.binding = binding;
+	this.index = 1;
+	var el = this.element;
+	this.isRepeat = true;
+	this.hasBinding = true;
+	this.root = XsltForms_browser.hasClass(el, "xforms-control")? el.lastChild : el;
+	this.isItemset = XsltForms_browser.hasClass(el, "xforms-itemset");
+}
+
+XsltForms_repeat.prototype = new XsltForms_element();
+
+
+		
+
+XsltForms_repeat.prototype.dispose = function() {
+	this.root = null;
+	XsltForms_globals.counters.repeat--;
+	XsltForms_element.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_repeat.prototype.setIndex = function(index) {
+	if (this.index !== index) {
+		var node = this.nodes[index - 1];
+		if (node) {    
+			XsltForms_globals.openAction("XsltForms_repeat.prototype.setIndex");
+			this.index = index;
+			this.element.node = node;
+			XsltForms_globals.addChange(this);
+			XsltForms_globals.addChange(document.getElementById(XsltForms_browser.getMeta(node.ownerDocument.documentElement, "model")).xfElement);
+			XsltForms_globals.closeAction("XsltForms_repeat.prototype.setIndex");
+		}
+	}
+};
+
+
+		
+
+XsltForms_repeat.prototype.deleteNode = function(node) {
+	var newNodes = [];
+	var nodes = this.nodes;
+	for (var i = 0, len = nodes.length; i < len; i++) {
+		if (node !== nodes[i]) {
+			newNodes.push(nodes[i]);
+		}
+	}
+	this.nodes = newNodes;
+	this.setIndex(this.index === nodes.length? this.index - 1 : this.index);
+};
+
+
+		
+
+XsltForms_repeat.prototype.insertNode = function(node, nodeAfter) {
+	var nodes = this.nodes;
+	if (nodeAfter) {
+		var newNodes = [];
+		var index = 1;
+		for (var i = 0, len = nodes.length; i < len; i++) {
+			if (nodeAfter === nodes[i]) {
+				newNodes.push(node);
+				index = i + 1;
+			}
+			newNodes.push(nodes[i]);
+		}
+		this.nodes = newNodes;
+		this.setIndex(index);
+	} else {
+		nodes.push(node);
+		this.setIndex(nodes.length);
+	}
+};
+
+
+		
+
+XsltForms_repeat.prototype.build_ = function(ctx) {
+	var nodes0 = this.evaluateBinding(this.binding, ctx);
+	var nodes = [];
+	var r0, r, l, child;
+	for (var n = 0, ln = nodes0.length; n < ln; n++) {
+		if (!XsltForms_browser.getBoolMeta(nodes0[n], "notrelevant")) {
+			nodes.push(nodes0[n]);
+		}
+	}
+	this.nodes = nodes;
+	n = nodes.length;
+	if (this.nbsiblings === 0) {
+		r = this.root;
+		while (r.firstChild.nodeType === XsltForms_nodeType.TEXT) {
+			r.removeChild(r.firstChild);
+		}
+		r0 = r.children ? r.children[0] : r.childNodes[0];
+		XsltForms_repeat.forceOldId(r0);
+		l = r.children ? r.children.length : r.childNodes.length;
+		for (var i = l; i < n; i++) {
+			child = r0.cloneNode(true);
+			r.appendChild(child);
+			XsltForms_repeat.initClone(child);
+		}
+		for (var j = n; j < l && r.childNodes.length > 1; j++) {
+			XsltForms_globals.dispose(r.lastChild);
+			r.removeChild(r.lastChild);
+		}
+		for (var k = 0; k < n; k++) {
+			XsltForms_browser.setMeta(nodes[k], "repeat", this.element.id);
+			if (r.children) {
+				r.children[k].node = nodes[k];
+			} else {
+				r.childNodes[k].node = nodes[k];
+			}
+		}
+	} else {
+		r0 = this.root;
+		XsltForms_repeat.forceOldId(r0);
+		r = r0.parentNode;
+		var cc = r.firstChild;
+		var i0 = 0;
+		while (cc) {
+			if (cc === r0) {
+				break;
+			}
+			i0++;
+			cc = cc.nextSibling;
+		}
+		l = 1;
+		var rl = r.childNodes[i0 + this.nbsiblings];
+		while (rl && (rl.id === this.element.id || rl.attributes.oldid.value === this.element.id)) {
+			l++;
+			rl = r.childNodes[i0 + l*this.nbsiblings];
+		}
+		for (var ib = l; ib < n; ib++) {
+			child = r0.cloneNode(true);
+			r.insertBefore(child, rl);
+			XsltForms_repeat.initClone(child);
+			delete child.xfElement;
+			var r0s = r0.nextSibling;
+			for (var isb = 1; isb < this.nbsiblings; isb++, r0s = r0s.nextSibling) {
+				child = r0s.cloneNode(true);
+				r.insertBefore(child, rl);
+				XsltForms_repeat.initClone(child);
+			}
+		}
+		for (var jb = n; jb < l; jb++) {
+			var rj = r.childNodes[i0 + (n+1)*this.nbsiblings];
+			if (!(rj && (rj.id === this.element.id || rj.attributes.oldid.value === this.element.id))) {
+				break;
+			}
+			for (var jsb = 0; jsb < this.nbsiblings; jsb++) {
+				XsltForms_globals.dispose(r.children[i0 + n*this.nbsiblings]);
+				r.removeChild(r.children[i0 + n*this.nbsiblings]);
+			}
+		}
+		for (var kb = 0; kb < n; kb++) {
+			XsltForms_browser.setMeta(nodes[k], "repeat", this.element.id);
+			if (r.children) {
+				r.children[i0 + kb*this.nbsiblings].node = nodes[kb];
+			} else {
+				r.childNodes[i0 + kb*this.nbsiblings].node = nodes[kb];
+			}
+		}
+	}
+	if (this.index > n) {
+		this.index = 1;
+	}
+	this.element.node = nodes[this.index - 1];
+};
+
+
+		
+
+XsltForms_repeat.prototype.refresh = function(selected) {
+	var empty = this.nodes.length === 0;
+	if (this.nbsiblings !== 0) {
+		var n0 = this.element;
+		for (var i0 = 0, l0 = this.nodes.length; i0 < l0; i0++) {
+			XsltForms_browser.setClass(n0, "xforms-disabled", empty);
+			for (var i1 = 0, l1 = this.nbsiblings; i1 < l1; i1++) {
+				n0 = n0.nextSibling;
+			}
+		}
+	}
+	XsltForms_browser.setClass(this.element, "xforms-disabled", empty);
+	if (!empty && !this.isItemset) {
+		if (this.nbsiblings === 0) {
+			var childs = this.root.children || this.root.childNodes;
+			for (var i = 0, len = childs.length; i < len; i++) {
+				var sel = selected && (this.index === i + 1);
+				childs[i].selected = sel;
+				XsltForms_browser.setClass(childs[i], "xforms-repeat-item-selected", sel);
+			}
+		}
+	}
+};
+
+
+		
+
+XsltForms_repeat.prototype.clone = function(id) { 
+	return new XsltForms_repeat(this.subform, id, this.nbsiblings, this.binding, true);
+};
+
+
+		
+
+XsltForms_repeat.initClone = function(element) {
+	var id = element.id;
+	if (id) {
+		XsltForms_idManager.cloneId(element);
+		element.xfElement = null;
+		var oldid = element.getAttribute("oldid");
+		var original = document.getElementById(oldid);
+		var xf = original.xfElement;
+		if (xf) {
+			if (xf instanceof Array) {
+				for (var ixf = 0, lenxf = xf.length; ixf < lenxf; ixf++) {
+					xf[ixf].clone(element.id);
+				}
+			} else {
+				xf.clone(element.id);
+			}
+		}
+		var listeners = original.listeners;
+		if (listeners && (!XsltForms_browser.isIE || XsltForms_browser.isIE9)) {
+			for (var i = 0, len = listeners.length; i < len; i++) {
+				listeners[i].clone(element);
+			}
+		}
+	}
+	var parentXF = element.parentNode.xfElement;
+	if (parentXF && parentXF.isComponent && parentXF.valueElement === element) {
+		if (parentXF.evaljs) {
+			eval(parentXF.subjs);
+			parentXF.evaljs = false;
+		}
+		return;
+	}
+	var next = element.firstChild;
+	while (next) {
+		var child = next;
+		next = next.nextSibling;
+		if (child.id && child.getAttribute("cloned")) {
+			element.removeChild(child);
+		} else {
+			XsltForms_repeat.initClone(child);
+		}
+	}
+};
+
+
+		
+
+XsltForms_repeat.forceOldId = function(element) {
+	var id = element.id;
+	if (id) {
+		if (id.substr(0, 8) === "clonedId") {
+			return;
+		}
+		element.setAttribute("oldid", id);
+	}
+	var next = element.firstChild;
+	while (next) {
+		var child = next;
+		next = next.nextSibling;
+		XsltForms_repeat.forceOldId(child);
+	}
+};
+
+
+		
+
+XsltForms_repeat.selectItem = function(element) {
+	var par = element.parentNode;
+	if (par) {
+		var repeat = par.xfElement? par : par.parentNode;
+		if (repeat.xfElement) {
+			var childs = par.children;
+			XsltForms_browser.assert(repeat.xfElement, element.nodeName +  " - " + repeat.nodeName);
+			for (var i = 0, len = childs.length; i < len; i++) {
+				if (childs[i] === element) {
+					repeat.xfElement.setIndex(i + 1);
+					break;
+				}
+			}
+		} else {
+			var n = element;
+			var d = 1;
+			while (n && !n.xfElement) {
+				n = n.previousSibling;
+				d++;
+			}
+			if (n && n.xfElement && n.xfElement.nbsiblings > 0) {
+				n.xfElement.setIndex(d / n.xfElement.nbsiblings);
+			}
+		}
+	}
+};
+
+	
+		
+		
+		
+function XsltForms_select(subform, id, multiple, full, binding, incremental, clone) {
+	XsltForms_globals.counters.select++;
+	this.init(subform, id);
+	this.controlName = multiple? "select": "select1";
+	this.binding = binding;
+	this.multiple = multiple;
+	this.full = full;
+	this.incremental = incremental;
+	this.isClone = clone;
+	this.hasBinding = true;
+	this.outRange = false;
+	if (!this.full) {
+		this.select = XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "select")[0] : this.element.getElementsByTagName("select")[0];
+		this.initFocus(this.select);
+		XsltForms_browser.events.attach(this.select, "change", incremental? XsltForms_select.incrementalChange : XsltForms_select.normalChange);
+	}
+}
+
+XsltForms_select.prototype = new XsltForms_control();
+
+
+		
+
+XsltForms_select.prototype.clone = function(id) { 
+	return new XsltForms_select(this.subform, id, this.multiple, this.full, this.binding, this.incremental, true);
+};
+
+
+		
+
+XsltForms_select.prototype.dispose = function() {
+	this.select = null;
+	this.selectedOptions = null;
+	XsltForms_globals.counters.select--;
+	XsltForms_control.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_select.prototype.focusFirst = function() {
+	var input = XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input")[0] : this.element.getElementsByTagName("input")[0];
+	input.focus();
+	if (XsltForms_browser.isOpera) {
+		input.focus();
+	}
+};
+
+
+		
+
+XsltForms_select.prototype.setValue = function(value) {
+	if (!this.full && (!value || value === "")) {
+		this.selectedOptions = [];
+		if (this.select.options[0] && this.select.options[0].value !== "\xA0") {
+			var empty = XsltForms_browser.isXhtml ? document.createElementNS("http://www.w3.org/1999/xhtml", "option") : document.createElement("option");
+			empty.value = "\xA0";
+			empty.text = "\xA0";
+			empty.id = "";
+			if (this.select.children[0]) {
+				this.select.insertBefore(empty, this.select.children[0]);
+			} else {
+				this.select.appendChild(empty);
+			}
+			this.select.selectedIndex = 0;
+		}
+	} else {
+		if (!this.full && this.select.firstChild && this.select.firstChild.value === "\xA0") {
+			//this.select.removeChild(this.select.firstChild);
+			this.select.remove(0);
+		}
+		var vals = value? (this.multiple? value.split(XsltForms_globals.valuesSeparator) : [value]) : [""];
+		var list = this.full? (XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input") : this.element.getElementsByTagName("input")) : this.select.options;
+		var well = true;
+		for (var i = 0, len = vals.length; well && i < len; i++) {
+			var val = vals[i];
+			var found = false;
+			for (var j = 0, len1 = list.length; !found && j < len1; j++) {
+				if (list[j].value === val) {
+					found = true;
+				}
+			}
+			well = found;
+		}
+		if (well || (this.multiple && !value)) {
+			if (this.outRange) {
+				this.outRange = false;
+				XsltForms_xmlevents.dispatch(this, "xforms-in-range");
+			}
+		} else if ((!this.multiple || value) && !this.outRange) {
+			this.outRange = true;
+			XsltForms_xmlevents.dispatch(this, "xforms-out-of-range");
+		}
+		vals = this.multiple? vals : [vals[0]];
+		var item;
+		if (this.full) {
+			for (var n = 0, len2 = list.length; n < len2; n++) {
+				item = list[n];
+				item.checked = XsltForms_browser.inArray(item.value, vals);
+			}
+		} else {
+			this.selectedOptions = [];
+			for (var k = 0, len3 = list.length; k < len3; k++) {
+				item = list[k];
+				var b = XsltForms_browser.inArray(item.value, vals);
+				if (b) {
+					this.selectedOptions.push(item);
+				}
+				try {
+					item.selected = b;
+				} catch(e) {
+				}
+			}
+		}
+	}
+};
+
+
+		
+
+XsltForms_select.prototype.changeReadonly = function() {
+	if (this.full) {
+		var list = XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input") : this.element.getElementsByTagName("input");
+		for (var i = 0, len = list.length; i < len; i++) {
+			list[i].disabled = this.readonly;
+		}
+	} else {
+		if (!XsltForms_browser.dialog.knownSelect(this.select)) {
+			this.select.disabled = this.readonly;
+		}
+	}
+};
+
+
+		
+
+XsltForms_select.prototype.itemClick = function(value) {
+	var inputs = XsltForms_browser.isXhtml ? this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "input") : this.element.getElementsByTagName("input");
+	var input;
+	XsltForms_globals.openAction("XsltForms_select.prototype.itemClick");
+	if (this.multiple) {
+		var newValue = null;
+		for (var i = 0, len = inputs.length; i < len; i++) {
+			input = inputs[i];
+			if (input.value === value) {
+				XsltForms_xmlevents.dispatch(input.parentNode, input.checked? "xforms-select" : "xforms-deselect");
+			}
+			if (input.checked) {
+				newValue = (newValue ? newValue + XsltForms_globals.valuesSeparator : "") + input.value;
+			}
+		}
+		value = newValue;
+	} else {
+		var old = this.value || XsltForms_browser.getValue(this.element.node);
+		var inputSelected = null;
+		if (old === value) {
+			XsltForms_globals.closeAction("XsltForms_select.prototype.itemClick");
+			return;
+		}
+		for (var j = 0, len1 = inputs.length; j < len1; j++) {
+			input = inputs[j];
+			input.checked = input.value === value;
+			if (input.value === old) {
+				XsltForms_xmlevents.dispatch(input.parentNode, "xforms-deselect");
+			} else if (input.value === value) {
+				inputSelected = input;
+			}
+		}
+		XsltForms_xmlevents.dispatch(inputSelected.parentNode, "xforms-select");
+	}
+	if (this.incremental) {
+		this.valueChanged(value || "");
+	} else {
+		this.value = value || "";
+	}
+	XsltForms_globals.closeAction("XsltForms_select.prototype.itemClick");
+};
+
+
+		
+
+XsltForms_select.prototype.blur = function(evt) {
+	if (this.value) {
+		XsltForms_globals.openAction("XsltForms_select.prototype.blur");
+		this.valueChanged(this.value);
+		XsltForms_globals.closeAction("XsltForms_select.prototype.blur");
+		this.value = null;
+	}
+};
+
+
+		
+
+XsltForms_select.normalChange = function(evt) {
+	var xf = XsltForms_control.getXFElement(this);
+	var news = [];
+	var value = "";
+	var old = xf.getSelected();
+	var opts = this.options;
+	XsltForms_globals.openAction("XsltForms_select.normalChange");
+	for (var i = 0, len = old.length; i < len; i++) {
+		if (old[i].selected) {
+			news.push(old[i]);
+		} else {
+			XsltForms_xmlevents.dispatch(old[i], "xforms-deselect");
+		}
+	}
+	var opt;
+	for (var j = 0, len1 = opts.length; j < len1; j++) {
+		opt = opts[j];
+		if (opt.selected) {
+			value = value? value + XsltForms_globals.valuesSeparator + opt.value : opt.value;
+		}
+	}
+	for (var k = 0, len2 = opts.length; k < len2; k++) {
+		opt = opts[k];
+		if (opt.selected) {
+			if (!XsltForms_browser.inArray(opt, news)) {
+				news.push(opt);
+				XsltForms_xmlevents.dispatch(opt, "xforms-select");
+			}
+		}
+	}
+	xf.value = value;
+	xf.selectedOptions = news;
+	XsltForms_globals.closeAction("XsltForms_select.normalChange");
+};
+
+
+		
+
+XsltForms_select.incrementalChange = function(evt) {
+	var xf = XsltForms_control.getXFElement(this);
+	XsltForms_globals.openAction("XsltForms_select.incrementalChange");
+	XsltForms_select.normalChange.call(this, evt);
+	xf.valueChanged(xf.value);
+	XsltForms_globals.closeAction("XsltForms_select.incrementalChange");
+};
+
+
+		
+
+XsltForms_select.prototype.getSelected = function() {
+	var s = this.selectedOptions;
+	if (!s) {
+		s = [];
+		var opts = this.select.options;
+		for (var i = 0, len = opts.length; i < len; i++) {
+			if (opts[i].selected) {
+				s.push(opts[i]);
+			}
+		}
+	}
+	return s;
+};
+
+	
+		
+		
+		
+function XsltForms_trigger(subform, id, binding, clone) {
+	XsltForms_globals.counters.trigger++;
+	this.init(subform, id);
+	this.controlName = "trigger";
+	this.binding = binding;
+	this.hasBinding = !!binding;
+	if(!this.hasBinding) {
+		XsltForms_browser.setClass(this.element, "xforms-disabled", false);
+	}
+	this.isTrigger = true;
+	var button = XsltForms_browser.isXhtml ? (this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "a")[0] || this.element.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "button")[0]) : (this.element.getElementsByTagName("a")[0] || this.element.getElementsByTagName("button")[0]);
+	this.input = button;
+	this.initFocus(button);
+}
+
+XsltForms_trigger.prototype = new XsltForms_control();
+
+
+		
+
+XsltForms_trigger.prototype.setValue = function () { };
+
+
+		
+
+XsltForms_trigger.prototype.changeReadonly = function() {
+	this.input.disabled = this.readonly;
+};
+
+
+		
+
+XsltForms_trigger.prototype.clone = function (id) {
+	return new XsltForms_trigger(this.subform, id, this.binding, true);
+};
+
+
+		
+
+XsltForms_trigger.prototype.dispose = function() {
+	XsltForms_globals.counters.trigger--;
+	XsltForms_element.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_trigger.prototype.click = function (target, evcontext) {
+	XsltForms_globals.openAction("XsltForms_trigger.prototype.click");
+	XsltForms_xmlevents.dispatch(this, "DOMActivate", null, null, null, null, evcontext);
+	XsltForms_globals.closeAction("XsltForms_trigger.prototype.click");
+};
+
+
+		
+
+XsltForms_trigger.prototype.blur = function () { };
+
+	
+		
+		
+		
+function XsltForms_upload(subform, id, valoff, binding, incremental, filename, mediatype, aidButton, clone) {
+	XsltForms_globals.counters.upload++;
+	this.init(subform, id);
+	this.controlName = "upload";
+	this.binding = binding;
+	this.incremental = incremental;
+	this.filename = filename;
+	var cells = this.element.children;
+	this.valoff = valoff;
+	this.cell = cells[valoff];
+	this.input = this.cell.children[0];
+	this.isClone = clone;
+	this.hasBinding = true;
+	this.bolAidButton = aidButton;
+	this.mediatype = mediatype;
+	this.value = "";
+	this.initFocus(this.cell.children[0], true);
+	if (!window.FileReader && !(document.applets.xsltforms || document.getElementById("xsltforms_applet"))) {
+		XsltForms_browser.loadapplet();
+	}
+	if (aidButton) {
+		this.aidButton = cells[valoff + 1].children[0];
+		this.initFocus(this.aidButton);
+	}
+}
+
+XsltForms_upload.prototype = new XsltForms_control();
+
+XsltForms_upload.contents = {};
+
+
+		
+
+XsltForms_upload.prototype.clone = function(id) { 
+	return new XsltForms_input(this.subform, id, this.valoff, this.binding, this.incremental, this.filename, this.mediatype, this.bolAidButton, true);
+};
+
+
+		
+
+XsltForms_upload.prototype.dispose = function() {
+	this.cell = null;
+	XsltForms_globals.counters.upload--;
+	XsltForms_control.prototype.dispose.call(this);
+};
+
+
+		
+
+XsltForms_upload.prototype.setValue = function(value) {
+	var node = this.element.node;
+	this.type = node ? XsltForms_schema.getType(XsltForms_browser.getType(node) || "xsd_:string") : XsltForms_schema.getType("xsd_:string");
+	if (this.value !== value) {
+		this.value = value || "";
+	}
+};
+
+
+		
+
+XsltForms_upload.prototype.blur = function(target) {
+	XsltForms_globals.focus = null;
+	if (!this.incremental) {
+		XsltForms_browser.assert(this.input, this.element.id);
+		this.valueChanged(this.value);
+	}
+};
+
+
+		
+
+XsltForms_upload.prototype.directclick = function() {
+	if (window.FileReader) {
+		return true;
+	}
+	if (this.type.nsuri !== "http://www.w3.org/2001/XMLSchema" || (this.type.name !== "anyURI" && this.type.name !== "base64Binary" && this.type.name !== "hexBinary")) {
+		alert("Unexpected type for upload control: " + this.type.nsuri + " " + this.type.name);
+		throw "Error";
+	} else {
+		var filename = "unselected";
+		var content = XsltForms_browser.readFile("", "ISO-8859-1", this.type.name, "XSLTForms Java Upload");
+		if (document.applets.xsltforms) {
+			filename = document.applets.xsltforms.lastChosenFileName;
+		} else {
+			if( document.getElementById("xsltforms_applet") ) {
+				filename = document.getElementById("xsltforms_applet").xsltforms.lastChosenFileName;
+			}
+		}
+		filename = filename.split('\\').pop();
+		if (this.type.name === "anyURI") {
+			this.value = "file://" + filename + "?id=" + this.element.id;
+			XsltForms_upload.contents[this.element.id] = content;
+		} else {
+			this.value = content;
+		}
+		this.input.value = filename;
+		if (this.incremental) {
+			this.valueChanged(this.value);
+		}
+		if(this.filename && this.filename.evaluate) {
+			var filenameref = this.filename.evaluate(this.element.node)[0];
+			if (filenameref) {
+				XsltForms_globals.openAction("XsltForms_upload.prototype.directclick");
+				XsltForms_browser.setValue(filenameref, filename || "");
+				var model = document.getElementById(XsltForms_browser.getMeta(filenameref.ownerDocument.documentElement, "model")).xfElement;
+				model.addChange(filenameref);
+				XsltForms_xmlevents.dispatch(model, "xforms-recalculate");
+				XsltForms_globals.refresh();
+				XsltForms_globals.closeAction("XsltForms_upload.prototype.directclick");
+			}
+		}
+	}
+	return false;
+};
+
+
+		
+
+XsltForms_upload.prototype.change = function() {
+	if (this.type.nsuri !== "http://www.w3.org/2001/XMLSchema" || (this.type.name !== "anyURI" && this.type.name !== "base64Binary" && this.type.name !== "hexBinary")) {
+		alert("Unexpected type for upload control: " + this.type.nsuri + " " + this.type.name);
+		throw "Error";
+	} else {
+		var filename = "unselected";
+		var content = "";
+		var xf = this;
+		try {
+			var fr = new FileReader();
+			var file = xf.input.files[0];
+			if (!file) {
+				alert("No file!?!");
+				return;
+			}
+			filename = file.name;
+			if (xf.type.name === "hexBinary") {
+				fr.onload = function(e) {
+					var bytes = new Uint8Array(e.target.result);
+					for( var i = 0, len = bytes.length; i < len; i++) {
+						var c = bytes[i] >> 4;
+						var d = bytes[i] & 0xF;
+						content += String.fromCharCode(c > 9 ? c + 55 : c + 48, d > 9 ? d + 55 : d + 48);
+					}
+					xf.value = content;
+					if (xf.incremental) {
+						xf.valueChanged(content);
+					}
+				};
+			} else if (xf.type.name === "base64Binary") {
+				fr.onload = function(e) {
+					var bytes = new Uint8Array(e.target.result);
+					var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+					var len = bytes.length;
+					bytes[len] = bytes[len+1] = 0;
+					for( var i = 0; i < len; i += 3) {
+						var c1 = bytes[i] >> 2;
+						var c2 = ((bytes[i] & 3) << 4) | (bytes[i+1] >> 4);
+						var c3 = ((bytes[i+1] & 15) << 2) | (bytes[i+2] >> 6);
+						var c4 = bytes[i+2] & 63;
+						if( i === len - 1) {
+							c3 = c4 = 64;
+						} else if( i === len -2) {
+							c4 = 64;
+						}
+						content += b64.charAt(c1) + b64.charAt(c2) + b64.charAt(c3) + b64.charAt(c4);
+					}
+					xf.value = content;
+					if (xf.incremental) {
+						xf.valueChanged(content);
+					}
+				};
+			} else {
+				fr.onload = function(e) {
+					XsltForms_upload.contents[xf.element.id] = e.target.result;
+					xf.value = "file://" + filename + "?id=" + xf.element.id;
+					if (xf.incremental) {
+						xf.valueChanged(xf.value);
+					}
+				};
+			}
+			fr.readAsArrayBuffer(file);
+		} catch (e) {
+			content = XsltForms_browser.readFile(xf.input.value, "ISO-8859-1", xf.type.name, "");
+			if (xf.type.name === "anyURI") {
+				xf.value = "file://" + filename + "?id=" + xf.element.id;
+				XsltForms_upload.contents[xf.element.id] = content;
+			} else {
+				xf.value = content;
+			}
+			if (xf.incremental) {
+				xf.valueChanged(xf.value);
+			}
+		}
+		if(this.filename && this.filename.evaluate) {
+			var filenameref = this.filename.evaluate(this.element.node)[0];
+			if (filenameref) {
+				XsltForms_globals.openAction("XsltForms_upload.prototype.change");
+				XsltForms_browser.setValue(filenameref, filename || "");
+				var model = document.getElementById(XsltForms_browser.getMeta(filenameref.ownerDocument.documentElement, "model")).xfElement;
+				model.addChange(filenameref);
+				XsltForms_xmlevents.dispatch(model, "xforms-recalculate");
+				XsltForms_globals.refresh();
+				XsltForms_globals.closeAction("XsltForms_upload.prototype.change");
+			}
+		}
+	}
+};
+
+
+	
+		
+		
+		
+function XsltForms_calendar() {
+	var body = XsltForms_browser.isXhtml ? document.getElementsByTagNameNS("http://www.w3.org/1999/xhtml", "body")[0] : document.getElementsByTagName("body")[0];
+	this.element = XsltForms_browser.createElement("table", body, null, "calendar");
+	var tHead = XsltForms_browser.createElement("thead", this.element);
+	var trTitle = XsltForms_browser.createElement("tr", tHead);
+	var title = XsltForms_browser.createElement("td", trTitle, null, "title");
+	title.colSpan = 7;
+	this.selectMonth = XsltForms_browser.createElement("select", title);
+	XsltForms_browser.events.attach(this.selectMonth, "change", function() {
+		XsltForms_calendar.INSTANCE.refresh();
+	} );
+	for (var i = 0; i < 12; i++) {
+		var o = XsltForms_browser.createElement("option", this.selectMonth, XsltForms_browser.i18n.get("calendar.month" + i));
+		o.setAttribute("value", i);
+	}
+	this.inputYear = XsltForms_browser.createElement("input", title);
+	this.inputYear.readOnly = true;
+	XsltForms_browser.events.attach(this.inputYear, "mouseup", function() {
+		var cal = XsltForms_calendar.INSTANCE;
+		cal.yearList.show();
+	} );
+	XsltForms_browser.events.attach(this.inputYear, "change", function() {
+		XsltForms_calendar.INSTANCE.refresh();
+	} );
+	var close = XsltForms_browser.createElement("button", title, "X");
+	close.setAttribute("type", "button");
+	close.setAttribute("title", "Close");
+	XsltForms_browser.events.attach(close, "click", function() {
+		XsltForms_calendar.close();
+	} );
+	var trDays = XsltForms_browser.createElement("tr", tHead, null, "names");
+	var ini = parseInt(XsltForms_browser.i18n.get("calendar.initDay"), 10);
+	for (var j = 0; j < 7; j++) {
+		var ind = (j + ini) % 7;
+		this.createElement(trDays, "name", XsltForms_browser.i18n.get("calendar.day" + ind));
+	}
+	this.tBody = XsltForms_browser.createElement("tbody", this.element);
+	var handler = function(event) {
+		var value = XsltForms_browser.events.getTarget(event).childNodes[0].nodeValue;
+		var cal = XsltForms_calendar.INSTANCE;
+		if (value !== "") {
+			cal.day = value;
+			var date = new Date(cal.inputYear.value,cal.selectMonth.value,cal.day);
+			if (cal.isTimestamp) {
+				date.setSeconds(cal.inputSec.value);
+				date.setMinutes(cal.inputMin.value);
+				date.setHours(cal.inputHour.value);
+				cal.input.value = XsltForms_browser.i18n.format(date, null, true);
+			} else {
+				cal.input.value = XsltForms_browser.i18n.formatDate(date);
+			}
+			XsltForms_calendar.close();
+			XsltForms_browser.events.dispatch(cal.input, "keyup");
+			cal.input.focus();
+		}
+	};
+	for (var dtr = 0; dtr < 6; dtr++) {
+		var trLine = XsltForms_browser.createElement("tr", this.tBody);
+		for (var day = 0; day < 7; day++) {
+			this.createElement(trLine, "day", " ", 1, handler);
+		}
+	}
+	var tFoot = XsltForms_browser.createElement("tfoot", this.element);
+	var trFoot = XsltForms_browser.createElement("tr", tFoot);
+	var tdFoot = XsltForms_browser.createElement("td", trFoot);
+	tdFoot.colSpan = 7;
+	this.inputHour = XsltForms_browser.createElement("input", tdFoot);
+	this.inputHour.readOnly = true;
+	XsltForms_browser.events.attach(this.inputHour, "mouseup", function() {
+		XsltForms_calendar.INSTANCE.hourList.show();
+	} );
+	tdFoot.appendChild(document.createTextNode(":"));
+	this.inputMin = XsltForms_browser.createElement("input", tdFoot);
+	this.inputMin.readOnly = true;
+	XsltForms_browser.events.attach(this.inputMin, "mouseup", function() {
+		XsltForms_calendar.INSTANCE.minList.show();
+	} );
+	tdFoot.appendChild(document.createTextNode(":"));
+	this.inputSec = XsltForms_browser.createElement("input", tdFoot);
+	this.inputSec.readOnly = true;
+	XsltForms_browser.events.attach(this.inputSec, "mouseup", function() {
+		if (XsltForms_calendar.INSTANCE.type >= XsltForms_calendar.SECONDS) {
+			XsltForms_calendar.INSTANCE.secList.show();
+		}
+	} );
+	this.yearList = new XsltForms_numberList(title, "calendarList", this.inputYear, 1900, 2050);
+	this.hourList = new XsltForms_numberList(tdFoot, "calendarList", this.inputHour, 0, 23, 2);
+	this.minList = new XsltForms_numberList(tdFoot, "calendarList", this.inputMin, 0, 59, 2);
+	this.secList = new XsltForms_numberList(tdFoot, "calendarList", this.inputSec, 0, 59, 2);
+}
+
+
+		
+
+XsltForms_calendar.prototype.today = function() {
+	this.refreshControls(new Date());
+};
+
+
+		
+
+XsltForms_calendar.prototype.refreshControls = function(date) {
+	this.day = date.getDate();
+	this.selectMonth.value = date.getMonth();
+	this.inputYear.value = date.getYear() < 1000 ? 1900 + date.getYear() : date.getYear();
+	if (this.isTimestamp) {
+		this.inputHour.value = XsltForms_browser.zeros(date.getHours(), 2);
+		this.inputMin.value = this.type >= XsltForms_calendar.MINUTES ? XsltForms_browser.zeros(date.getMinutes(), 2) : "00";
+		this.inputSec.value = this.type >= XsltForms_calendar.SECONDS ? XsltForms_browser.zeros(date.getSeconds(), 2) : "00";
+	}
+	this.refresh();
+};
+
+
+		
+
+XsltForms_calendar.prototype.refresh = function() {
+	var firstDay = this.getFirstDay();
+	var daysOfMonth = this.getDaysOfMonth();
+	var ini = parseInt(XsltForms_browser.i18n.get("calendar.initDay"), 10);
+	var cont = 0;
+	var day = 1;
+	var currentMonthYear = this.selectMonth.value === this.currentMonth && this.inputYear.value === this.currentYear;
+	for (var i = 0; i < 6; i++) {
+		var trLine = this.tBody.childNodes[i];
+		for (var j = 0; j < 7; j++, cont++) {
+			var cell = trLine.childNodes[j];
+			var dayInMonth = (cont >= firstDay && cont < firstDay + daysOfMonth);
+			XsltForms_browser.setClass(cell, "hover", false);
+			XsltForms_browser.setClass(cell, "today", currentMonthYear && day === this.currentDay);
+			XsltForms_browser.setClass(cell, "selected", dayInMonth && day === this.day);
+			XsltForms_browser.setClass(cell, "weekend", (j+ini)%7 > 4);
+			cell.firstChild.nodeValue = dayInMonth ? day++ : "";
+		}
+	}
+};
+
+
+		
+
+XsltForms_calendar.prototype.getFirstDay = function() {
+	var date = new Date();
+	date.setDate(1);
+	date.setMonth(this.selectMonth.value);
+	date.setYear(this.inputYear.value);
+	var ini = parseInt(XsltForms_browser.i18n.get("calendar.initDay"), 10);
+	var d = date.getDay();
+	return (d + (6 - ini)) % 7;
+};
+
+
+		
+
+XsltForms_calendar.prototype.getDaysOfMonth = function() {
+	var year = parseInt(this.inputYear.value, 10);
+	var month = parseInt(this.selectMonth.value, 10);
+	if (month === 1 && ((0 === (year % 4)) && ((0 !== (year % 100)) || (0 === (year % 400))))) {
+		return 29;
+	}
+	return XsltForms_calendar.daysOfMonth[this.selectMonth.value];
+};
+
+
+		
+
+XsltForms_calendar.prototype.createElement = function(parent, className, text, colspan, handler) {
+	var element = XsltForms_browser.createElement("td", parent, text, className);
+	if (colspan > 1) {
+		element.colSpan = colspan;
+	}
+	if (handler) {
+		XsltForms_browser.events.attach(element, "click", handler);
+		XsltForms_browser.initHover(element);
+	}
+	return element;
+};
+
+XsltForms_calendar.daysOfMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+XsltForms_calendar.ONLY_DATE = 0;
+XsltForms_calendar.HOURS = 1;
+XsltForms_calendar.MINUTES = 2;
+XsltForms_calendar.SECONDS = 3;
+
+
+		
+
+XsltForms_calendar.show = function(input, type) {
+	var cal = XsltForms_calendar.INSTANCE;
+	if (!cal) {
+		cal = new XsltForms_calendar();
+		XsltForms_calendar.INSTANCE = cal;
+	}
+	if (!type) {
+		type = XsltForms_calendar.ONLY_DATE;
+	}
+	cal.input = input;
+	cal.type = type;
+	cal.isTimestamp = type !== XsltForms_calendar.ONLY_DATE;
+	XsltForms_browser.setClass(cal.element, "date", !cal.isTimestamp);
+	var date;
+	try {
+		date = cal.isTimestamp? XsltForms_browser.i18n.parse(input.value) : XsltForms_browser.i18n.parseDate(input.value);
+	} catch (e) {
+		date = new Date();
+	}
+	if (date) {
+		cal.refreshControls(date);
+	} else {
+		cal.today();
+	}
+	XsltForms_browser.dialog.show(cal.element, input, false);
+};
+
+
+		
+
+XsltForms_calendar.close = function() {
+	var cal = XsltForms_calendar.INSTANCE;
+	cal.yearList.close();
+	XsltForms_browser.dialog.hide(cal.element, false);
+};
+    
+	
+	
+		
+		
+		
+		
+		
+function XsltForms_type() {
+}
+
+
+		
+
+XsltForms_type.prototype.setSchema = function(schema) {
+	this.schema = schema;
+	return this;
+};
+
+
+		
+
+XsltForms_type.prototype.setName = function(name) {
+	this.name = name;
+	this.nsuri = this.schema.ns;
+	this.schema.types[name] = this;
+	return this;
+};
+
+
+		
+
+XsltForms_type.prototype.canonicalValue = function(value) {
+	value = value.toString();
+	switch (this.whiteSpace) {
+		case "replace":
+			value = value.replace(/[\t\r\n]/g, " ");
+			break;
+		case "collapse":
+			value = value.replace(/[\t\r\n ]+/g, " ").replace(/^\s+|\s+$/g, "");
+			break;
+	}
+
+	return value;
+};
+
+
+		
+
+XsltForms_type.prototype.getMaxLength = function() {
+	return this.maxLength ? this.maxLength : (this.length ? this.length : (this.totalDigits ? this.totalDigits + 1 : null));
+};
+
+
+		
+
+XsltForms_type.prototype.getDisplayLength = function() {
+	return this.displayLength;
+};
+    
+	
+		
+		
+		
+function XsltForms_schema(subform, ns, name, prefixes) {
+	if (XsltForms_schema.all[ns]) {
+		XsltForms_globals.error(XsltForms_globals.defaultModel, "xforms-link-exception", "More than one schema with the same namespace declaration");
+		return;
+	}
+	if (ns === "") {
+		return XsltForms_schema.all["http://www.w3.org/2002/xforms"];
+	}
+	this.subform = subform;
+	this.name = name;
+	this.ns = ns;
+	this.types = {};
+	this.prefixes = prefixes || {};
+	XsltForms_schema.all[ns] = this;
+	if (subform) {
+		subform.schemas.push(this);
+	}
+}
+
+
+		
+
+XsltForms_schema.prototype.dispose = function(subform) {
+	XsltForms_schema.all[this.ns] = null;
+	this.types = null;
+	this.prefixes = null;
+};
+
+		
+
+XsltForms_schema.all = {};
+
+
+		
+
+XsltForms_schema.prototype.getType = function(name) {
+	if (name.indexOf(":") !== -1) {
+		var res = name.split(":");
+		var prefix = res[0];
+		var ns = this.prefixes[prefix];
+		if (ns) {
+			return XsltForms_schema.getTypeNS(ns, res[1]);
+		}
+		return XsltForms_schema.getType(name);
+	}
+	var type = this.types[name];
+	if (!type) {
+		alert("Type " + name + " not defined");
+		throw "Error";
+	}
+	return type;
+};
+
+
+		
+
+XsltForms_schema.getType = function(name) {
+	name = name || "xsd:string";
+	var res = name.split(":");
+	if (typeof(res[1]) === "undefined") {
+		return XsltForms_schema.getTypeNS(XsltForms_schema.prefixes.xforms, res[0]);
+	} else {
+		return XsltForms_schema.getTypeNS(XsltForms_schema.prefixes[res[0]], res[1]);
+	}
+};
+
+
+		
+
+XsltForms_schema.getTypeNS = function(ns, name) {
+	var schema = XsltForms_schema.all[ns];
+	if (!schema) {
+		alert("Schema for namespace " + ns + " not defined for type " + name);
+		throw "Error";
+	}
+	var type = schema.types[name];	
+	if (!type) {
+		if (XsltForms_globals.debugMode) {
+			alert("Type " + name + " not defined in namespace " + ns);
+		}
+		type = XsltForms_schema.getTypeNS("http://www.w3.org/2001/XMLSchema", "string");
+	}
+	return type;
+};
+
+
+		
+
+XsltForms_schema.get = function(subform, ns) {
+	var schema = XsltForms_schema.all[ns];
+	if (!schema) {
+		schema = new XsltForms_schema(subform, ns);
+	}
+	return schema;
+};
+
+
+		
+
+XsltForms_schema.prefixes = {
+	"xsd_" : "http://www.w3.org/2001/XMLSchema",
+	"xsd" : "http://www.w3.org/2001/XMLSchema",
+	"xs" : "http://www.w3.org/2001/XMLSchema",
+	"xf" : "http://www.w3.org/2002/xforms",
+	"xform" : "http://www.w3.org/2002/xforms",
+	"xforms" : "http://www.w3.org/2002/xforms",
+	"xsltforms" : "http://www.agencexml.com/xsltforms",
+	"rte" : "http://www.agencexml.com/xsltforms/rte",
+	"dcterms" : "http://purl.org/dc/terms/"
+};
+
+
+		
+
+XsltForms_schema.registerPrefix = function(prefix, namespace) {
+	this.prefixes[prefix] = namespace;
+};
+    
+	
+		
+		
+		
+function XsltForms_atomicType() {
+	this.patterns = [];
+}
+
+XsltForms_atomicType.prototype = new XsltForms_type();
+
+
+		
+
+XsltForms_atomicType.prototype.setBase = function(base) {
+	var baseType = typeof base === "string"? this.schema.getType(base) : base;
+	for (var id in baseType)  {
+		if (baseType.hasOwnProperty(id)) {
+			var value = baseType[id];
+			if (id === "patterns") {
+				XsltForms_browser.copyArray(value, this.patterns);
+			} else if (id !== "name" && id !== "nsuri" && id !== "base") {
+				this[id] = value;
+			}
+		}
+	}
+	this.basensuri = baseType.nsuri;
+	this.basename = baseType.name;
+	return this;
+};
+
+
+		
+
+XsltForms_atomicType.prototype.hasBase = function(base) {
+	var baseType = XsltForms_schema.getType(base);
+	var curType = this;
+	while( curType !== baseType ){
+		if (!curType.basename) {
+			return false;
+		}
+		curType = XsltForms_schema.getTypeNS(curType.basensuri, curType.basename);
+		if (!curType) {
+			return false;
+		}
+	}
+	return true;
+};
+
+
+		
+
+XsltForms_atomicType.prototype.put = function(name, value) {
+	if (name === "base") {
+		this.setBase(value);
+	} else if (name === "pattern") {
+		XsltForms_browser.copyArray([value], this.patterns);
+	} else if (name === "length") {
+		this.length = parseInt(value, 10);
+	} else if (name === "enumeration") {
+		if (!this.enumeration) {
+			this.enumeration = [];
+		}
+		this.enumeration.push(value);
+	} else {
+		this[name] = value;
+	}
+	
+	return this;
+};
+
+
+		
+
+/** If valid return canonicalValue else null*/
+XsltForms_atomicType.prototype.validate = function (value) {
+	value = this.canonicalValue(value);
+	for (var i = 0, len = this.patterns.length; i < len; i++) {
+		if (!value.match(this.patterns[i])) {
+			return false;
+		}
+	}
+	if (this.enumeration) {
+		var matched = false;
+		for (var j = 0, len1 = this.enumeration.length; j < len1; j++) {
+			if (value === this.canonicalValue(this.enumeration[j])) {
+				matched = true;
+				break;
+			}
+		}
+		if (!matched) {
+			return false;
+		}
+	}
+	var l = value.length;
+	var value_i = parseInt(value, 10);
+	if ( (this.length && this.length !== l) ||
+		(this.minLength && l < this.minLength) ||
+		(this.maxLength && l > this.maxLength) ||
+		(this.maxInclusive && value_i > this.maxInclusive) ||
+		(this.maxExclusive && value_i >= this.maxExclusive) ||
+		(this.minInclusive && value_i < this.minInclusive) ||
+		(this.minExclusive && value_i <= this.minExclusive) ) {
+		return false;
+	}
+	if (this.totalDigits || this.fractionDigits) {
+		var index = value.indexOf(".");
+		var integer = "" + Math.abs(parseInt(index !== -1? value.substring(0, index) : value, 10));
+		var decimal = index !== -1? value.substring(index + 1) : "";
+		if (index !== -1) {
+			if (this.fractionDigits === 0) {
+				return false;
+			}
+			var dl = decimal.length - 1;
+			while (dl >= 0 && decimal.charAt(dl) === 0) {
+				dl--;
+			}
+			decimal = decimal.substring(0, dl + 1);
+		}
+		if ( (this.totalDigits && integer.length + decimal.length > this.totalDigits) ||
+			(this.fractionDigits && decimal.length > this.fractionDigits)) {
+			return false;
+		}
+	}
+	return true;
+};
+
+
+		
+
+XsltForms_atomicType.prototype.normalize = function (value) {
+	if (this.fractionDigits) {
+		var number = parseFloat(value);
+		var num;
+		if (isNaN(number)) {
+			return "NaN";
+		}
+		if (number === 0) {
+			num = XsltForms_browser.zeros(0, this.fractionDigits + 1, true);
+		} else {
+			var mult = XsltForms_browser.zeros(1, this.fractionDigits + 1, true);
+			num = "" + Math.round(number * mult);
+		}
+		if (this.fractionDigits !== 0) {
+			var index = num.length - this.fractionDigits;
+			return (index === 0 ? "0" : num.substring(0, index)) + "." + num.substring(index);
+		}
+		return num;
+	}
+	return value;
+};
+    
+	
+		
+		
+		
+function XsltForms_listType() {
+	this.whiteSpace = "collapse";
+}
+
+XsltForms_listType.prototype = new XsltForms_type();
+
+
+		
+
+XsltForms_listType.prototype.setItemType = function(itemType) {
+	this.itemType = typeof itemType === "string"? this.schema.getType(itemType) : itemType;
+	return this;
+};
+
+
+		
+
+XsltForms_listType.prototype.validate = function (value) {
+	var items = this.baseType.canonicalValue.call(this, value).split(" ");
+	value = "";
+	if (items.length === 1 && items[0] === "") {
+		items = [];
+	}
+	for (var i = 0, len = items.length; i < len; i++) {
+		var item = XsltForms_itemType.validate(items[i]);
+		if (!item) {
+			return null;
+		}
+		value += value.length === 0? item : " " + item;
+	}
+	if ( (this.length && this.length !== 1) ||
+		(this.minLength && 1 < this.minLength) ||
+		(this.maxLength && 1 > this.maxLength)) {
+		return null;
+	}
+	return null;
+};
+
+
+		
+
+XsltForms_listType.prototype.canonicalValue = function(value) {
+	var items = this.baseType.canonicalValue(value).split(" ");
+	var cvalue = "";
+	for (var i = 0, len = items.length; i < len; i++) {
+		var item = this.itemType.canonicalValue(items[i]);
+		cvalue += (cvalue.length === 0 ? "" : " ") + item;
+	}
+	return cvalue;
+};
+
+	
+		
+		
+		
+function XsltForms_unionType(memberTypes) {
+	this.baseTypes = [];
+	this.memberTypes = memberTypes ? memberTypes.split(" ") : [];
+}
+
+XsltForms_unionType.prototype = new XsltForms_type();
+
+
+		
+
+XsltForms_unionType.prototype.addType = function(type) {
+	this.baseTypes.push(typeof type === "string"? this.schema.getType(type) : type);
+	return this;
+};
+
+
+		
+
+XsltForms_unionType.prototype.addTypes = function() {
+	for (var i = 0, len = this.memberTypes.length; i < len; i++ ) {
+		this.baseTypes.push(this.schema.getType(this.memberTypes[i]));
+	}
+	return this;
+};
+
+
+		
+
+XsltForms_unionType.prototype.validate = function (value) {
+	for (var i = 0, len = this.baseTypes.length; i < len; ++i) {
+		if (this.baseTypes[i].validate(value)) {
+			return true;
+		}
+	}
+	return false;
+};
+    
+	
+		
+		
+		
+var XsltForms_typeDefs = {
+
+		
+
+	initAll : function() {
+		this.init("http://www.w3.org/2001/XMLSchema", this.Default);
+		this.init("http://www.w3.org/2002/xforms", this.XForms);
+		this.init("http://www.agencexml.com/xsltforms", this.XSLTForms);
+		this.init("http://purl.org/dc/terms/", this.DublinCore);
+	},
+
+		
+
+	init : function(ns, list) {
+		var schema = XsltForms_schema.get(null, ns);
+		for (var id in list) {
+			if (list.hasOwnProperty(id)) {
+				var type = new XsltForms_atomicType();
+				type.setSchema(schema);
+				type.setName(id);
+				var props = list[id];
+				var base = props.base;
+				if (base) {
+					type.setBase(base);
+				}
+				for (var prop in props) {
+					if (prop !== "base") {
+						type[prop] = props[prop];
+					}
+				}
+			}
+		}
+	},
+	ctes : {
+		i : "A-Za-z_\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\xFF",
+		c : "A-Za-z_\\xC0-\\xD6\\xD8-\\xF6\\xF8-\\xFF\\-\\.0-9\\xB7"
+	}
+};
+
+
+		
+
+XsltForms_typeDefs.Default = {
+
+		
+
+	"string" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"whiteSpace" : "preserve"
+	},
+
+		
+
+	"boolean" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^(true|false|0|1)$" ],
+		"class" : "boolean"
+	},
+
+		
+
+	"decimal" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^[\\-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$" ],
+		"class" : "number",
+		"format" : function(value) {
+			return XsltForms_browser.i18n.formatNumber(value, this.fractionDigits);
+		},
+		"parse" : function(value) {
+			return XsltForms_browser.i18n.parseNumber(value);
+		}
+	},
+
+		
+
+	"float" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^(([\\-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][\\-+]?[0-9]+)?|-?INF|NaN)$" ],
+		"class" : "number"
+	},
+
+		
+
+	"double" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^(([\\-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][-+]?[0-9]+)?|-?INF|NaN)$" ],
+		"class" : "number"
+	},
+
+		
+
+	"dateTime" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
+		"class" : "datetime",
+		"displayLength" : 20,
+		"format" : function(value) {
+			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parse(value, "yyyy-MM-ddThh:mm:ss"),null, true);
+		},
+		"parse" : function(value) {
+			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parse(value), "yyyy-MM-ddThh:mm:ss", true);
+		}
+	},
+
+		
+
+	"date" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
+		"class" : "date",
+		"displayLength" : 10,
+		"format" : function(value) {
+			return XsltForms_browser.i18n.formatDate(XsltForms_browser.i18n.parse(value, "yyyy-MM-dd"), null, true);
+		},
+		"parse" : function(value) {
+			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parseDate(value), "yyyy-MM-dd", true);
+		}
+	},
+
+		
+
+	"time" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?$" ],
+		"displayLength" : 8
+	},
+
+		
+
+	"duration" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^-?P(?!$)([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T(?!$)([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?$" ]
+	},
+
+		
+
+	"gDay" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^---(0[1-9]|[12][0-9]|3[01])$" ]
+	},
+
+		
+
+	"gMonth" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^--(0[1-9]|1[012])$" ]
+	},
+
+		
+
+	"gMonthDay" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^--(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$" ]
+	},
+
+		
+
+	"gYear" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^([\\-+]?([0-9]{4}|[1-9][0-9]{4,}))?$" ]
+	},
+
+		
+
+	"gYearMonth" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^([12][0-9]{3})-(0[1-9]|1[012])$" ]
+	},
+
+		
+
+	"integer" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:decimal",
+		"fractionDigits" : "0"
+	},
+
+		
+
+	"nonPositiveInteger" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:integer",
+		"patterns" : [ "^(-[0-9]+|0)$" ]
+	},
+
+		
+
+	"nonNegativeInteger" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:integer",
+		"patterns" : [ "^\\+?[0-9]+$" ]
+	},
+
+		
+
+	"negativeInteger" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:integer",
+		"patterns" : [ "^-0*[1-9][0-9]*$" ]
+	},
+
+		
+
+	"positiveInteger" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:integer",
+		"patterns" : [ "^\\+?0*[1-9][0-9]*$" ]
+	},
+
+		
+
+	"byte" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:integer",
+		"minInclusive" : -128,
+		"maxInclusive" : 127
+	},
+
+		
+
+	"short" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:integer",
+		"minInclusive" : -32768,
+		"maxInclusive" : 32767
+	},
+
+		
+
+	"int" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:integer",
+		"minInclusive" : -2147483648,
+		"maxInclusive" : 2147483647
+},
+
+		
+
+	"long" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:integer",
+		"minInclusive" : -9223372036854775808,
+		"maxInclusive" : 9223372036854775807
+},
+
+		
+
+	"unsignedByte" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:nonNegativeInteger",
+		"maxInclusive" : 255
+	},
+
+		
+
+	"unsignedShort" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:nonNegativeInteger",
+		"maxInclusive" : 65535
+	},
+
+		
+
+	"unsignedInt" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:nonNegativeInteger",
+		"maxInclusive" : 4294967295
+	},
+
+		
+
+	"unsignedLong" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:nonNegativeInteger",
+		"maxInclusive" : 18446744073709551615
+},
+
+		
+
+	"normalizedString" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"whiteSpace" : "replace"
+	},
+
+		
+
+	"token" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"whiteSpace" : "collapse"
+	},
+
+		
+
+	"language" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:token",
+		"patterns" : [ "^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$" ]
+	},
+
+		
+
+	"anyURI" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:token",
+		"patterns" : [ "^(([^ :\\/?#]+):\\/\\/)?[^ \\/\\?#]+([^ \\?#]*)(\\?([^ #]*))?(#([^ \\:#\\[\\]\\@\\!\\$\\&\\\\'\\(\\)\\*\\+\\,\\;\\=]*))?$" ]
+	},
+
+		
+
+	"Name" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:token",
+		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.i + ":][" + XsltForms_typeDefs.ctes.c + ":]*$" ]
+	},
+
+		
+
+	"NCName" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:token",
+		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*$" ]
+	},
+
+		
+
+	"QName" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:token",
+		"patterns" : [ "^(([a-zA-Z][0-9a-zA-Z+\\-\\.]*:)?/{0,2}[0-9a-zA-Z;/?:@&=+$\\.\\>> -_!~*'()%]+)?(>> #[0-9a-zA-Z;/?:@&=+$\\.\\-_!~*'()%]+)?:[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*$" ]
+	},
+
+		
+
+	"ID" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:NCName"
+	},
+
+		
+
+	"IDREF" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"base" : "xsd_:NCName"
+	},
+
+		
+
+	"IDREFS" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*( +[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*)*$" ]
+	},
+
+		
+
+	"NMTOKEN" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.c + "]+$" ]
+	},
+
+		
+
+	"NMTOKENS" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.c + "]+( [" + XsltForms_typeDefs.ctes.c + "]+)*$" ]
+	},
+
+		
+
+	"base64Binary" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^[a-zA-Z0-9+/=]+$" ]
+	},
+
+		
+
+	"hexBinary" : {
+		"nsuri" : "http://www.w3.org/2001/XMLSchema",
+		"patterns" : [ "^[0-9A-Fa-f]+$" ],
+		"format" : function(value) {
+			return value.toUpperCase();
+		},
+		"parse" : function(value) {
+			return value.toUpperCase();
+		}
+	}
+};
+
+
+		
+
+XsltForms_typeDefs.XForms = {
+
+		
+
+	"string" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"whiteSpace" : "preserve"
+	},
+
+		
+
+	"boolean" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(true|false|0|1)?$" ],
+		"class" : "boolean"
+	},
+
+		
+
+	"decimal" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^([\\-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+))?$" ],
+		"class" : "number",
+		"format" : function(value) {
+			return XsltForms_browser.i18n.formatNumber(value, this.fractionDigits);
+		},
+		"parse" : function(value) {
+			return XsltForms_browser.i18n.parseNumber(value);
+		}
+	},
+
+		
+
+	"float" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^((([\\-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][\\-+]?[0-9]+)?|-?INF|NaN))?$" ],
+		"class" : "number"
+	},
+
+		
+
+	"double" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^((([\\-+]?([0-9]+(\\.[0-9]*)?)|(\\.[0-9]+))([eE][-+]?[0-9]+)?|-?INF|NaN))?$" ],
+		"class" : "number"
+	},
+
+		
+
+	"dateTime" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?)?$" ],
+		"class" : "datetime",
+		"displayLength" : 20,
+		"format" : function(value) {
+			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parse(value, "yyyy-MM-ddThh:mm:ss"), null, true);
+		},
+		"parse" : function(value) {
+			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parse(value), "yyyy-MM-ddThh:mm:ss", true);
+		}
+	},
+
+		
+
+	"date" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(([12][0-9]{3})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?)?$" ],
+		"class" : "date",
+		"displayLength" : 10,
+		"format" : function(value) {
+			return XsltForms_browser.i18n.formatDate(XsltForms_browser.i18n.parse(value, "yyyy-MM-dd"), null, true);
+		},
+		"parse" : function(value) {
+			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parseDate(value), "yyyy-MM-dd", true);
+		}
+	},
+
+		
+
+	"time" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?(Z|[+\\-]([01][0-9]|2[0-3]):[0-5][0-9])?)?$" ],
+		"displayLength" : 8
+	},
+
+		
+
+	"duration" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(-?P(?!$)([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T(?!$)([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?)?$" ]
+	},
+
+		
+
+	"dayTimeDuration" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(-?P([0-9]+D(T([0-9]+(H([0-9]+(M([0-9]+(\\.[0-9]*)?S|\\.[0-9]+S)?|(\\.[0-9]*)?S)|(\\.[0-9]*)?S)?|M([0-9]+(\\.[0-9]*)?S|\\.[0-9]+S)?|(\\.[0-9]*)?S)|\\.[0-9]+S))?|T([0-9]+(H([0-9]+(M([0-9]+(\\.[0-9]*)?S|\\.[0-9]+S)?|(\\.[0-9]*)?S)|(\\.[0-9]*)?S)?|M([0-9]+(\\.[0-9]*)?S|\\.[0-9]+S)?|(\\.[0-9]*)?S)|\\.[0-9]+S)))?$" ]
+	},
+
+		
+
+	"yearMonthDuration" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(-?P[0-9]+(Y([0-9]+M)?|M))?$" ]
+	},
+
+		
+
+	"gDay" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(---(0[1-9]|[12][0-9]|3[01]))?$" ]
+	},
+
+		
+
+	"gMonth" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(--(0[1-9]|1[012]))?$" ]
+	},
+
+		
+
+	"gMonthDay" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(--(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01]))?$" ]
+	},
+
+		
+
+	"gYear" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^([\\-+]?([0-9]{4}|[1-9][0-9]{4,}))?$" ]
+	},
+
+		
+
+	"gYearMonth" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^(([12][0-9]{3})-(0[1-9]|1[012]))?$" ]
+	},
+
+		
+
+	"integer" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:decimal",
+		"fractionDigits" : "0"
+	},
+
+		
+
+	"nonPositiveInteger" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:integer",
+		"patterns" : [ "^((-[0-9]+|0))?$" ]
+	},
+
+		
+
+	"nonNegativeInteger" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:integer",
+		"patterns" : [ "^(\\+?[0-9]+)?$" ]
+	},
+
+		
+
+	"negativeInteger" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:integer",
+		"patterns" : [ "^(-[0-9]+)?$" ]
+	},
+
+		
+
+	"positiveInteger" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:integer",
+		"patterns" : [ "^(\\+?0*[1-9][0-9]*)?$" ]
+	},
+
+		
+
+	"byte" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:integer",
+		"minInclusive" : -128,
+		"maxInclusive" : 127
+	},
+
+		
+
+	"short" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:integer",
+		"minInclusive" : -32768,
+		"maxInclusive" : 32767
+	},
+
+		
+
+	"int" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:integer",
+		"minInclusive" : -2147483648,
+		"maxInclusive" : 2147483647
+	},
+
+		
+
+	"long" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:integer",
+		"minInclusive" : -9223372036854775808,
+		"maxInclusive" : 9223372036854775807
+	},
+
+		
+
+	"unsignedByte" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:nonNegativeInteger",
+		"maxInclusive" : 255
+	},
+
+		
+
+	"unsignedShort" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:nonNegativeInteger",
+		"maxInclusive" : 65535
+	},
+
+		
+
+	"unsignedInt" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:nonNegativeInteger",
+		"maxInclusive" : 4294967295
+	},
+
+		
+
+	"unsignedLong" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:nonNegativeInteger",
+		"maxInclusive" : 18446744073709551615
+	},
+
+		
+
+	"normalizedString" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"whiteSpace" : "replace"
+	},
+
+		
+
+	"token" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"whiteSpace" : "collapse"
+	},
+
+		
+
+	"language" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:token",
+		"patterns" : [ "^([a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*)?$" ]
+	},
+
+		
+
+	"anyURI" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:token",
+		"patterns" : [ "^((([a-zA-Z][0-9a-zA-Z+\\-\\.]*:)?/{0,2}[0-9a-zA-Z;/?:@&=+$\\.\\>> -_!~*'()%]+)?(>> #[0-9a-zA-Z;/?:@&=+$\\.\\-_!~*'()%]+)?)?$" ]
+	},
+
+		
+
+	"Name" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:token",
+		"patterns" : [ "^([" + XsltForms_typeDefs.ctes.i + ":][" + XsltForms_typeDefs.ctes.c + ":]*)?$" ]
+	},
+
+		
+
+	"NCName" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:token",
+		"patterns" : [ "^([" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*)?$" ]
+	},
+
+		
+
+	"QName" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:token",
+		"patterns" : [ "^((([a-zA-Z][0-9a-zA-Z+\\-\\.]*:)?/{0,2}[0-9a-zA-Z;/?:@&=+$\\.\\>> -_!~*'()%]+)?(>> #[0-9a-zA-Z;/?:@&=+$\\.\\-_!~*'()%]+)?:[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*)?$" ]
+	},
+
+		
+
+	"ID" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:NCName"
+	},
+
+		
+
+	"IDREF" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:NCName"
+	},
+
+		
+
+	"IDREFS" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^([" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]+( +[" + XsltForms_typeDefs.ctes.i + "][" + XsltForms_typeDefs.ctes.c + "]*)*)?$" ]
+	},
+
+		
+
+	"NMTOKEN" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^[" + XsltForms_typeDefs.ctes.c + "]*$" ]
+	},
+
+		
+
+	"NMTOKENS" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^([" + XsltForms_typeDefs.ctes.c + "]+( [" + XsltForms_typeDefs.ctes.c + "]+)*)?$" ]
+	},
+
+		
+
+	"base64Binary" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^[a-zA-Z0-9+/]*$" ]
+	},
+
+		
+
+	"hexBinary" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"patterns" : [ "^[0-9A-Fa-f]*$" ],
+		"format" : function(value) {
+			return value.toUpperCase();
+		},
+		"parse" : function(value) {
+			return value.toUpperCase();
+		}
+	},
+
+		
+
+	"email" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xsd_:string",
+		"whiteSpace" : "collapse",
+		"patterns" : [ "^([A-Za-z0-9!#-'\\*\\+\\-/=\\?\\^_`\\{-~]+(\\.[A-Za-z0-9!#-'\\*\\+\\-/=\\?\\^_`\\{-~]+)*@[A-Za-z0-9!#-'\\*\\+\\-/=\\?\\^_`\\{-~]+(\\.[A-Za-z0-9!#-'\\*\\+\\-/=\\?\\^_`\\{-~]+)*)?$" ]
+	},
+
+		
+
+	"card-number" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xsd_:string",
+		"patterns" : [ "^[0-9]*$" ]
+	},
+
+		
+
+	"url" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xsd_:string",
+		"whiteSpace" : "collapse",
+		"patterns" : [ "^(ht|f)tp(s?)://([a-z0-9]*:[a-z0-9]*@)?([a-z0-9.]*\\.[a-z]{2,7})$" ]
+	},
+
+		
+
+	"amount" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xforms:decimal",
+		"format" : function(value) {
+			return XsltForms_browser.i18n.formatNumber(value, 2);
+		}
+	},
+
+		
+
+	"HTMLFragment" : {
+		"nsuri" : "http://www.w3.org/2002/xforms",
+		"base" : "xsd_:string"
+	}
+};
+
+		
+
+XsltForms_typeDefs.XSLTForms = {
+
+		
+
+	"shortDate" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"patterns" : [ "^(([12][0-9]{3})(0[1-9]|1[012])(0[1-9]|[12][0-9]|3[01]))?$" ],
+		"class" : "date",
+		"displayLength" : 10,
+		"format" : function(value) {
+			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parse(value, "yyyyMMdd"), null, true);
+		},
+		"parse" : function(value) {
+			return XsltForms_browser.i18n.format(XsltForms_browser.i18n.parse(value), "yyyyMMdd", true);
+		}
+	},
+
+		
+
+	"decimal" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"patterns" : [ "^[\\-+]?\\(*[\\-+]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)(([+-/]|\\*)\\(*([0-9]+(\\.[0-9]*)?|\\.[0-9]+)\\)*)*$" ],
+		"class" : "number",
+		"eval" : "xsd:decimal"
+	},
+
+		
+
+	"float" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:float"
+	},
+
+		
+
+	"double" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:double"
+	},
+
+		
+
+	"integer" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:integer"
+	},
+
+		
+
+	"nonPositiveInteger" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:nonPositiveInteger"
+	},
+
+		
+
+	"nonNegativeInteger" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:nonNegativeInteger"
+	},
+
+		
+
+	"negativeInteger" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:negativeInteger"
+	},
+
+		
+
+	"positiveInteger" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:positiveInteger"
+	},
+
+		
+
+	"byte" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:byte"
+	},
+
+		
+
+	"short" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:short"
+	},
+
+		
+
+	"int" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:int"
+	},
+
+		
+
+	"long" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:long"
+	},
+
+		
+
+	"unsignedByte" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:unsignedByte"
+	},
+
+		
+
+	"unsignedShort" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:unsignedShort"
+	},
+
+		
+
+	"unsignedInt" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:unsignedInt"
+	},
+
+		
+
+	"unsignedLong" : {
+		"nsuri" : "http://www.agencexml.com/xsltforms",
+		"base" : "xsltforms:decimal",
+		"eval" : "xsd:unsignedLong"
+	}
+};
+
+		
+
+XsltForms_typeDefs.DublinCore = {
+
+		
+
+	"W3CDTF" : {
+		"nsuri" : "http://purl.org/dc/terms/",
+		"base" : "xsd_:dateTime"
+	}
+};
+
+XsltForms_typeDefs.initAll();
 
 	
 	
@@ -12508,7 +13453,7 @@ if (typeof xsltforms_d0 === "undefined") {
 				document.addEventListener("load", func, false);
 			} else if (window.attachEvent) {
 				window.attachEvent("onload", func);
-			} else if (typeof window.onload != "function") {
+			} else if (typeof window.onload !== "function") {
 				window.onload = func;
 			} else {
 				var oldonload = window.onload;
@@ -12561,15 +13506,15 @@ if (typeof xsltforms_d0 === "undefined") {
 					elts[i].outerHTML = subbody;
 				}
 			}
-		}
+		};
 		var xsltforms_init = function () {
 			try {
 				xftrans();
 				xsltforms_initImpl();
 			} catch(e) {
-				alert("XSLTForms Exception\n--------------------------\n\nIncorrect Javascript code generation:\n\n"+(typeof(e.stack)=="undefined"?"":e.stack)+"\n\n"+(e.name?e.name+(e.message?"\n\n"+e.message:""):e));
+				alert("XSLTForms Exception\n--------------------------\n\nIncorrect Javascript code generation:\n\n"+(typeof(e.stack)==="undefined"?"":e.stack)+"\n\n"+(e.name?e.name+(e.message?"\n\n"+e.message:""):e));
 			}
-		}
+		};
 		if (document.readyState === "complete") {
 			xsltforms_init();
 		} else {
