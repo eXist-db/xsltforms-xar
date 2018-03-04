@@ -1,11 +1,19 @@
 <meta xmlns="http://exist-db.org/xquery/repo">
-    <description>This library contains revision 588 of XSLTForms, from 2014-02-22.</description>
+    <description>This library contains XSLTForms v1.0</description>
     <author>Alain Couthures</author>
     <website>http://www.agencexml.com/xsltforms</website>
-    <status>alpha</status>
+    <status>stable</status>
     <license>GNU-LGPL</license>
     <copyright>true</copyright>
     <type>library</type>
     <target>xsltforms</target>
+    <prepare/>
     <finish/>
+    <changelog>
+        <change version="1.0.0">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Update to XSLTForms 1.0, released October 2017</li>
+            </ul>
+        </change>
+    </changelog>
 </meta>
