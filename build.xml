@@ -2,7 +2,7 @@
     <property name="project.app" value="xsltforms"/>
     <property name="project.version" value="1.0.0"/>
     <property name="build" value="build"/>
-    <property name="server.url" value="http://demo.exist-db.org/exist/apps/public-repo/public/"/>
+    <property name="server.url" value="https://exist-db.org/exist/apps/public-repo/public/"/>
 
     <condition property="git.commit" value="${git.commit}" else="">
         <isset property="git.commit"/>
