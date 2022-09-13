@@ -20,5 +20,20 @@
                 <li>Update to XSLTForms 1.0, released October 2017</li>
             </ul>
         </change>
+        <change version="0.3.0-r594">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Update to revision 594 of XSLTForms, from 2014-04-16</li>
+            </ul>
+        </change>
+        <change version="0.2.0-r565">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Update to revision 562 of XSLTForms, from 2012-11-28</li>
+            </ul>
+        </change>
+        <change version="0.1.0-r559">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Update to revision 559 of XSLTForms, from 2012-10-30</li>
+            </ul>
+        </change>
     </changelog>
 </meta>
