@@ -1,5 +1,5 @@
 <meta xmlns="http://exist-db.org/xquery/repo">
-    <description>This library contains XSLTForms v1.0</description>
+    <description>This library contains XSLTForms v1.3</description>
     <author>Alain Couthures</author>
     <website>http://www.agencexml.com/xsltforms</website>
     <status>stable</status>
@@ -10,6 +10,11 @@
     <prepare/>
     <finish/>
     <changelog>
+        <change version="1.3.0">
+            <ul xmlns="http://www.w3.org/1999/xhtml">
+                <li>Update to XSLTForms 1.3, released December 2018</li>
+            </ul>
+        </change>
         <change version="1.0.0">
             <ul xmlns="http://www.w3.org/1999/xhtml">
                 <li>Update to XSLTForms 1.0, released October 2017</li>
