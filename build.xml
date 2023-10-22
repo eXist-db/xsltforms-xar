@@ -1,6 +1,6 @@
 <project default="all" name="XSLTForms">
     <property name="project.app" value="xsltforms"/>
-    <property name="project.version" value="1.3.0"/>
+    <property name="project.version" value="1.7.0"/>
     <property name="build" value="build"/>
     <property name="server.url" value="https://exist-db.org/exist/apps/public-repo/public/"/>
 
